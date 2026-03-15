@@ -1,10 +1,10 @@
-# Deductly
+# DeductlyHQ
 
-Deductly is a mobile-first application designed to help gig economy workers track mileage, expenses, and tax deductions.
+DeductlyHQ is a mobile-first application designed to help gig economy workers track mileage, expenses, and tax deductions.
 
 Drivers working with platforms like DoorDash, Uber, Lyft, Instacart, and Spark often struggle to keep accurate records for tax deductions. Deductly simplifies this process by providing automated mileage tracking, receipt scanning, and real-time financial insights.
 
-The goal of Deductly is to remove the complexity of bookkeeping for independent contractors while helping users maximize their tax deductions.
+The goal of DeductlyHQ is to remove the complexity of bookkeeping for independent contractors while helping users maximize their tax deductions.
 
 ---
 
@@ -34,11 +34,11 @@ Users can quickly view:
 
 ### Tax Estimation
 
-Deductly provides a running estimate of taxes owed based on recorded income, mileage deductions, and expenses.
+DeductlyHQ provides a running estimate of taxes owed based on recorded income, mileage deductions, and expenses.
 
 ### Subscription Model
 
-Deductly operates using a freemium model.
+DeductlyHQ operates using a freemium model.
 
 **Free Tier**
 
@@ -61,7 +61,7 @@ Premium subscriptions are managed through **Apple In-App Purchases (StoreKit)**.
 
 # Security
 
-Deductly includes secure authentication and optional Two-Factor Authentication (2FA).
+DeductlyHQ includes secure authentication and optional Two-Factor Authentication (2FA).
 
 Supported authentication methods:
 
@@ -107,7 +107,7 @@ Security features include:
 
 # Architecture
 
-Deductly uses a client-server architecture.
+DeductlyHQ uses a client-server architecture.
 
 The mobile application acts as a client that communicates with a centralized API built with FastAPI.
 
@@ -193,7 +193,7 @@ This architecture allows the backend to support additional clients in the future
 
 # Target Users
 
-Deductly is designed for independent workers including:
+DeductlyHQ is designed for independent workers including:
 
 * DoorDash drivers
 * Uber and Lyft drivers
@@ -205,7 +205,7 @@ Deductly is designed for independent workers including:
 
 # Long-Term Vision
 
-Future versions of Deductly may include:
+Future versions of DeductlyHQ may include:
 
 * Automated income imports from gig platforms
 * AI-powered expense categorization
