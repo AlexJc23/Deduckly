@@ -24,7 +24,7 @@ def create_user(db: Session, user_in: UserCreate) -> User:
             is_active=True,
             email_verified=False,
             filing_status=user_in.filing_status,
-            role="user"
+            role= user_in.role if user_in.role else "user"
         )
 
         db.add(db_user)

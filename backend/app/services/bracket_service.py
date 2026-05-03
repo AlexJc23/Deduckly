@@ -4,11 +4,12 @@ from fastapi import HTTPException
 from typing import List, Optional
 from decimal import Decimal, InvalidOperation
 
-from app.models import TaxBracket
-from app.schemas.v1.tax_bracket import TaxBracketCreate, TaxBracketUpdate
+from app.models import TaxBracket, User
+from app.schemas.v1.bracket import TaxBracketCreate, TaxBracketUpdate
+from app.models.enums import FilingStatus, UserRole
 
 
-def get_brackets(db: Session, year: int, filing_status: str) -> List[TaxBracket]:
+def get_tax_brackets(db: Session, year: int, filing_status: FilingStatus) -> List[TaxBracket]:
     try:
         return (
             db.query(TaxBracket)
@@ -19,7 +20,7 @@ def get_brackets(db: Session, year: int, filing_status: str) -> List[TaxBracket]
             .order_by(TaxBracket.min_income.asc())
             .all()
         )
-    except SQLAlchemyError as e:
+    except SQLAlchemyError:
         raise HTTPException(status_code=500, detail="Failed to fetch tax brackets")
 
 
@@ -27,12 +28,11 @@ def _validate_range(min_income: Decimal, max_income: Optional[Decimal]):
     if min_income < 0:
         raise HTTPException(status_code=400, detail="min_income cannot be negative")
 
-    if max_income is not None:
-        if max_income <= min_income:
-            raise HTTPException(
-                status_code=400,
-                detail="max_income must be greater than min_income"
-            )
+    if max_income is not None and max_income <= min_income:
+        raise HTTPException(
+            status_code=400,
+            detail="max_income must be greater than min_income"
+        )
 
 
 def _check_overlap(
@@ -50,7 +50,6 @@ def _check_overlap(
         b_min = bracket.min_income
         upper_b = bracket.max_income if bracket.max_income is not None else Decimal("Infinity")
 
-        # overlap exists unless one is completely before the other
         if not (upper_a <= b_min or new_min >= upper_b):
             raise HTTPException(
                 status_code=400,
@@ -77,11 +76,14 @@ def _check_top_bracket(
             )
 
 
-def create_tax_bracket(db: Session, bracket_in: TaxBracketCreate) -> TaxBracket:
+def create_tax_bracket(db: Session,  bracket_in: TaxBracketCreate, user: User ) -> TaxBracket:
     try:
+        if user.role != UserRole.ADMIN:
+            raise HTTPException(status_code=403, detail="Only admins can create tax brackets")
+
         _validate_range(bracket_in.min_income, bracket_in.max_income)
 
-        existing = get_brackets(db, bracket_in.year, bracket_in.filing_status)
+        existing = get_tax_brackets(db, bracket_in.year, bracket_in.filing_status)
 
         _check_top_bracket(existing, bracket_in.max_income)
         _check_overlap(existing, bracket_in.min_income, bracket_in.max_income)
@@ -105,16 +107,18 @@ def create_tax_bracket(db: Session, bracket_in: TaxBracketCreate) -> TaxBracket:
 def update_tax_bracket(
     db: Session,
     bracket_id: int,
-    bracket_in: TaxBracketUpdate
+    bracket_in: TaxBracketUpdate, user: User
 ) -> TaxBracket:
 
     try:
+        if user.role != UserRole.ADMIN:
+            raise HTTPException(status_code=403, detail="Only admins can update tax brackets")
+
         bracket = db.query(TaxBracket).filter(TaxBracket.id == bracket_id).first()
 
         if not bracket:
             raise HTTPException(status_code=404, detail="Tax bracket not found")
 
-        # Merge values
         updated_data = bracket_in.model_dump(exclude_unset=True)
 
         year = updated_data.get("year", bracket.year)
@@ -125,12 +129,11 @@ def update_tax_bracket(
 
         _validate_range(min_income, max_income)
 
-        existing = get_brackets(db, year, filing_status)
+        existing = get_tax_brackets(db, year, filing_status)
 
         _check_top_bracket(existing, max_income, exclude_id=bracket.id)
         _check_overlap(existing, min_income, max_income, exclude_id=bracket.id)
 
-        # Apply updates dynamically
         for field, value in updated_data.items():
             setattr(bracket, field, value)
 
@@ -147,8 +150,11 @@ def update_tax_bracket(
         raise HTTPException(status_code=500, detail="Failed to update tax bracket")
 
 
-def delete_tax_bracket(db: Session, bracket_id: int):
+def delete_tax_bracket(db: Session, bracket_id: int, user: User):
     try:
+        if user.role != UserRole.ADMIN:
+            raise HTTPException(status_code=403, detail="Only admins can delete tax brackets")
+
         bracket = db.query(TaxBracket).filter(TaxBracket.id == bracket_id).first()
 
         if not bracket:

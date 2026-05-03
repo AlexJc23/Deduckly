@@ -16,6 +16,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    role: Optional[UserRole] = "user"  # default to "user" if not provided
 
     @field_validator("password")
     @classmethod
@@ -41,7 +42,8 @@ class UserUpdate(BaseModel):
     first_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
     last_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
     password: Optional[str] = None
-    filing_status: Optional[FilingStatus] = None  # ← you forgot this
+    role: Optional[UserRole] = "user"  # default to "user" if not provided
+    filing_status: Optional[FilingStatus] = None
 
     @field_validator("password")
     @classmethod
