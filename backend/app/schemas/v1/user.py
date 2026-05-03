@@ -1,3 +1,4 @@
+from app.models.enums import FilingStatus, UserRole
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, Field
 from datetime import datetime
 from typing import Optional
@@ -7,6 +8,10 @@ class UserBase(BaseModel):
     first_name: str = Field(min_length=1, max_length=50)
     last_name: str = Field(min_length=1, max_length=50)
     email: EmailStr
+    filing_status: Optional[FilingStatus] = None
+
+    # ❌ remove role from user input unless you want users making themselves admin
+    # role: Optional[str] = None
 
 
 class UserCreate(UserBase):
@@ -31,10 +36,12 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+
 class UserUpdate(BaseModel):
     first_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
     last_name: Optional[str] = Field(default=None, min_length=1, max_length=50)
     password: Optional[str] = None
+    filing_status: Optional[FilingStatus] = None  # ← you forgot this
 
     @field_validator("password")
     @classmethod
@@ -53,11 +60,14 @@ class UserUpdate(BaseModel):
 
         return value
 
+
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+
     id: int
     first_name: str
     last_name: str
     email: EmailStr
     is_active: bool
+    filing_status: Optional[FilingStatus]  # ← you’ll want this later
     created_at: datetime
