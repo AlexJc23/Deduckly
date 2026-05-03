@@ -36,3 +36,15 @@ class ExpenseCategory(str, Enum):
     RENT = "rent"                 # workspace (if applicable)
     UTILITIES = "utilities"       # electricity, etc
     OTHER = "other"               # catch-all (you will need it)
+
+class FilingStatus(str, Enum):
+    single = "single"
+    married_filing_jointly = "married_filing_jointly"
+    married_filing_separately = "married_filing_separately"
+    head_of_household = "head_of_household"
+    qualifying_surviving_spouse = "qualifying_surviving_spouse"
+
+
+class UserRole(str, Enum):
+    USER = "user"
+    ADMIN = "admin"
