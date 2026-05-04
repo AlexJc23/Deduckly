@@ -29,6 +29,8 @@ class TaxBracket(Base):
         index=True
     )
 
+    
+
     min_income: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     max_income: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2), nullable=True)
 
