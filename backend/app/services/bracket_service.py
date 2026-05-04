@@ -124,6 +124,7 @@ def update_tax_bracket(
         year = updated_data.get("year", bracket.year)
         filing_status = updated_data.get("filing_status", bracket.filing_status)
 
+
         min_income = updated_data.get("min_income", bracket.min_income)
         max_income = updated_data.get("max_income", bracket.max_income)
 
