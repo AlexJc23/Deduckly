@@ -91,6 +91,10 @@ def update_user(db: Session, user_id: int, user_in: UserUpdate) -> User:
         if user_in.filing_status is not None:
             user.filing_status = user_in.filing_status
 
+        if user_in.filing_status is not None:
+            user.filing_status = user_in.filing_status
+
+        
         db.commit()
         db.refresh(user)
 

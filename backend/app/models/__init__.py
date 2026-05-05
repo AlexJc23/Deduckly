@@ -8,3 +8,4 @@ from .expense import Expense
 from .enums import TripPlatform, TripCategory, IncomeType
 from .bracket import TaxBracket
 from .milage_rate import MileageRate
+from .session import Session
