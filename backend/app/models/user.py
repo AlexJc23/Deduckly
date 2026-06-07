@@ -12,6 +12,11 @@ class User(Base):
     first_name: Mapped[str] = mapped_column(String(50), nullable=False)
     last_name: Mapped[str] = mapped_column(String(50), nullable=False)
 
+    revenuecat_user_id: Mapped[str] = mapped_column(
+        String(1000),
+        unique=True,
+        nullable=True)
+
     email: Mapped[str] = mapped_column(
         String(100),
         unique=True,
@@ -91,7 +96,7 @@ class User(Base):
         lazy="selectin"
     )
 
-    
+
 
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}', is_active={self.is_active})>"

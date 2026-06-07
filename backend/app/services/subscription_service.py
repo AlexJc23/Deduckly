@@ -26,7 +26,7 @@ def process_subscription(
             existing.expiration_date = data["expiration_date"]
             existing.auto_renew = data["auto_renew"]
             existing.environment = data["environment"]
-            existing.apple_response = data
+            existing.provider_response = data
 
             db.commit()
             db.refresh(existing)
@@ -45,7 +45,7 @@ def process_subscription(
             purchase_date=data["purchase_date"],
             expiration_date=data["expiration_date"],
             auto_renew=data["auto_renew"],
-            apple_response=data,
+            provider_response=data,
         )
 
         db.add(new_sub)

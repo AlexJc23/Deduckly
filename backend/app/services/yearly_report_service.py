@@ -9,36 +9,69 @@ from datetime import datetime, timezone
 from app.models import TaxBracket, User, Expense, Income, Trip
 
 
-def generate_tax_report(db: Session, user: User, year: int):
+def generate_tax_report(
+    db: Session,
+    user: User,
+    year: int,
+    month: int
+):
     try:
-        mileage_rate = db.query(func.max(MileageRate.rate)).filter(MileageRate.year == year).scalar() or Decimal("0")
+        mileage_rate = (
+            db.query(func.max(MileageRate.rate))
+            .filter(MileageRate.year == year)
+            .scalar()
+            or Decimal("0")
+        )
 
-        # 💰 totals
+        # 💰 income filters
+        income_filters = [
+            Income.user_id == user.id,
+            func.extract("year", Income.received_at) == year,
+        ]
+
+        income_filters.append(
+            func.extract("month", Income.received_at) == month
+        )
+
         total_income = (
             db.query(func.sum(Income.amount))
-            .filter(
-                Income.user_id == user.id,
-                func.extract("year", Income.received_at) == year
-            )
-            .scalar() or Decimal("0")
+            .filter(*income_filters)
+            .scalar()
+            or Decimal("0")
+        )
+
+        # 💸 expense filters
+        expense_filters = [
+            Expense.user_id == user.id,
+            func.extract("year", Expense.incurred_at) == year,
+        ]
+
+        expense_filters.append(
+            func.extract("month", Expense.incurred_at) == month
         )
 
         total_expenses = (
             db.query(func.sum(Expense.amount))
-            .filter(
-                Expense.user_id == user.id,
-                func.extract("year", Expense.incurred_at) == year
-            )
-            .scalar() or Decimal("0")
+            .filter(*expense_filters)
+            .scalar()
+            or Decimal("0")
+        )
+
+        # 🚗 trip filters
+        trip_filters = [
+            Trip.user_id == user.id,
+            func.extract("year", Trip.created_at) == year,
+        ]
+
+        trip_filters.append(
+            func.extract("month", Trip.created_at) == month
         )
 
         total_miles = (
             db.query(func.sum(Trip.distance_miles))
-            .filter(
-                Trip.user_id == user.id,
-                func.extract("year", Trip.created_at) == year
-            )
-            .scalar() or Decimal("0")
+            .filter(*trip_filters)
+            .scalar()
+            or Decimal("0")
         )
 
         total_income = Decimal(total_income)
@@ -66,9 +99,11 @@ def generate_tax_report(db: Session, user: User, year: int):
             .all()
         )
 
-
         if not tax_brackets:
-            raise HTTPException(status_code=404, detail="No tax brackets found")
+            raise HTTPException(
+                status_code=404,
+                detail="No tax brackets found"
+            )
 
         tax_owed = Decimal("0")
         remaining_income = taxable_income
@@ -88,6 +123,7 @@ def generate_tax_report(db: Session, user: User, year: int):
 
         return {
             "year": year,
+            "month": month,
             "first_name": getattr(user, "first_name", "N/A"),
             "last_name": getattr(user, "last_name", "N/A"),
             "filing_status": user.filing_status,
@@ -107,7 +143,13 @@ def generate_tax_report(db: Session, user: User, year: int):
         }
 
     except SQLAlchemyError:
-        raise HTTPException(status_code=500, detail="Database error while generating report")
+        raise HTTPException(
+            status_code=500,
+            detail="Database error while generating report"
+        )
 
     except InvalidOperation:
-        raise HTTPException(status_code=500, detail="Decimal calculation error")
+        raise HTTPException(
+            status_code=500,
+            detail="Decimal calculation error"
+        )
