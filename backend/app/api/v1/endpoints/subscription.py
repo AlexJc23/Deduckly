@@ -43,33 +43,31 @@ def get_my_subscription(
     }
 
 
-@router.post("/apple/webhook")
-def apple_webhook(
+@router.post("/webhooks/revenuecat")
+def revenuecat_webhook(
     payload: dict,
     db: Session = Depends(get_db)
 ):
-    # TODO:
-    # Replace this later with proper Apple receipt validation
-    # and transaction-to-user mapping.
-    user_id = payload.get("user_id")
+    event = payload.get("event")
 
-    if not user_id:
+    if not event:
         raise HTTPException(
             status_code=400,
-            detail="Missing user_id"
+            detail="Missing event"
         )
 
-    sub = process_subscription(
-        db,
-        user_id=user_id,
-        data=payload
-    )
+    app_user_id = event.get("app_user_id")
 
-    return {
-        "message": "Subscription processed successfully",
-        "subscription_id": sub.id,
-    }
+    if not app_user_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Missing app_user_id"
+        )
 
+    # find user
+    # update subscription
+
+    return {"success": True}
 
 @router.post(
     "/restore",
@@ -85,3 +83,13 @@ def restore_subscription(
         current_user.id,
         subscription_data.model_dump()
     )
+
+@router.post("/sync")
+def sync_subscription(
+    payload: dict,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # update local subscription state
+
+    return {"success": True}

@@ -20,3 +20,30 @@ venv/
 
 # Node (frontend later)
 node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# React Native / Metro
+.metro-health-check*
+
+# Build artifacts
+*.apk
+*.aab
+*.ipa
+
+# TypeScript
+*.tsbuildinfo
+
+# Coverage
+coverage/
+
+# Expo env typings
+expo-env.d.ts
+
+# Local env variants
+.env.local
+.env.development
+.env.production

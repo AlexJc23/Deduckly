@@ -30,6 +30,12 @@ class Subscription(Base):
         index=True
     )
 
+    status: Mapped[str] = mapped_column(
+        String,
+        nullable=False,
+        default="active"
+    )  # active, expired, canceled, etc.
+
     product_id: Mapped[str] = mapped_column(
         String,
         nullable=False
@@ -65,7 +71,7 @@ class Subscription(Base):
         default=True
     )
 
-    apple_response: Mapped[dict] = mapped_column(
+    provider_response: Mapped[dict] = mapped_column(
         JSONB,
         nullable=True
     )
