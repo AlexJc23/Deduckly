@@ -12,11 +12,19 @@ export default function TabsLayout() {
         name="trips"
         options={{ title: "Trips" }}
       />
+      
+      <Tabs.Screen
+        name="reports"
+        options={{ title: "Reports" }}
+      />
 
       <Tabs.Screen
         name="settings"
         options={{ title: "Settings" }}
       />
+
+
+
     </Tabs>
   );
 }
