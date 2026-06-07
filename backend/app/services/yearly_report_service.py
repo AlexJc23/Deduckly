@@ -1,3 +1,6 @@
+from calendar import month
+from typing import Optional
+
 from app.models.milage_rate import MileageRate
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -13,7 +16,7 @@ def generate_tax_report(
     db: Session,
     user: User,
     year: int,
-    month: int
+    month: Optional[int] = None
 ):
     try:
         mileage_rate = (
@@ -24,14 +27,16 @@ def generate_tax_report(
         )
 
         # 💰 income filters
+        # 💰 income filters
         income_filters = [
             Income.user_id == user.id,
             func.extract("year", Income.received_at) == year,
         ]
 
-        income_filters.append(
-            func.extract("month", Income.received_at) == month
-        )
+        if month is not None:
+            income_filters.append(
+                func.extract("month", Income.received_at) == month
+            )
 
         total_income = (
             db.query(func.sum(Income.amount))
@@ -40,15 +45,18 @@ def generate_tax_report(
             or Decimal("0")
         )
 
+
+        # 💸 expense filters
         # 💸 expense filters
         expense_filters = [
             Expense.user_id == user.id,
             func.extract("year", Expense.incurred_at) == year,
         ]
 
-        expense_filters.append(
-            func.extract("month", Expense.incurred_at) == month
-        )
+        if month is not None:
+            expense_filters.append(
+                func.extract("month", Expense.incurred_at) == month
+            )
 
         total_expenses = (
             db.query(func.sum(Expense.amount))
@@ -58,14 +66,16 @@ def generate_tax_report(
         )
 
         # 🚗 trip filters
+        # 🚗 trip filters
         trip_filters = [
             Trip.user_id == user.id,
             func.extract("year", Trip.created_at) == year,
         ]
 
-        trip_filters.append(
-            func.extract("month", Trip.created_at) == month
-        )
+        if month is not None:
+            trip_filters.append(
+                func.extract("month", Trip.created_at) == month
+            )
 
         total_miles = (
             db.query(func.sum(Trip.distance_miles))
@@ -86,7 +96,10 @@ def generate_tax_report(
 
         # 📉 profit
         net_profit = total_income - total_expenses
-        taxable_income = max(net_profit - mileage_deduction, Decimal("0"))
+        taxable_income = max(
+            net_profit - mileage_deduction,
+            Decimal("0")
+        )
 
         # 🧮 tax calculation
         tax_brackets = (
@@ -116,7 +129,10 @@ def generate_tax_report(
             upper = bracket.max_income or Decimal("Infinity")
             span = upper - lower
 
-            taxable_in_bracket = min(remaining_income, span)
+            taxable_in_bracket = min(
+                remaining_income,
+                span
+            )
 
             tax_owed += taxable_in_bracket * bracket.rate
             remaining_income -= taxable_in_bracket
@@ -124,10 +140,20 @@ def generate_tax_report(
         return {
             "year": year,
             "month": month,
-            "first_name": getattr(user, "first_name", "N/A"),
-            "last_name": getattr(user, "last_name", "N/A"),
+            "first_name": getattr(
+                user,
+                "first_name",
+                "N/A"
+            ),
+            "last_name": getattr(
+                user,
+                "last_name",
+                "N/A"
+            ),
             "filing_status": user.filing_status,
-            "generated_at": datetime.now(timezone.utc),
+            "generated_at": datetime.now(
+                timezone.utc
+            ),
 
             "total_income": total_income,
             "total_expenses": total_expenses,
