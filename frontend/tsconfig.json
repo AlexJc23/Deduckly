@@ -5,8 +5,9 @@
     "baseUrl": ".",
     "ignoreDeprecations": "6.0",
     "paths": {
-      "@/*": ["src/*"]
-    }
+    "@/*": ["src/*"],
+    "@features/*": ["src/features/*"]
+  }
   },
   "include": [
     "**/*.ts",
