@@ -8,7 +8,7 @@ import {
 
 import { getAccessToken } from "../services/auth-service.service";
 import { clearTokens } from "../services/auth-service.service";
-
+import { router } from "expo-router";
 
 
 interface AuthContextType {
@@ -32,6 +32,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   async function signOut() {
     await clearTokens();
     setAuthenticated(false);
+    router.replace("/(auth)/login");
   }
 
   useEffect(() => {

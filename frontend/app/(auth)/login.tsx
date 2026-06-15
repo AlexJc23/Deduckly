@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { login } from "@/features/auth/api/auth.api";
 import { saveTokens } from "@/features/auth/services/auth-service.service"
 import { useAuth } from "@/features/auth/context/auth.context";
-import { router } from "expo-router";
+import { router, Link } from "expo-router";
 
 
 
@@ -29,6 +29,7 @@ export default function Login() {
         },
 
         onError: (error) => {
+            console.log("Login failed:", error);
             Alert.alert(
                 "Login Failed",
                 "Please check your email and password."
@@ -78,6 +79,15 @@ export default function Login() {
                 }
                 onPress={() => loginMutation.mutate({ email, password })}
             />
+            <Text style={{ marginTop: 16 }}>
+                Don't have an account?{" "}
+                <Link
+                    href="/(auth)/register"
+                    style={{ marginTop: 16, color: "blue" }}
+                    >
+                Register
+                </Link>
+            </Text>
 
         </View>
     )

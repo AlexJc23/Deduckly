@@ -13,9 +13,9 @@ export function AuthGate() {
     if (isLoading) return;
 
     if (isAuthenticated) {
-      router.replace("../(tabs)/dashboard");
+      router.replace("/(tabs)/dashboard");
     } else {
-      router.replace("../(auth)/login");
+      router.replace("/(auth)/login");
     }
   }, [isAuthenticated, isLoading]);
 
