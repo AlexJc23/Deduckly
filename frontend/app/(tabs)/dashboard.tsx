@@ -1,8 +1,15 @@
 import { useEffect } from "react";
-import { View, Text } from "react-native";
+import { View, Text, Button } from "react-native";
 import { checkHealth } from "@/services/health_service";
+import { useQuery } from "@tanstack/react-query";
+import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+
 
 export default function DashboardScreen() {
+  const userQuery = useCurrentUser();
+
+
+
   useEffect(() => {
     async function testConnection() {
       try {
@@ -16,6 +23,7 @@ export default function DashboardScreen() {
     testConnection();
   }, []);
 
+
   return (
     <View
       style={{
@@ -25,6 +33,17 @@ export default function DashboardScreen() {
       }}
     >
       <Text>Dashboard</Text>
+      {userQuery.data && (
+        <Text>
+          Welcome, {userQuery.data.first_name} {userQuery.data.last_name}!
+        </Text>
+      )}
+      <Button
+      title="Refresh User"
+      onPress={() => {
+        userQuery.refetch();
+      }}
+    />
     </View>
   );
 }

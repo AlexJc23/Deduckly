@@ -1,6 +1,8 @@
-import { View, Text } from "react-native";
+import { useAuth } from "@/features/auth/context/auth.context";
+import { View, Text, Button } from "react-native";
 
-export default function DashboardScreen() {
+export default function SettingsScreen() {
+  const { signOut } = useAuth();
   return (
     <View
       style={{
@@ -10,6 +12,7 @@ export default function DashboardScreen() {
       }}
     >
       <Text>Settings</Text>
+      <Button title="Logout" onPress={signOut} />
     </View>
   );
 }
