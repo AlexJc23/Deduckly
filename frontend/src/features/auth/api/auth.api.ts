@@ -5,6 +5,7 @@ import {
 } from "../types/auth.types";
 import { RegisterPayload } from "../types/register.types";
 import { User } from "../types/user.types";
+import { getTemporaryToken } from "../services/twofa-storage.service";
 
 export async function login(
   payload: LoginPayload
@@ -59,4 +60,23 @@ export async function refreshToken(
 
   return response.data;
 
+};
+
+export async function verify2FA(
+  code: string
+): Promise<AuthTokens> {
+  const tempToken =
+    getTemporaryToken();
+
+  const response = await api.post(
+    "api/v1/auth/verify-2fa",
+    { code },
+    {
+      headers: {
+        Authorization: `Bearer ${tempToken}`,
+      }
+    }
+  );
+
+  return response.data;
 }

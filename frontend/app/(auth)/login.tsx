@@ -6,6 +6,7 @@ import { login } from "@/features/auth/api/auth.api";
 import { saveTokens } from "@/features/auth/services/auth-service.service"
 import { useAuth } from "@/features/auth/context/auth.context";
 import { router, Link } from "expo-router";
+import { setTemporaryToken } from "@/features/auth/services/twofa-storage.service";
 
 
 
@@ -18,7 +19,20 @@ export default function Login() {
     const loginMutation = useMutation({
         mutationFn: login,
 
+
+
+
         onSuccess: async (data) => {
+            if (!data.refresh_token) {
+                setTemporaryToken(
+                    data.access_token
+                );
+                router.push(
+                    "/(auth)/verify-2fa"
+                );
+                return;
+            }
+            
             await saveTokens(
                 data.access_token,
                 data.refresh_token
