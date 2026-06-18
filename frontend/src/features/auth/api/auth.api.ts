@@ -80,3 +80,19 @@ export async function verify2FA(
 
   return response.data;
 }
+
+export async function enable2FA() {
+  const response = await api.post(
+    "api/v1/auth/enable-2fa"
+  );
+
+  return response.data;
+}
+
+export async function disable2FA() {
+  const response = await api.post(
+    "api/v1/auth/disable-2fa"
+  );
+
+  return response.data;
+}
