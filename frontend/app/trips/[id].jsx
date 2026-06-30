@@ -8,9 +8,17 @@ import {
 import { useTrip } from "@/features/trips/hooks/use-trips";
 import { router } from "expo-router"
 import { useLocalSearchParams } from "expo-router";
+import { useQueryClient }
+  from "@tanstack/react-query";
+
+import { useDeleteTrip }
+  from "@/features/trips/hooks/use-delete-trip";
 
 export default function TripDetailsScreen() {
+    const queryClient = useQueryClient();
     const { id } = useLocalSearchParams()
+
+    const deleteMutation = useDeleteTrip();
 
     const tripsQuery = useTrip(Number(id))
     const trip = tripsQuery.data;
@@ -59,6 +67,22 @@ export default function TripDetailsScreen() {
             <Button
                 title={"Back"}
                 onPress={() => router.back()}
+            />
+            <Button
+                title="Delete Trip"
+                onPress={() => {
+                    deleteMutation.mutate(
+                    Number(id),
+                    {
+                        onSuccess: async () => {
+                        await queryClient.invalidateQueries({
+                            queryKey: ["trips"],
+                        });
+                        router.back();
+                        },
+                    }
+                    );
+                }}
             />
         </View>
     )

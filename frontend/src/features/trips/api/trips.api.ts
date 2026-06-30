@@ -17,3 +17,13 @@ export async function getTrip(
 
     return response.data
 }
+
+
+export async function deleteTrip(
+    id: number
+) {
+    const response = await api.delete(
+        `api/v1/trips/${id}`
+    );
+    return response.data;
+}
