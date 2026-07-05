@@ -35,3 +35,30 @@ export type LocationPoint = {
     longitude: number;
     timestamp: number;
 };
+
+
+export async function reverseGeocode(
+  latitude: number,
+  longitude: number
+) {
+  const results =
+    await Location.reverseGeocodeAsync({
+      latitude,
+      longitude,
+    });
+
+  if (results.length === 0) {
+    return null;
+  }
+
+  const place = results[0];
+
+  return [
+    place.name,
+    place.street,
+    place.city,
+    place.region,
+  ]
+    .filter(Boolean)
+    .join(", ");
+}

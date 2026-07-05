@@ -14,11 +14,13 @@ import { router } from "expo-router";
 type EndTripModalProps = {
     visible: boolean;
     onClose: () => void;
+    onConfirm: () => void;
 }
 
 export function EndTripModal({
     visible,
-    onClose
+    onClose,
+    onConfirm,
 }: EndTripModalProps) {
     const [isMounted, setIsMounted] = useState(visible);
     const translateY = useRef(new Animated.Value(420)).current;
@@ -87,6 +89,9 @@ export function EndTripModal({
           </Pressable>
           <Pressable onPress={onClose} style={{ marginTop: 40, backgroundColor: 'green', padding: 20 }}>
             <Text>Resume Trip</Text>
+          </Pressable>
+          <Pressable onPress={onConfirm} style={{ marginTop: 40, backgroundColor: 'orange', padding: 20 }}>
+            <Text>End Trip</Text>
           </Pressable>
         </Animated.View>
       </View>

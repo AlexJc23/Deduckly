@@ -1,10 +1,10 @@
-import * as Location from "expo-location"
+import * as Location from "expo-location";
 import {
   createContext,
   useContext,
   useRef,
   useState,
-  useEffect
+  useEffect,
 } from "react";
 
 import {
@@ -12,7 +12,12 @@ import {
   LocationPoint,
   requestLocationPermission,
   watchLocation,
+  reverseGeocode
 } from "../services/location.service";
+
+import { calculateDistanceMiles } from "../services/distance.service";
+import { createTrip } from "@/features/trips/api/trips.api";
+import { buildTripPayload } from "../services/tracking.service";
 
 type TrackingMethod =
   | "automatic"
@@ -41,12 +46,13 @@ type TrackingContextType = {
   currentLatitude: number | null;
   currentLongitude: number | null;
 
+  distanceMiles: number;
 
   startTracking: (
     data: StartTrackingData
   ) => Promise<void>;
 
-  stopTracking: () => void;
+  stopTracking: (incomeAmount?: number | null) => Promise<boolean>;
 };
 
 const TrackingContext =
@@ -57,7 +63,6 @@ const TrackingContext =
 export function TrackingProvider({
   children,
 }: {
-  route: LocationPoint[];
   children: React.ReactNode;
 }) {
   const [isTracking, setIsTracking] =
@@ -87,17 +92,22 @@ export function TrackingProvider({
   const [currentLongitude, setCurrentLongitude] =
     useState<number | null>(null);
 
-    const [route, setRoute] = useState<LocationPoint[]>([]);
-    useEffect(() => {
-      console.log("Points", route)
-      console.log("Points", route.length)
-    }, [route])
+  const [route, setRoute] =
+    useState<LocationPoint[]>([]);
 
-    const [distanceMiles, setDistanceMiles] =
-      useState(0);
+  const [distanceMiles, setDistanceMiles] =
+    useState(0);
 
-    const locationSubscription =
-    useRef<Location.LocationSubscription | null>(null);
+  useEffect(() => {
+    setDistanceMiles(
+      calculateDistanceMiles(route)
+    );
+  }, [route]);
+
+  const locationSubscription =
+    useRef<Location.LocationSubscription | null>(
+      null
+    );
 
   const startTracking = async ({
     category,
@@ -128,27 +138,24 @@ export function TrackingProvider({
     ]);
 
     locationSubscription.current =
-      await watchLocation(
-        (location) => {
-          const {
+      await watchLocation((location) => {
+        const {
+          latitude,
+          longitude,
+        } = location.coords;
+
+        setCurrentLatitude(latitude);
+        setCurrentLongitude(longitude);
+
+        setRoute((previous) => [
+          ...previous,
+          {
             latitude,
             longitude,
-          } = location.coords
-
-          setCurrentLatitude(latitude);
-          setCurrentLongitude(longitude)
-
-          setRoute((previous) => [
-            ...previous,
-            {
-              latitude,
-              longitude,
-              timestamp: Date.now(),
-            },
-          ]);
-        }
-
-      );
+            timestamp: Date.now(),
+          },
+        ]);
+      });
 
     setCategory(category);
     setPlatform(platform);
@@ -165,25 +172,103 @@ export function TrackingProvider({
     setIsTracking(true);
   };
 
-  const stopTracking = () => {
-    locationSubscription.current?.remove();
+  const stopTracking = async (
+    incomeAmount?: number | null
+  ) => {
 
+
+    locationSubscription.current?.remove();
     locationSubscription.current = null;
 
-    setIsTracking(false);
+    if (
+      !startTime ||
+      startLatitude === null ||
+      startLongitude === null ||
+      currentLatitude === null ||
+      currentLongitude === null ||
+      !category
+    ) {
+      return false;
+    }
 
-    setStartTime(null);
 
-    setTrackingMethod(null);
-    setCategory(null);
-    setPlatform(null);
+    const startAddress = startLatitude && startLongitude
+    ? await reverseGeocode(
+      startLatitude,
+      startLongitude
+    )
+    : null;
 
-    setStartLatitude(null);
-    setStartLongitude(null);
+    const endAddress =
+    currentLatitude && currentLongitude
+    ? await reverseGeocode(
+      currentLatitude,
+      currentLongitude
+    )
+    : null;
 
-    setCurrentLatitude(null);
-    setCurrentLongitude(null);
-    setRoute([]);
+    console.log("Start ", startAddress);
+    console.log("End", endAddress)
+
+
+    const payload = await buildTripPayload({
+      startTime,
+      endTime: new Date(),
+
+      distanceMiles,
+
+      startLatitude,
+      startLongitude,
+
+      endLatitude: currentLatitude,
+      endLongitude: currentLongitude,
+
+      start_address: startAddress,
+      end_address: endAddress,
+
+      category,
+      platform: "personal",
+
+    });
+
+    try {
+      console.log(
+        JSON.stringify(payload, null, 2)
+      )
+      await createTrip(payload);
+
+      setIsTracking(false);
+
+      setStartTime(null);
+
+      setTrackingMethod(null);
+      setCategory(null);
+      setPlatform(null);
+
+      setStartLatitude(null);
+      setStartLongitude(null);
+
+      setCurrentLatitude(null);
+      setCurrentLongitude(null);
+
+      setRoute([]);
+      setDistanceMiles(0);
+
+      return true;
+    } catch (error: any) {
+  console.log("========== AXIOS ERROR ==========");
+
+  console.log("Status:", error.response?.status);
+
+  console.log(
+    "Data:",
+    JSON.stringify(error.response?.data, null, 2)
+  );
+
+  console.log("================================");
+
+  return false;
+}
   };
 
   return (
@@ -204,7 +289,7 @@ export function TrackingProvider({
         currentLatitude,
         currentLongitude,
 
-
+        distanceMiles,
 
         startTracking,
         stopTracking,

@@ -51,38 +51,47 @@ function TripItem({ item }: { item: any }) {
 export default function TripsScreen() {
   const tripsQuery = useTrips();
 
-  if (tripsQuery.isPending) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator />
-      </View>
-    );
-  }
+  let content;
 
-  if (tripsQuery.isError) {
-    return <TripListError />;
-  }
-
-  if (!tripsQuery.data?.length) {
-    return <TripListEmpty />;
-  }
-
-  return (
+if (tripsQuery.isPending) {
+  content = (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator />
+    </View>
+  );
+} else if (tripsQuery.isError) {
+  content = <TripListError />;
+} else {
+  content = (
     <FlatList
       style={styles.listContainer}
       data={tripsQuery.data}
       refreshing={tripsQuery.isRefetching}
-      onRefresh={() => tripsQuery.refetch()}
+      onRefresh={tripsQuery.refetch}
       keyExtractor={(item) => item.id.toString()}
       renderItem={({ item }) => <TripItem item={item} />}
       ItemSeparatorComponent={() => <View style={styles.separator} />}
-      contentContainerStyle={styles.listContent}
+      contentContainerStyle={[
+        styles.listContent,
+        tripsQuery.data.length === 0 && styles.emptyListContent,
+      ]}
       ListEmptyComponent={TripListEmpty}
     />
   );
 }
 
+  return (
+    <>
+      <Text>Hello World!</Text>
+      {content}
+    </>
+  );
+}
+
 const styles = StyleSheet.create({
+    emptyListContent: {
+    flexGrow: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",

@@ -11,6 +11,7 @@ class TripPlatform(str, Enum):
     AMAZON_FLEX = "amazon_flex"
     SHIPT = "shipt"
     OTHER = "other"
+    PERSONAL = "personal"
 
 class TripCategory(str, Enum):
     BUSINESS = "business"
@@ -35,7 +36,7 @@ class ExpenseCategory(str, Enum):
     EDUCATION = "education"       # courses, books
     RENT = "rent"                 # workspace (if applicable)
     UTILITIES = "utilities"       # electricity, etc
-    OTHER = "other"               # catch-all (you will need it)
+    OTHER = "other"               
 
 class FilingStatus(str, Enum):
     single = "single"

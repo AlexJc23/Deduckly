@@ -5,6 +5,9 @@ import { useState, useEffect } from "react";
 import { EndTripModal } from "@/features/tracking/components/EndTripModal";
 import { useTracking } from "@/features/tracking/context/tracking.context";
 import { getCurrentLocation, requestLocationPermission } from "@/features/tracking/services/location.service";
+import { IncomeModal } from "@/features/tracking/components/IncomeModal";
+
+
 
 function formatTime(seconds: number) {
   const hours = Math.floor(
@@ -30,8 +33,8 @@ function formatTime(seconds: number) {
 export default function ActiveTripScreen() {
     const [showEndModal, setShowEndModal] = useState(false);
     const [elapsedSeconds, setElapsedSeconds] = useState(0)
-    const {category, platform, startTime} = useTracking();
-
+    const {category, platform, startTime, distanceMiles, stopTracking} = useTracking();
+    const [showIncomeModal, setShowIncomeModal] = useState(false);
 
     useEffect(() => {
         if (!startTime) return;
@@ -64,8 +67,9 @@ export default function ActiveTripScreen() {
     <View
       style={{
         flex: 1,
-        justifyContent: "center",
         alignItems: "center",
+        marginTop: "75%"
+
       }}
     >
         <Button title="Back"
@@ -89,7 +93,7 @@ export default function ActiveTripScreen() {
             Distance
         </Text>
         <Text>
-            0.0 mi
+            {distanceMiles.toFixed(2)} mi
         </Text>
         <Text>
             miles tracked
@@ -110,7 +114,39 @@ export default function ActiveTripScreen() {
       </View>
       <EndTripModal
         visible={showEndModal}
-        onClose={() => setShowEndModal(false)}
+        onClose={() => {
+          setShowEndModal(false)
+        }}
+        onConfirm={() => {
+          setShowEndModal(false);
+
+          setTimeout(() => {
+            setShowIncomeModal(true);
+          }, 350);
+        }}
+      />
+      <IncomeModal
+        visible={showIncomeModal}
+        onSave={async (income) => {
+          setShowIncomeModal(false);
+
+          await stopTracking(income);
+
+          router.replace({
+            pathname: "/(tabs)/dashboard",
+            params: {saved: "true"},
+          });
+        }}
+        onSkip={async () => {
+          setShowIncomeModal(false);
+
+          await stopTracking(null);
+
+          router.replace({
+            pathname: "/(tabs)/dashboard",
+            params: {saved: "true"},
+          });
+        }}
       />
 
     </View>

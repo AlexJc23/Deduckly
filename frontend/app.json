@@ -9,6 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+        "infoPlist": {
+        "UIBackgroundModes": [
+          "location"
+        ]
+      },
       "supportsTablet": true,
       "bundleIdentifier": "com.deduckly.frontend"
     },
@@ -28,6 +33,14 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Deduckly uses your location to automatically track trips even when the app is in the background.",
+          "locationWhenInUsePermission": "Deduckly uses your location to track your trips.",
+          "isIosBackgroundLocationEnabled": true
+        }
+      ],
       [
         "expo-splash-screen",
         {

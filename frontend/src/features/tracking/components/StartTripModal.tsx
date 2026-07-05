@@ -17,11 +17,22 @@ const categories = [
 ] as const;
 
 const platforms = [
-  "Uber",
-  "Uber Eats",
-  "DoorDash",
-  "Lyft",
-  "InstaCart",
+  {
+    label: "Lyft",
+    value: "lyft",
+  },
+  {
+    label: "Uber Eats",
+    value: "uber_eats",
+  },
+  {
+    label: "DoorDash",
+    value: "doordash",
+  },
+  {
+    label: "Instacart",
+    value: "instacart",
+  },
 ];
 
 type CategoryType = (typeof categories)[number]["key"];
@@ -158,17 +169,17 @@ export function StartTripModal({
 
               {platforms.map((platform) => (
                 <Pressable
-                  key={platform}
-                  onPress={() => setSelectedPlatform(platform)}
+                  key={platform.label}
+                  onPress={() => setSelectedPlatform(platform.value)}
                   style={[
                     styles.option,
                     {
                       borderColor:
-                        selectedPlatform === platform ? "#007AFF" : "#DDD",
+                        selectedPlatform === platform.value ? "#007AFF" : "#DDD",
                     },
                   ]}
                 >
-                  <Text>{platform}</Text>
+                  <Text>{platform.label}</Text>
                 </Pressable>
               ))}
 
