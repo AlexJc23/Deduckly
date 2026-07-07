@@ -5,5 +5,6 @@ export interface User {
   email: string;
   is_active: boolean;
   filing_status: string | null;
+  two_fa_enabled: boolean;
   created_at: string;
 }

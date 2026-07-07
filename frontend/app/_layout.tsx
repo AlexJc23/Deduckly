@@ -4,6 +4,8 @@ import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from "@features/auth/context/auth.context";
 import { QueryProvider } from '@/providers/query.provider';
 import 'react-native-reanimated';
+import { SubscriptionProvider } from '@/features/subscriptions/context/subscription.context';
+import { TrackingProvider } from '@/features/tracking/context/tracking.context';
 
 // import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -16,17 +18,21 @@ export default function RootLayout() {
   return (
     <QueryProvider>
       <AuthProvider>
-        <ThemeProvider value={DefaultTheme}>
-            <StatusBar style="auto" />
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen
-                name="modals"
-              options={{ presentation: "modal" }}
-            />
-          </Stack>
-        </ThemeProvider>
+        <TrackingProvider>
+          <SubscriptionProvider>
+            <ThemeProvider value={DefaultTheme}>
+                <StatusBar style="auto" />
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="(auth)" />
+                  <Stack.Screen
+                    name="modals"
+                    options={{ presentation: "modal" }}
+                    />
+              </Stack>
+            </ThemeProvider>
+          </SubscriptionProvider>
+        </TrackingProvider>
       </AuthProvider>
     </QueryProvider>
   );

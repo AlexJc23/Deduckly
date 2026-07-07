@@ -73,3 +73,4 @@ class UserResponse(BaseModel):
     is_active: bool
     filing_status: Optional[FilingStatus]  # ← you’ll want this later
     created_at: datetime
+    two_fa_enabled: bool

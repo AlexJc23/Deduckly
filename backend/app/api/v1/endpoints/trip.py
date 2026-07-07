@@ -18,7 +18,11 @@ def create_trip_endpoint(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return create_trip(db, trip_in, current_user.id )
+    print("========== TRIP RECEIVED ==========")
+    print(trip_in.model_dump())
+    print("===================================")
+
+    return create_trip(db, trip_in, current_user.id)
 
 @router.get("/", response_model=list[TripResponse])
 def get_trips(

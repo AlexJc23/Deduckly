@@ -89,7 +89,7 @@ def login(
 
 @router.get("/google/login")
 def google_login():
-    
+
     url = (
         "https://accounts.google.com/o/oauth2/v2/auth"
         "?response_type=code"
@@ -183,7 +183,47 @@ def verify_2fa(
 
     raise HTTPException(status_code=400, detail="Invalid 2FA state")
 
+@router.get("/2fa-status")
+def get_2fa_status(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    two_fa = (
+        db.query(TwoFactorAuth)
+        .filter(
+            TwoFactorAuth.user_id == current_user.id
+        )
+        .first()
+    )
 
+    return {
+        "is_enabled": (
+            two_fa.is_enabled
+            if two_fa
+            else False
+        )
+    }
+
+@router.post("/disable-2fa")
+def disable_2fa(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    two_fa = (
+        db.query(TwoFactorAuth)
+        .filter(
+            TwoFactorAuth.user_id == current_user.id
+        )
+        .first()
+    )
+
+    if not two_fa or not two_fa.is_enabled:
+        raise HTTPException(status_code=400, detail="2FA is not enabled")
+
+    two_fa.is_enabled = False
+    db.commit()
+
+    return {"message": "2FA disabled successfully"}
 
 @router.post("/register")
 def register(user_in: UserCreate, db: Session = Depends(get_db)):

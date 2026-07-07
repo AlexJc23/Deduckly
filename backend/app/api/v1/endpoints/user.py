@@ -17,7 +17,16 @@ def get_users(db: Session = Depends(get_db)):
 def get_me(
     current_user: User = Depends(get_current_user)
 ):
-    return current_user
+    return {
+        "id": current_user.id,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "email": current_user.email,
+        "filing_status": current_user.filing_status,
+        "two_fa_enabled": current_user.two_factor.is_enabled if current_user.two_factor else False,
+        "is_active": current_user.is_active,
+        "created_at": current_user.created_at,
+    }
 
 
 

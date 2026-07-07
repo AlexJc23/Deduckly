@@ -1,8 +1,14 @@
+import { router } from "expo-router";
 import { useAuth } from "@/features/auth/context/auth.context";
+import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { View, Text, Button } from "react-native";
 
 export default function SettingsScreen() {
+  const userQuery = useCurrentUser();
+
+
   const { signOut } = useAuth();
+
   return (
     <View
       style={{
@@ -13,6 +19,14 @@ export default function SettingsScreen() {
     >
       <Text>Settings</Text>
       <Button title="Logout" onPress={signOut} />
+
+
+          <Button
+            title="Security"
+            onPress={() => {router.push("/settings/security")}}
+          />
+
+
     </View>
   );
 }
