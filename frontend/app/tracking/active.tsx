@@ -6,7 +6,7 @@ import { EndTripModal } from "@/features/tracking/components/EndTripModal";
 import { useTracking } from "@/features/tracking/context/tracking.context";
 import { getCurrentLocation, requestLocationPermission } from "@/features/tracking/services/location.service";
 import { IncomeModal } from "@/features/tracking/components/IncomeModal";
-
+import { CancelTripModal } from "@/features/trips/components/CancelTripModal";
 
 
 function formatTime(seconds: number) {
@@ -32,8 +32,9 @@ function formatTime(seconds: number) {
 
 export default function ActiveTripScreen() {
     const [showEndModal, setShowEndModal] = useState(false);
+    const [showCancelModal, setShowCancelModal] = useState(false);
     const [elapsedSeconds, setElapsedSeconds] = useState(0)
-    const {category, platform, startTime, distanceMiles, stopTracking} = useTracking();
+    const {category, platform, startTime, distanceMiles, stopTracking, cancelTracking} = useTracking();
     const [showIncomeModal, setShowIncomeModal] = useState(false);
 
     useEffect(() => {
@@ -50,17 +51,6 @@ export default function ActiveTripScreen() {
         return () => clearInterval(interval);
     }, [startTime])
 
-    useEffect(() => {
-        async function checkPermission() {
-            const granted = await requestLocationPermission();
-            const location = await getCurrentLocation();
-
-            await getCurrentLocation();
-
-        }
-
-        checkPermission();
-    }, []);
 
 
   return (
@@ -111,7 +101,27 @@ export default function ActiveTripScreen() {
             <Text>Stop Trip</Text>
             <Text>End and Save Trip</Text>
         </Pressable>
+        <Pressable onPress={() => setShowCancelModal(true)}>
+          <Text>Cancel Trip</Text>
+        </Pressable>
       </View>
+      <CancelTripModal
+      visible={showCancelModal}
+      onClose={() => {
+        setShowCancelModal(false)
+      }}
+      onCancel={() => {
+        setShowCancelModal(false);
+        cancelTracking();
+
+        router.push({
+          pathname: '/(tabs)/dashboard',
+          params: {
+            discarded: "true",
+          },
+        });
+      }}
+      />
       <EndTripModal
         visible={showEndModal}
         onClose={() => {
@@ -130,22 +140,40 @@ export default function ActiveTripScreen() {
         onSave={async (income) => {
           setShowIncomeModal(false);
 
-          await stopTracking(income);
+          const result =await stopTracking(income);
 
-          router.replace({
-            pathname: "/(tabs)/dashboard",
-            params: {saved: "true"},
-          });
+          if (result === true) {
+            router.replace({
+              pathname: "/(tabs)/dashboard",
+              params: { saved: "true" },
+            });
+          }
+
+          if (result === "discarded") {
+            router.replace({
+              pathname: "/(tabs)/dashboard",
+              params: { discarded: "true" },
+            });
+          }
         }}
         onSkip={async () => {
           setShowIncomeModal(false);
 
-          await stopTracking(null);
+          const result = await stopTracking(null);
 
-          router.replace({
-            pathname: "/(tabs)/dashboard",
-            params: {saved: "true"},
-          });
+          if (result === true) {
+            router.replace({
+              pathname: "/(tabs)/dashboard",
+              params: { saved: "true" },
+            });
+          }
+
+          if (result === "discarded") {
+            router.replace({
+              pathname: "/(tabs)/dashboard",
+              params: { discarded: "true" },
+            });
+          }
         }}
       />
 

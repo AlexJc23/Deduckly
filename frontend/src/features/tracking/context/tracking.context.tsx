@@ -48,11 +48,15 @@ type TrackingContextType = {
 
   distanceMiles: number;
 
+  cancelTracking: () => void;
+
   startTracking: (
     data: StartTrackingData
   ) => Promise<void>;
 
-  stopTracking: (incomeAmount?: number | null) => Promise<boolean>;
+  stopTracking: (
+    incomeAmount?: number | null
+  ) => Promise<boolean | "discarded">;
 };
 
 const TrackingContext =
@@ -171,7 +175,27 @@ export function TrackingProvider({
 
     setIsTracking(true);
   };
+  const cancelTracking = () => {
+    locationSubscription.current?.remove();
+    locationSubscription.current = null;
 
+    setIsTracking(false);
+
+    setStartTime(null);
+
+    setTrackingMethod(null);
+    setCategory(null);
+    setPlatform(null);
+
+    setStartLatitude(null);
+    setStartLongitude(null);
+
+    setCurrentLatitude(null);
+    setCurrentLongitude(null);
+
+    setRoute([]);
+    setDistanceMiles(0);
+  };
   const stopTracking = async (
     incomeAmount?: number | null
   ) => {
@@ -191,6 +215,12 @@ export function TrackingProvider({
       return false;
     }
 
+    const MIN_DISTANCE_MILES = 0.01;
+
+    if (distanceMiles < MIN_DISTANCE_MILES) {
+      cancelTracking();
+      return "discarded";
+    }
 
     const startAddress = startLatitude && startLongitude
     ? await reverseGeocode(
@@ -211,7 +241,7 @@ export function TrackingProvider({
     console.log("End", endAddress)
 
 
-    const payload = await buildTripPayload({
+    const payload = buildTripPayload({
       startTime,
       endTime: new Date(),
 
@@ -227,7 +257,10 @@ export function TrackingProvider({
       end_address: endAddress,
 
       category,
-      platform: "personal",
+      platform:
+        category === "personal"
+          ? "personal"
+          : platform ?? "",
 
     });
 
@@ -291,6 +324,7 @@ export function TrackingProvider({
 
         distanceMiles,
 
+        cancelTracking,
         startTracking,
         stopTracking,
       }}

@@ -40,7 +40,16 @@ export type TripCreate = {
 
   category: string;
 
-  platform: string | "PERSONAL";
+  platform: string | " ";
 
   income_amount?: number | null;
 };
+
+export type TripUpdate = {
+
+  category: string;
+
+  platform: string | " ";
+
+  income_amount?: number | null;
+}

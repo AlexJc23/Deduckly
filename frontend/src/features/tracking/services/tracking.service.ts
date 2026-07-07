@@ -18,7 +18,7 @@ type BuildTripPayloadParams = {
 
   category: string;
 
-  platform: string | "personal";
+  platform: string | " ";
 };
 
 export function buildTripPayload({
