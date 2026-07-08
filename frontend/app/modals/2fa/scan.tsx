@@ -40,7 +40,7 @@ export default function twoFAScanScreen() {
             }} />
             <Button
             title="Cancel"
-            onPress={() => router.push("/settings/security")}
+            onPress={() => router.dismissAll()}
             />
         </View>
 

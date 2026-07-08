@@ -130,6 +130,7 @@ export default function TripsScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text>Hello World!</Text>
+        <Text>{startDate ? startDate.toLocaleDateString("en-US", DATE_OPTIONS) : ""}</Text>
         <Pressable onPress={() => setShowSortModal(true)}>
           <Text>Sort</Text>
         </Pressable>

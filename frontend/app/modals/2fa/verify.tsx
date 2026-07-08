@@ -61,8 +61,8 @@ export default function TwoFAVerifyScreen() {
             onPress={() => verify2FAMutation.mutate(code)}
         />
         <Button
-            title="Cancel"
-            onPress={() => router.push("/settings/security")}
+        title="Cancel"
+        onPress={() => router.dismissAll()}
         />
     </View>
     );
