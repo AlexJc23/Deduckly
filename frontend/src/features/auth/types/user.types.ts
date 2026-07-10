@@ -8,3 +8,10 @@ export interface User {
   two_fa_enabled: boolean;
   created_at: string;
 }
+
+export interface UserUpdate {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  filing_status?: string | null;
+}

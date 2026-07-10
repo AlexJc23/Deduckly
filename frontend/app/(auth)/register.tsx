@@ -164,13 +164,13 @@ export default function RegisterScreen() {
                 </Link>
             </Text>
             <Modal
-    visible={showFilingStatusModal}
-    transparent
-    animationType="fade"
-    onRequestClose={() =>
-        setShowFilingStatusModal(false)
-    }
->
+            visible={showFilingStatusModal}
+            transparent
+            animationType="fade"
+            onRequestClose={() =>
+                setShowFilingStatusModal(false)
+            }
+        >
     <View
         style={{
             flex: 1,

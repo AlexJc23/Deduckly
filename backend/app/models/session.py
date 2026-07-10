@@ -3,6 +3,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from datetime import datetime
 from app.db.base import Base
+from sqlalchemy.orm import relationship
 
 
 class Session(Base):
@@ -10,7 +11,7 @@ class Session(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
     refresh_token = Column(String, unique=True, nullable=False, index=True)
 
@@ -18,3 +19,9 @@ class Session(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     expires_at = Column(DateTime, nullable=False)
+
+    
+    user = relationship(
+    "User",
+    back_populates="sessions"
+    )
