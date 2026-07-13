@@ -14,6 +14,8 @@ import { useUpdatePassword } from "@/features/auth/hooks/use-update-password";
 
 import { clearTokens } from "@/features/auth/services/auth-service.service";
 import { useQueryClient } from "@tanstack/react-query";
+import { Ionicons } from "@expo/vector-icons";
+
 
 export default function UserUpdatePassword() {
   const userQuery = useCurrentUser();
@@ -23,6 +25,14 @@ export default function UserUpdatePassword() {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] =
+    useState(false);
+
+    const [showNewPassword, setShowNewPassword] =
+    useState(false);
+
+    const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
   const passwordsMatch = newPassword === confirmNewPassword;
   const hasMinLength = newPassword.length >= 8;
   const hasUppercase = /[A-Z]/.test(newPassword);
@@ -31,6 +41,7 @@ export default function UserUpdatePassword() {
   const hasSpecialChar = /[!@#$%^&*]/.test(newPassword);
   const [error, setError] = useState<string | null>(null);
 
+  
   const handleUpdatePassword = async () => {
     if (!passwordsMatch) {
       setError("Passwords do not match.");
@@ -51,23 +62,93 @@ export default function UserUpdatePassword() {
     }
   };
 
+  const canSubmit =
+    oldPassword.length > 0 &&
+    hasMinLength &&
+    hasUppercase &&
+    hasLowercase &&
+    hasNumber &&
+    hasSpecialChar &&
+    passwordsMatch;
   return (
     <View style={{ flex: 1, padding: 20, margin: "auto", justifyContent: "center" }}>
       <Text style={{ fontSize: 24, marginBottom: 20 }}>Update Password</Text>
-      <TextInput
-        placeholder="Old Password"
-        secureTextEntry
-        value={oldPassword}
-        onChangeText={setOldPassword}
-        style={{ marginBottom: 10, borderWidth: 1, padding: 10 }}
-      />
-      <TextInput
-        placeholder="New Password"
-        secureTextEntry
-        value={newPassword}
-        onChangeText={setNewPassword}
-        style={{ marginBottom: 30, borderWidth: 1, padding: 10 }}
-      />
+      <View
+  style={{
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  }}
+>
+  <TextInput
+    placeholder="Old Password"
+    secureTextEntry={!showCurrentPassword}
+    value={oldPassword}
+    onChangeText={setOldPassword}
+    style={{
+      flex: 1,
+      paddingVertical: 10,
+    }}
+  />
+
+  <Pressable
+    onPress={() =>
+      setShowCurrentPassword(
+        !showCurrentPassword
+      )
+    }
+  >
+    <Ionicons
+      name={
+        showCurrentPassword
+          ? "eye-off-outline"
+          : "eye-outline"
+      }
+      size={22}
+      color="#6B7280"
+    />
+  </Pressable>
+</View>
+      <View
+  style={{
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    marginBottom: 30,
+    paddingHorizontal: 10,
+  }}
+>
+  <TextInput
+    placeholder="New Password"
+    secureTextEntry={!showNewPassword}
+    value={newPassword}
+    onChangeText={setNewPassword}
+    style={{
+      flex: 1,
+      paddingVertical: 10,
+    }}
+  />
+
+  <Pressable
+    onPress={() =>
+      setShowNewPassword(
+        !showNewPassword
+      )
+    }
+  >
+    <Ionicons
+      name={
+        showNewPassword
+          ? "eye-off-outline"
+          : "eye-outline"
+      }
+      size={22}
+      color="#6B7280"
+    />
+  </Pressable>
+</View>
 
       <View style={{ marginBottom: 30 }}>
         <Text style={{ marginBottom: 10 }}>
@@ -93,13 +174,44 @@ export default function UserUpdatePassword() {
 
 
 
-      <TextInput
-        placeholder="Confirm New Password"
-        secureTextEntry
-        value={confirmNewPassword}
-        onChangeText={setConfirmNewPassword}
-        style={{ marginBottom: 10, borderWidth: 1, padding: 10 }}
-      />
+      <View
+  style={{
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  }}
+>
+  <TextInput
+    placeholder="Confirm New Password"
+    secureTextEntry={!showConfirmPassword}
+    value={confirmNewPassword}
+    onChangeText={setConfirmNewPassword}
+    style={{
+      flex: 1,
+      paddingVertical: 10,
+    }}
+  />
+
+  <Pressable
+    onPress={() =>
+      setShowConfirmPassword(
+        !showConfirmPassword
+      )
+    }
+  >
+    <Ionicons
+      name={
+        showConfirmPassword
+          ? "eye-off-outline"
+          : "eye-outline"
+      }
+      size={22}
+      color="#6B7280"
+    />
+  </Pressable>
+</View>
       {error && <Text style={{ color: "red", marginBottom: 10 }}>{error}</Text>}
       <Pressable
         onPress={handleUpdatePassword}
@@ -109,6 +221,7 @@ export default function UserUpdatePassword() {
           alignItems: "center",
           borderRadius: 5,
         }}
+        disabled={!canSubmit || updatePasswordMutation.status === "pending"}
       >
         {updatePasswordMutation.status === "pending" ? (
           <ActivityIndicator color="#fff" />
