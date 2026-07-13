@@ -62,6 +62,9 @@ class UserUpdate(BaseModel):
 
         return value
 
+class UpdatePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)

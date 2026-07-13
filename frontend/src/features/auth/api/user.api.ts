@@ -1,5 +1,5 @@
 import { api } from "@/api/client";
-import { UserUpdate } from "../types/user.types";
+import { UserUpdate, UpdatePasswordRequest } from "../types/user.types";
 
 export async function updateCurrentUser(
   user: UserUpdate
@@ -17,5 +17,14 @@ export async function deleteCurrentUser() {
     "/api/v1/users/me"
   );
 
+  return response.data;
+}
+export async function updatePassword(
+  data: UpdatePasswordRequest
+) {
+  const response = await api.post(
+    "/api/v1/auth/update-password",
+    data
+  );
   return response.data;
 }

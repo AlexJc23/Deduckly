@@ -15,3 +15,8 @@ export interface UserUpdate {
   email?: string;
   filing_status?: string | null;
 }
+
+export interface UpdatePasswordRequest {
+  old_password: string;
+  new_password: string;
+}

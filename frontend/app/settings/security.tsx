@@ -29,7 +29,7 @@ export default function SecuritySettingsScreen() {
             <View>
                 <Button
                     title="Change Password"
-                    onPress={() => Alert.alert("Change Password", "This feature is not implemented yet.")}
+                    onPress={() => router.push("/settings/UserUpdatePassword")}
                     />
                 <Button
                     title="Two-Factor Authentication"

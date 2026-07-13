@@ -12,7 +12,8 @@ import { router } from "expo-router";
 
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useUpdateUser } from "@/features/auth/hooks/use-update-user";
-import { DeleteAccountModal } from "app/modals/settings/DeleteAccountModal";
+import DeleteAccountModal from "@/features/settings/modals/DeleteAccountModal";
+
 import { clearTokens } from "@/features/auth/services/auth-service.service";
 import { useDeleteUser } from "@/features/auth/hooks/use-delete-account";
 
