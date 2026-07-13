@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { View, Text, Button, SafeAreaView, Pressable } from "react-native";
+import { View, Text, Button, Pressable } from "react-native";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { StartTripModal } from "@/features/tracking/components/StartTripModal";
 import { useTracking } from "@/features/tracking/context/tracking.context";

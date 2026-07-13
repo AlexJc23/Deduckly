@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models import User
@@ -45,3 +45,21 @@ def update_me(
     db.refresh(current_user)
 
     return current_user
+
+@router.delete("/me", response_model=dict)
+def delete_user(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        db.delete(current_user)
+        db.commit()
+
+        return {"detail": "User deleted successfully"}
+
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete user",
+        )

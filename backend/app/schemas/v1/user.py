@@ -62,6 +62,9 @@ class UserUpdate(BaseModel):
 
         return value
 
+class UpdatePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -73,4 +76,4 @@ class UserResponse(BaseModel):
     is_active: bool
     filing_status: Optional[FilingStatus]  # ← you’ll want this later
     created_at: datetime
-    two_fa_enabled: bool
+    # two_fa_enabled: bool

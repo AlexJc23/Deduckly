@@ -7,7 +7,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.v1.user import UserCreate, UserLogin
+from app.schemas.v1.user import UpdatePasswordRequest, UserCreate, UserLogin
 from app.schemas.v1.auth import Enable2FAResponse, Verify2FARequest
 from app.services.user_service import authenticate_user, create_user, get_user, get_user_by_email
 from app.services.auth_services import generate_2fa_secret, verify_2fa_code, logout_user
@@ -266,30 +266,38 @@ def refresh_token(refresh_token: str, db: Session = Depends(get_db)):
 
 @router.post("/update-password")
 def update_password(
-    old_password: str,
-    new_password: str,
+    password_update: UpdatePasswordRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     user = get_user(db, current_user.id)
 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if not authenticate_user(db, user.email, old_password)[0]:
-        raise HTTPException(status_code=401, detail="Incorrect old password")
+    if not authenticate_user(
+        db,
+        user.email,
+        password_update.old_password,
+    )[0]:
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect old password",
+        )
 
-    user.hashed_password = hash_password(new_password)
+    user.hashed_password = hash_password(
+        password_update.new_password
+    )
 
-    # revoke all sessions on password change
     db.query(DBSession).filter(
         DBSession.user_id == user.id
     ).update({"is_revoked": True})
 
     db.commit()
 
-    return {"message": "Password updated successfully"}
-
+    return {
+        "message": "Password updated successfully"
+    }
 
 
 @router.post("/logout")

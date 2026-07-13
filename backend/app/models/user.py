@@ -65,9 +65,18 @@ class User(Base):
     )
 
     # Relationships
-    two_factor = relationship("TwoFactorAuth", back_populates="user", uselist=False)
+    two_factor = relationship(
+    "TwoFactorAuth",
+    back_populates="user",
+    uselist=False,
+    cascade="all, delete-orphan",
+    )
 
-    oauth_accounts = relationship("UserOAuth", back_populates="user")
+    oauth_accounts = relationship(
+    "UserOAuth",
+    back_populates="user",
+    cascade="all, delete-orphan",
+    )
 
     trips = relationship(
         "Trip",
@@ -94,6 +103,12 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
         lazy="selectin"
+    )
+
+    sessions = relationship(
+    "Session",
+    back_populates="user",
+    cascade="all, delete-orphan",
     )
 
 
