@@ -19,14 +19,6 @@ def generate_tax_report(
     month: Optional[int] = None
 ):
     try:
-        mileage_rate = (
-            db.query(func.max(MileageRate.rate))
-            .filter(MileageRate.year == year)
-            .scalar()
-            or Decimal("0")
-        )
-
-        # 💰 income filters
         # 💰 income filters
         income_filters = [
             Income.user_id == user.id,
@@ -45,8 +37,6 @@ def generate_tax_report(
             or Decimal("0")
         )
 
-
-        # 💸 expense filters
         # 💸 expense filters
         expense_filters = [
             Expense.user_id == user.id,
@@ -66,7 +56,6 @@ def generate_tax_report(
         )
 
         # 🚗 trip filters
-        # 🚗 trip filters
         trip_filters = [
             Trip.user_id == user.id,
             func.extract("year", Trip.created_at) == year,
@@ -77,19 +66,59 @@ def generate_tax_report(
                 func.extract("month", Trip.created_at) == month
             )
 
-        total_miles = (
-            db.query(func.sum(Trip.distance_miles))
+        trips = (
+            db.query(Trip)
             .filter(*trip_filters)
-            .scalar()
-            or Decimal("0")
+            .order_by(Trip.created_at.asc())
+            .all()
         )
 
+        total_miles = Decimal("0")
+        mileage_deduction = Decimal("0")
+
+        for trip in trips:
+            total_miles += Decimal(trip.distance_miles)
+
+            # Load all mileage rates once
+        mileage_rates = (
+            db.query(MileageRate)
+            .order_by(MileageRate.effective_date.asc())
+            .all()
+        )
+
+        if not mileage_rates:
+            raise HTTPException(
+                status_code=404,
+                detail="No mileage rates found."
+            )
+
+        total_miles = Decimal("0")
+        mileage_deduction = Decimal("0")
+
+        for trip in trips:
+            trip_date = trip.created_at.date()
+            total_miles += Decimal(str(trip.distance_miles))
+
+            applicable_rate = None
+
+            for rate in mileage_rates:
+                if rate.effective_date <= trip_date:
+                    applicable_rate = rate
+                else:
+                    break
+
+            if applicable_rate is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"No mileage rate found for {trip_date}"
+                )
+
+            mileage_deduction += (
+                Decimal(str(trip.distance_miles))
+                * applicable_rate.business_rate
+            )
         total_income = Decimal(total_income)
         total_expenses = Decimal(total_expenses)
-        total_miles = Decimal(total_miles)
-
-        # 🚗 mileage
-        mileage_deduction = total_miles * mileage_rate
 
         # 🧾 deductions
         total_deductions = total_expenses + mileage_deduction
@@ -140,26 +169,15 @@ def generate_tax_report(
         return {
             "year": year,
             "month": month,
-            "first_name": getattr(
-                user,
-                "first_name",
-                "N/A"
-            ),
-            "last_name": getattr(
-                user,
-                "last_name",
-                "N/A"
-            ),
+            "first_name": getattr(user, "first_name", "N/A"),
+            "last_name": getattr(user, "last_name", "N/A"),
             "filing_status": user.filing_status,
-            "generated_at": datetime.now(
-                timezone.utc
-            ),
+            "generated_at": datetime.now(timezone.utc),
 
             "total_income": total_income,
             "total_expenses": total_expenses,
 
             "total_miles": total_miles,
-            "mileage_rate": mileage_rate,
             "mileage_deduction": mileage_deduction,
 
             "total_deductions": total_deductions,
@@ -168,10 +186,11 @@ def generate_tax_report(
             "tax_owed": tax_owed,
         }
 
-    except SQLAlchemyError:
+    except SQLAlchemyError as e:
+        print(e)
         raise HTTPException(
             status_code=500,
-            detail="Database error while generating report"
+            detail=str(e)
         )
 
     except InvalidOperation:

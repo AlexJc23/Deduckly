@@ -11,7 +11,6 @@ from app.api.dependencies.auth import get_current_user
 from app.api.dependencies.subscription import require_active_subscription
 from app.services.pdf_service import build_tax_report_pdf
 
-
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
@@ -36,7 +35,11 @@ def download_yearly_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription)
 ):
-    data = generate_tax_report(db, current_user, year)
+    data = generate_tax_report(
+        db=db,
+        user=current_user,
+        year=year
+    )
 
     buffer = io.BytesIO()
 

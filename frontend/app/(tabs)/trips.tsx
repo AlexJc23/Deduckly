@@ -43,7 +43,7 @@ function formatDate(date: Date | null) {
 
 function TripItem({ item }: { item: any }) {
   const dateLabel = new Date(
-    item.created_at
+    item.start_time
   ).toLocaleDateString("en-US", DATE_OPTIONS);
 
   const platformLabel =
