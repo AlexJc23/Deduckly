@@ -1,7 +1,5 @@
-from calendar import month
 from typing import Optional
 
-from app.models.milage_rate import MileageRate
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
@@ -77,46 +75,9 @@ def generate_tax_report(
         mileage_deduction = Decimal("0")
 
         for trip in trips:
-            total_miles += Decimal(trip.distance_miles)
-
-            # Load all mileage rates once
-        mileage_rates = (
-            db.query(MileageRate)
-            .order_by(MileageRate.effective_date.asc())
-            .all()
-        )
-
-        if not mileage_rates:
-            raise HTTPException(
-                status_code=404,
-                detail="No mileage rates found."
-            )
-
-        total_miles = Decimal("0")
-        mileage_deduction = Decimal("0")
-
-        for trip in trips:
-            trip_date = trip.created_at.date()
             total_miles += Decimal(str(trip.distance_miles))
+            mileage_deduction += Decimal(str(trip.deduction_amount or 0))
 
-            applicable_rate = None
-
-            for rate in mileage_rates:
-                if rate.effective_date <= trip_date:
-                    applicable_rate = rate
-                else:
-                    break
-
-            if applicable_rate is None:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"No mileage rate found for {trip_date}"
-                )
-
-            mileage_deduction += (
-                Decimal(str(trip.distance_miles))
-                * applicable_rate.business_rate
-            )
         total_income = Decimal(total_income)
         total_expenses = Decimal(total_expenses)
 
@@ -124,9 +85,11 @@ def generate_tax_report(
         total_deductions = total_expenses + mileage_deduction
 
         # 📉 profit
-        net_profit = total_income - total_expenses
+        net_profit = total_income - total_deductions
+
+        # 💵 taxable income
         taxable_income = max(
-            net_profit - mileage_deduction,
+            net_profit,
             Decimal("0")
         )
 
