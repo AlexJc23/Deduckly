@@ -24,7 +24,9 @@ def create_user(db: Session, user_in: UserCreate) -> User:
             is_active=True,
             email_verified=False,
             filing_status=user_in.filing_status,
-            role= user_in.role if user_in.role else "user"
+            business_type=user_in.business_type,
+            tax_method=user_in.tax_method,
+            role=user_in.role,
         )
 
         db.add(db_user)
@@ -39,7 +41,7 @@ def create_user(db: Session, user_in: UserCreate) -> User:
     except SQLAlchemyError:
         db.rollback()
         raise HTTPException(
-            status_code=500,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create user"
         )
 
@@ -89,7 +91,6 @@ def update_user(db: Session, user_id: int, user_in: UserUpdate) -> User:
 
         # Update email
         if user_in.email is not None:
-
             existing_user = get_user_by_email(db, user_in.email)
 
             if existing_user and existing_user.id != user.id:
@@ -103,6 +104,14 @@ def update_user(db: Session, user_id: int, user_in: UserUpdate) -> User:
         # Update filing status
         if user_in.filing_status is not None:
             user.filing_status = user_in.filing_status
+
+        # Update business type
+        if user_in.business_type is not None:
+            user.business_type = user_in.business_type
+
+        # Update tax method
+        if user_in.tax_method is not None:
+            user.tax_method = user_in.tax_method
 
         db.commit()
         db.refresh(user)
@@ -120,6 +129,7 @@ def update_user(db: Session, user_id: int, user_in: UserUpdate) -> User:
             detail="Failed to update user"
         )
 
+
 def delete_user(db: Session, user_id: int) -> None:
     try:
         user = get_user(db, user_id)
@@ -133,6 +143,6 @@ def delete_user(db: Session, user_id: int) -> None:
     except SQLAlchemyError:
         db.rollback()
         raise HTTPException(
-            status_code=500,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete user"
         )

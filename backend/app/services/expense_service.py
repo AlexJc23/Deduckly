@@ -64,11 +64,20 @@ def create_expense(db: Session, expense_in: ExpenseCreate, user_id: int) -> Expe
     if expense_in.amount > Decimal("1000000"):
         raise HTTPException(status_code=400, detail="Amount too large")
 
+    if not (Decimal("0") <= expense_in.business_percentage <= Decimal("100")):
+        raise HTTPException(
+            status_code=400,
+            detail="Business percentage must be between 0 and 100",
+        )
+
     incurred_at = _to_utc(expense_in.incurred_at)
     now = datetime.now(timezone.utc)
 
     if incurred_at > now:
-        raise HTTPException(status_code=400, detail="Incurred date cannot be in the future")
+        raise HTTPException(
+            status_code=400,
+            detail="Incurred date cannot be in the future",
+        )
 
     db_expense = Expense(
         user_id=user_id,
@@ -76,7 +85,11 @@ def create_expense(db: Session, expense_in: ExpenseCreate, user_id: int) -> Expe
         category=expense_in.category,
         incurred_at=incurred_at,
         description=expense_in.description,
-        receipt_url=str(expense_in.receipt_url) if expense_in.receipt_url else None,
+        merchant=expense_in.merchant,
+        business_percentage=expense_in.business_percentage,
+        receipt_url=str(expense_in.receipt_url)
+        if expense_in.receipt_url
+        else None,
     )
 
     try:
@@ -91,7 +104,10 @@ def create_expense(db: Session, expense_in: ExpenseCreate, user_id: int) -> Expe
 
 
 def update_expense(
-    db: Session, expense_id: int, expense_in: ExpenseUpdate, user_id: int
+    db: Session,
+    expense_id: int,
+    expense_in: ExpenseUpdate,
+    user_id: int,
 ) -> Expense:
 
     expense = get_expense(db, expense_id, user_id)
@@ -100,9 +116,17 @@ def update_expense(
     try:
         if expense_in.amount is not None:
             if expense_in.amount <= 0:
-                raise HTTPException(status_code=400, detail="Amount must be greater than zero")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Amount must be greater than zero",
+                )
+
             if expense_in.amount > Decimal("1000000"):
-                raise HTTPException(status_code=400, detail="Amount too large")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Amount too large",
+                )
+
             expense.amount = expense_in.amount
 
         if expense_in.category is not None:
@@ -112,15 +136,38 @@ def update_expense(
             incurred_at = _to_utc(expense_in.incurred_at)
 
             if incurred_at > now:
-                raise HTTPException(status_code=400, detail="Incurred date cannot be in the future")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Incurred date cannot be in the future",
+                )
 
             expense.incurred_at = incurred_at
 
         if expense_in.description is not None:
             expense.description = expense_in.description
 
+        if expense_in.merchant is not None:
+            expense.merchant = expense_in.merchant
+
+        if expense_in.business_percentage is not None:
+            if not (
+                Decimal("0")
+                <= expense_in.business_percentage
+                <= Decimal("100")
+            ):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Business percentage must be between 0 and 100",
+                )
+
+            expense.business_percentage = expense_in.business_percentage
+
         if expense_in.receipt_url is not None:
-            expense.receipt_url = str(expense_in.receipt_url) if expense_in.receipt_url else None
+            expense.receipt_url = (
+                str(expense_in.receipt_url)
+                if expense_in.receipt_url
+                else None
+            )
 
         db.commit()
         db.refresh(expense)
@@ -128,11 +175,17 @@ def update_expense(
 
     except SQLAlchemyError:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to update expense")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to update expense",
+        )
 
 
-def delete_expense(db: Session, expense_id: int, user_id: int):
-
+def delete_expense(
+    db: Session,
+    expense_id: int,
+    user_id: int,
+):
     expense = get_expense(db, expense_id, user_id)
 
     try:
@@ -141,4 +194,7 @@ def delete_expense(db: Session, expense_id: int, user_id: int):
 
     except SQLAlchemyError:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to delete expense")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete expense",
+        )

@@ -1,6 +1,6 @@
 from sqlalchemy import String, Integer, DateTime, Boolean, func, true, false, text, Enum as SqlEnum
 from sqlalchemy.orm import mapped_column, Mapped, relationship
-from app.models.enums import FilingStatus, UserRole
+from app.models.enums import FilingStatus, UserRole, BusinessType, TaxMethod
 from app.db.base import Base
 
 
@@ -44,7 +44,27 @@ class User(Base):
     filing_status: Mapped[FilingStatus] = mapped_column(
         SqlEnum(FilingStatus, name="filingstatus"),
         server_default=text("'single'"),
-        nullable=True
+        nullable=False
+    )
+
+    business_type: Mapped[BusinessType] = mapped_column(
+        SqlEnum(
+            BusinessType,
+            name="business_type_enum",
+            values_callable=lambda enum: [e.value for e in enum],
+        ),
+        server_default=text("'other'"),
+        nullable=False,
+    )
+
+    tax_method: Mapped[TaxMethod] = mapped_column(
+        SqlEnum(
+            TaxMethod,
+            name="tax_method_enum",
+            values_callable=lambda enum: [e.value for e in enum],
+        ),
+        server_default=text("'standard_mileage'"),
+        nullable=False,
     )
 
     email_verified: Mapped[bool] = mapped_column(

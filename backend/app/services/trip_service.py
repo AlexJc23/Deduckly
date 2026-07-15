@@ -6,7 +6,8 @@ from app.services.income_service import upsert_income_for_trip
 from fastapi import HTTPException
 from decimal import Decimal
 
-IRS_RATE = Decimal("0.725")  # 2026 IRS mileage rate
+from app.services.mileage_rate_service import get_business_rate_for_date
+
 
 
 def create_trip(db: Session, trip_in: TripCreate, user_id: int) -> Trip:
@@ -19,7 +20,14 @@ def create_trip(db: Session, trip_in: TripCreate, user_id: int) -> Trip:
         raise HTTPException(status_code=400, detail="Distance too large")
 
     # 🔥 calculate deduction
-    deduction = (trip_in.distance_miles * IRS_RATE).quantize(Decimal("0.01"))
+    rate = get_business_rate_for_date(
+        db,
+        trip_in.start_time.date()
+    )
+
+    deduction = (
+        trip_in.distance_miles * rate.business_rate
+    ).quantize(Decimal("0.01"))
 
     db_trip = Trip(
         user_id=user_id,
@@ -124,7 +132,14 @@ def update_trip(db: Session, trip_id: int, user_id: int, trip_in: TripUpdate) ->
         if distance > 1000:
             raise HTTPException(status_code=400, detail="Distance too large")
 
-        trip.deduction_amount = (distance * IRS_RATE).quantize(Decimal("0.01"))
+        rate = get_business_rate_for_date(
+            db,
+            trip.start_time.date()
+        )
+
+        trip.deduction_amount = (
+            distance * rate.business_rate
+        ).quantize(Decimal("0.01"))
 
     db.commit()
     db.refresh(trip)

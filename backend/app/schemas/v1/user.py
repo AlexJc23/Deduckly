@@ -1,4 +1,4 @@
-from app.models.enums import FilingStatus, UserRole
+from app.models.enums import FilingStatus, UserRole, BusinessType, TaxMethod
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, Field
 from datetime import datetime
 from typing import Optional
@@ -9,9 +9,9 @@ class UserBase(BaseModel):
     last_name: str = Field(min_length=1, max_length=50)
     email: EmailStr
     filing_status: Optional[FilingStatus] = None
+    business_type: BusinessType = BusinessType.OTHER
+    tax_method: TaxMethod = TaxMethod.STANDARD_MILEAGE
 
-    # ❌ remove role from user input unless you want users making themselves admin
-    # role: Optional[str] = None
 
 
 class UserCreate(UserBase):
@@ -44,7 +44,8 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
     role: Optional[UserRole] = "user"  # default to "user" if not provided
     filing_status: Optional[FilingStatus] = None
-
+    tax_method: Optional[TaxMethod] = None
+    business_type: Optional[BusinessType] = None
     @field_validator("password")
     @classmethod
     def validate_password(cls, value: Optional[str]) -> Optional[str]:
@@ -73,7 +74,9 @@ class UserResponse(BaseModel):
     first_name: str
     last_name: str
     email: EmailStr
+    tax_method: str
+    business_type: str
     is_active: bool
-    filing_status: Optional[FilingStatus]  # ← you’ll want this later
+    filing_status: Optional[FilingStatus]  
     created_at: datetime
-    # two_fa_enabled: bool
+

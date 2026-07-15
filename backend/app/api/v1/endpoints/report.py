@@ -6,11 +6,10 @@ import io
 
 from app.db.session import get_db
 from app.models import User
-from app.services.yearly_report_service import generate_tax_report
+from app.services.report_service import generate_tax_report
 from app.api.dependencies.auth import get_current_user
 from app.api.dependencies.subscription import require_active_subscription
 from app.services.pdf_service import build_tax_report_pdf
-
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
@@ -29,6 +28,55 @@ def get_yearly_report(
         month=month
     )
 
+@router.get("/today")
+def get_today_report(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    from datetime import datetime, timezone
+
+    today = datetime.now(timezone.utc)
+
+    return generate_tax_report(
+        db=db,
+        user=current_user,
+        year=today.year,
+        month=today.month,
+        day=today.day,
+    )
+
+@router.get("/{year}/month/{month}/day/{day}")
+def get_daily_report(
+    year: int,
+    month: int,
+    day: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return generate_tax_report(
+        db=db,
+        user=current_user,
+        year=year,
+        month=month,
+        day=day,
+    )
+
+
+@router.get("/{year}/month/{month}")
+def get_monthly_report(
+    year: int,
+    month: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return generate_tax_report(
+        db=db,
+        user=current_user,
+        year=year,
+        month=month,
+    )
+
+
 
 @router.get("/{year}/download")
 def download_yearly_report(
@@ -36,7 +84,11 @@ def download_yearly_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_active_subscription)
 ):
-    data = generate_tax_report(db, current_user, year)
+    data = generate_tax_report(
+        db=db,
+        user=current_user,
+        year=year
+    )
 
     buffer = io.BytesIO()
 

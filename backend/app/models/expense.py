@@ -39,6 +39,7 @@ class Expense(Base):
         nullable=False
     )
 
+
     category: Mapped[ExpenseCategory] = mapped_column(
         SqlEnum(ExpenseCategory, name="expense_category_enum"),
         nullable=False
@@ -55,6 +56,12 @@ class Expense(Base):
         nullable=True
     )
 
+    business_percentage: Mapped[Decimal] = mapped_column(
+        Numeric(5, 2),
+        nullable=False,
+        default=Decimal("100.00")
+    )
+
     receipt_url: Mapped[str] = mapped_column(
         String(1000),
         nullable=True
@@ -69,6 +76,11 @@ class Expense(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now()
+    )
+
+    merchant: Mapped[str] = mapped_column(
+        String(255),
+        nullable=True
     )
 
     # Relationships
