@@ -76,33 +76,57 @@ def _check_top_bracket(
             )
 
 
-def create_tax_bracket(db: Session,  bracket_in: TaxBracketCreate, user: User ) -> TaxBracket:
+def create_tax_brackets(
+    db: Session,
+    brackets_in: list[TaxBracketCreate],
+    user: User,
+) -> list[TaxBracket]:
     try:
         if user.role != UserRole.ADMIN:
-            raise HTTPException(status_code=403, detail="Only admins can create tax brackets")
+            raise HTTPException(
+                status_code=403,
+                detail="Only admins can create tax brackets",
+            )
 
-        _validate_range(bracket_in.min_income, bracket_in.max_income)
+        created_brackets = []
 
-        existing = get_tax_brackets(db, bracket_in.year, bracket_in.filing_status)
+        for bracket_in in brackets_in:
+            _validate_range(bracket_in.min_income, bracket_in.max_income)
 
-        _check_top_bracket(existing, bracket_in.max_income)
-        _check_overlap(existing, bracket_in.min_income, bracket_in.max_income)
+            existing = get_tax_brackets(
+                db,
+                bracket_in.year,
+                bracket_in.filing_status,
+            )
 
-        db_bracket = TaxBracket(**bracket_in.model_dump())
+            _check_top_bracket(existing, bracket_in.max_income)
+            _check_overlap(
+                existing,
+                bracket_in.min_income,
+                bracket_in.max_income,
+            )
 
-        db.add(db_bracket)
+            db_bracket = TaxBracket(**bracket_in.model_dump())
+
+            db.add(db_bracket)
+            created_brackets.append(db_bracket)
+
         db.commit()
-        db.refresh(db_bracket)
 
-        return db_bracket
+        for bracket in created_brackets:
+            db.refresh(bracket)
+
+        return created_brackets
 
     except HTTPException:
         raise
 
     except (SQLAlchemyError, InvalidOperation):
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to create tax bracket")
-
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to create tax brackets",
+        )
 
 def update_tax_bracket(
     db: Session,

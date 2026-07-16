@@ -41,8 +41,12 @@ class Expense(Base):
 
 
     category: Mapped[ExpenseCategory] = mapped_column(
-        SqlEnum(ExpenseCategory, name="expense_category_enum"),
-        nullable=False
+        SqlEnum(
+            ExpenseCategory,
+            name="expense_category_enum",
+            values_callable=lambda enum: [e.value for e in enum],
+        ),
+        nullable=False,
     )
 
     incurred_at: Mapped[datetime] = mapped_column(

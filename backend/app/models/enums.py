@@ -59,6 +59,7 @@ class ExpenseCategory(str, Enum):
     VEHICLE_REGISTRATION = "vehicle_registration"
     PARKING_TOLLS = "parking_tolls"
 
+
     TRAVEL = "travel"
     LODGING = "lodging"
     AIRFARE = "airfare"
