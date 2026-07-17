@@ -29,7 +29,7 @@ export default function SecuritySettingsScreen() {
             <View>
                 <Button
                     title="Change Password"
-                    onPress={() => router.push("/settings/UserUpdatePassword")}
+                    onPress={() => router.push("/settings/change-password")}
                     />
                 <Button
                     title="Two-Factor Authentication"

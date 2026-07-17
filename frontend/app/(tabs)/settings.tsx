@@ -19,7 +19,7 @@ export default function SettingsScreen() {
     >
       <Text>Settings</Text>
       <View style={{ backgroundColor: "lightgray", padding: 10, marginVertical: 10 }}>
-        <Pressable onPress={() => router.push("/settings/UserUpdateScreen") }>
+        <Pressable onPress={() => router.push("/settings/edit-profile") }>
           <Text>{user?.first_name} {user?.last_name}</Text>
           <Text>{user?.email}</Text>
         </Pressable>
@@ -32,7 +32,7 @@ export default function SettingsScreen() {
       </View>
       <View style={{ backgroundColor: "lightgray", padding: 10, marginVertical: 10 }}>
         <Text>TAX SETTINGS</Text>
-        <Pressable onPress={() => { }}>
+        <Pressable onPress={() => {router.push("/settings/mileage-rate")}}>
           <Text>Mileage Rate</Text>
           <Text>{currentYear} IRS Standard(fixed)</Text>
         </Pressable>
