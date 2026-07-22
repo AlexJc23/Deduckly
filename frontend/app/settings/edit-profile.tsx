@@ -18,6 +18,7 @@ import { clearTokens } from "@/features/auth/services/auth-service.service";
 import { useDeleteUser } from "@/features/auth/hooks/use-delete-account";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { BackHeader } from "@/components/ui/BackButton";
 
 
 
@@ -95,7 +96,10 @@ export default function UserUpdateScreen() {
   }
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <View>
+      <BackHeader />
+    
+    <View style={{ flex: 1, padding: 20, margin: "auto", marginTop: 40,justifyContent: "center" }}>
       <Text>First Name</Text>
       <TextInput value={firstName} onChangeText={setFirstName} />
 
@@ -210,6 +214,7 @@ export default function UserUpdateScreen() {
             router.replace("/login");
         }}
         />
+    </View>
     </View>
   );
 }

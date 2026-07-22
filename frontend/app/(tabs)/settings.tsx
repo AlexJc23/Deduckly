@@ -43,6 +43,11 @@ export default function SettingsScreen() {
           title="Security"
           onPress={() => { router.push("/settings/security"); }}
         />
+        <Pressable onPress={() => router.push('/settings/privacy')}>
+          <Text>
+            Privacy
+          </Text>
+        </Pressable>
       </View>
       <View style={{ backgroundColor: "lightgray", padding: 10, marginVertical: 10 }}>
         <Text>LEGAL</Text>

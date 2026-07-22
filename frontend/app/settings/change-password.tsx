@@ -15,7 +15,7 @@ import { useUpdatePassword } from "@/features/auth/hooks/use-update-password";
 import { clearTokens } from "@/features/auth/services/auth-service.service";
 import { useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
-
+import { BackHeader } from "@/components/ui/BackButton";
 
 export default function UserUpdatePassword() {
   const userQuery = useCurrentUser();
@@ -71,8 +71,11 @@ export default function UserUpdatePassword() {
     hasSpecialChar &&
     passwordsMatch;
   return (
-    <View style={{ flex: 1, padding: 20, margin: "auto", justifyContent: "center" }}>
-      <Text style={{ fontSize: 24, marginBottom: 20 }}>Update Password</Text>
+    <View >
+      {/* <Text style={{ fontSize: 24, marginBottom: 20 }}>Update Password</Text> */}
+              <BackHeader />
+              <View style={{ flex: 1, padding: 20, margin: "auto", marginTop: 40,justifyContent: "center" }}>
+      
       <View
   style={{
     flexDirection: "row",
@@ -244,6 +247,7 @@ export default function UserUpdatePassword() {
             Cancel
         </Text>
       </Pressable>
+      </View>
     </View>
   );
 }

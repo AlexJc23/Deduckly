@@ -1,4 +1,5 @@
 import { View, Text, ActivityIndicator, Linking, Pressable } from 'react-native'
+import { BackHeader } from '@/components/ui/BackButton'
 import React from 'react'
 
 import { useMileageRates } from '@/features/settings/hooks/use-mileage-rate'
@@ -6,7 +7,7 @@ import { useMileageRates } from '@/features/settings/hooks/use-mileage-rate'
 export default function Mileage_rate() {
     const { data: mileageRates, isLoading } = useMileageRates()
     const currentRate = mileageRates?.[0]
-
+    const IRS_MILEAGE_URL = "https://www.irs.gov/irb/2026-29_irb";
     function formatEffectiveDate(date: string): string {
         return new Date(date).toLocaleDateString("en-US", {
             month: "long",
@@ -16,19 +17,20 @@ export default function Mileage_rate() {
         });
     }
     return (
-        <View style={{ marginTop: 60 }}>
+        <View style={{}}>
+            <BackHeader />
             <View>
                 <Text>Current IRS Mileage Rate</Text>
 
                 {isLoading ? (
                     <ActivityIndicator />
                 ) : (
-                    <Text>{currentRate?.business_rate ?? <ActivityIndicator />}</Text>
+                    <Text>{(currentRate?.business_rate * 100).toFixed(1)}¢ / mile</Text>
                 )}
                 {isLoading ? (
                     <ActivityIndicator />
                 ) : (
-                    <Text>{formatEffectiveDate(currentRate?.effective_date) ?? <ActivityIndicator />}</Text>
+                    <Text>{formatEffectiveDate(currentRate?.effective_date)}</Text>
                 )}
                 <Text>
                     Used to calculate your business mileage deduction.
@@ -55,7 +57,7 @@ export default function Mileage_rate() {
                 <Pressable
                     onPress={() =>
                         Linking.openURL(
-                        "https://www.irs.gov/irb/2026-29_irb"
+                        IRS_MILEAGE_URL
                         )
                     }
                     >
@@ -70,12 +72,14 @@ export default function Mileage_rate() {
                     {isLoading ? (
                         <ActivityIndicator />
                     ) : (
-                        mileageRates?.map((rate: { id: string; effective_date: string; business_rate: number }) => (
-                            <View key={rate.id}>
-                                <Text>{formatEffectiveDate(rate.effective_date)}</Text>
-                                <Text>{(rate.business_rate * 100).toFixed(1)}¢ / mile</Text>
-                            </View>
-                        ))
+                        mileageRates?.map(
+                            (rate: { id: string; effective_date: string; business_rate: number }) => (
+                                <View key={rate.id}>
+                                    <Text>{formatEffectiveDate(rate.effective_date)}</Text>
+                                    <Text>{(rate.business_rate * 100).toFixed(1)}¢ / mile</Text>
+                                </View>
+                            )
+                        )
                     )}
                 </View>
             </View>

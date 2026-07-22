@@ -9,6 +9,8 @@ import {
     useCurrentUser
 } from "@/features/auth/hooks/use-current-user";
 import { router } from "expo-router";
+import { HeaderBackButton } from "@react-navigation/elements";
+import { BackHeader } from "@/components/ui/BackButton";
 
 
 export default function SecuritySettingsScreen() {
@@ -16,12 +18,11 @@ export default function SecuritySettingsScreen() {
 
 
     return (
+    <View>
+        <BackHeader />
+
         <View
-            style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-            }}
+        
         >
             <Button title="Back to Settings" onPress={() => router.back()} />
             
@@ -47,5 +48,7 @@ export default function SecuritySettingsScreen() {
             
 
         </View>
+    </View>
+
     );
 }
