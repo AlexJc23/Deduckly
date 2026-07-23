@@ -10,19 +10,62 @@ from datetime import datetime, timezone
 from app.models import TaxBracket, User, Expense, Income, Trip
 from app.models.enums import TaxMethod, ExpenseCategory
 
-STANDARD_MILEAGE_EXCLUDED = {
-    ExpenseCategory.FUEL,
-    ExpenseCategory.VEHICLE_MAINTENANCE,
-    ExpenseCategory.CAR_WASH,
-    ExpenseCategory.VEHICLE_INSURANCE,
-    ExpenseCategory.VEHICLE_REGISTRATION,
-    ExpenseCategory.REPAIRS_MAINTENANCE,
-}
-expense_breakdown = {
-    "fuel": Decimal("0"),
-    "software": Decimal("0"),
-    "parking": Decimal("0"),
-    "advertising": Decimal("0"),
+CATEGORY_RULES = {
+    # Vehicle
+    ExpenseCategory.FUEL: {"standard": False, "actual": True, "vehicle": True},
+    ExpenseCategory.CAR_WASH: {"standard": False, "actual": True, "vehicle": True},
+    ExpenseCategory.VEHICLE_MAINTENANCE: {"standard": False, "actual": True, "vehicle": True},
+    ExpenseCategory.VEHICLE_REPAIRS: {"standard": False, "actual": True, "vehicle": True},
+    ExpenseCategory.VEHICLE_INSURANCE: {"standard": False, "actual": True, "vehicle": True},
+    ExpenseCategory.VEHICLE_REGISTRATION: {"standard": False, "actual": True, "vehicle": True},
+    ExpenseCategory.VEHICLE: {"standard": False, "actual": True, "vehicle": True},
+
+    # Parking & Tolls
+    ExpenseCategory.PARKING_TOLLS: {"standard": True, "actual": True, "vehicle": False},
+
+    # Office
+    ExpenseCategory.SOFTWARE: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.PHONE: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.INTERNET: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.OFFICE_SUPPLIES: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.EQUIPMENT: {"standard": True, "actual": True, "vehicle": False},
+
+    # Business
+    ExpenseCategory.ADVERTISING: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.MARKETING: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.BANK_FEES: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.COMMISSIONS_FEES: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.CONTRACT_LABOR: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.PROFESSIONAL_SERVICES: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.LEGAL_FEES: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.ACCOUNTING: {"standard": True, "actual": True, "vehicle": False},
+
+    # Travel
+    ExpenseCategory.TRAVEL: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.LODGING: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.AIRFARE: {"standard": True, "actual": True, "vehicle": False},
+
+    # Property
+    ExpenseCategory.RENT: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.UTILITIES: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.HOME_OFFICE: {"standard": True, "actual": True, "vehicle": False},
+
+    # Insurance
+    ExpenseCategory.INSURANCE: {"standard": True, "actual": True, "vehicle": False},
+
+    # Misc
+    ExpenseCategory.LICENSES_PERMITS: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.POSTAGE_SHIPPING: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.INTEREST: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.TAXES_FEES: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.MEMBERSHIPS_SUBSCRIPTIONS: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.REPAIRS_MAINTENANCE: {"standard": True, "actual": True, "vehicle": False},
+    ExpenseCategory.EDUCATION: {"standard": True, "actual": True, "vehicle": False},
+
+    # Skip meals for MVP
+    ExpenseCategory.MEALS: {"standard": False, "actual": False, "vehicle": False},
+
+    ExpenseCategory.OTHER: {"standard": True, "actual": True, "vehicle": False},
 }
 
 
@@ -44,6 +87,10 @@ def calculate_deductions(
     non_deductible_expenses = Decimal("0")
     vehicle_expenses = Decimal("0")
     expense_breakdown = {}
+    non_deductible_breakdown = []
+
+    largest_expense_category = None
+    largest_expense_amount = Decimal("0")
 
     for expense in expenses:
 
@@ -53,26 +100,59 @@ def calculate_deductions(
 
         expense_breakdown.setdefault(
             category,
-            Decimal("0")
+            {
+                "amount": Decimal("0"),
+                "count": 0,
+                "business_percentage": expense.business_percentage,
+            }
         )
+        
 
-        expense_breakdown[category] += amount
+        expense_breakdown[category]["amount"] += amount
+        expense_breakdown[category]["count"] += 1
 
-        if expense.category in VEHICLE_EXPENSE_CATEGORIES:
+        if (
+            expense_breakdown[category]["amount"]
+            > largest_expense_amount
+        ):
+            largest_expense_amount = expense_breakdown[category]["amount"]
+            largest_expense_category = category
+
+
+        rule = CATEGORY_RULES.get(expense.category)
+
+        if rule is None:
+            continue
+
+        if rule["vehicle"]:
             vehicle_expenses += amount
 
         if user.tax_method == TaxMethod.STANDARD_MILEAGE:
 
-            if expense.category in STANDARD_MILEAGE_EXCLUDED:
-                non_deductible_expenses += amount
-            else:
+            if rule["standard"]:
                 deductible_expenses += amount
+            else:
+                non_deductible_expenses += amount
 
-        elif user.tax_method == TaxMethod.ACTUAL_EXPENSES:
+                non_deductible_breakdown.append({
+                    "category": category,
+                    "amount": amount,
+                    "reason": "Included in the Standard Mileage deduction."
+                })
 
-            deductible_expenses += amount
+        else:  # ACTUAL_EXPENSES
 
-    # Mileage deduction only applies under Standard Mileage
+            if rule["actual"]:
+                deductible_expenses += amount
+            else:
+                non_deductible_expenses += amount
+
+                non_deductible_breakdown.append({
+                    "category": category,
+                    "amount": amount,
+                    "reason": "Not deductible."
+                })
+
     if user.tax_method == TaxMethod.STANDARD_MILEAGE:
         deductible_expenses += mileage_deduction
 
@@ -81,9 +161,38 @@ def calculate_deductions(
         "non_deductible_expenses": non_deductible_expenses,
         "vehicle_expenses": vehicle_expenses,
         "expense_breakdown": expense_breakdown,
+        "non_deductible_breakdown": non_deductible_breakdown,
+        "largest_expense_category": largest_expense_category,
+        "largest_expense_amount": largest_expense_amount,
     }
 
+def calculate_tax(
+    taxable_income: Decimal,
+    tax_brackets: list[TaxBracket],
+) -> Decimal:
 
+    tax = Decimal("0")
+    remaining_income = taxable_income
+
+    for bracket in tax_brackets:
+
+        if remaining_income <= 0:
+            break
+
+        lower = bracket.min_income
+        upper = bracket.max_income or Decimal("Infinity")
+
+        span = upper - lower
+
+        taxable_in_bracket = min(
+            remaining_income,
+            span
+        )
+
+        tax += taxable_in_bracket * bracket.rate
+        remaining_income -= taxable_in_bracket
+
+    return tax.quantize(Decimal("0.01"))
 
 def generate_tax_report(
     db: Session,
@@ -155,7 +264,7 @@ def generate_tax_report(
 
         if day is not None:
             trip_filters.append(
-                func.extract("day", Trip.incurred_at) == day
+                func.extract("day", Trip.created_at) == day
             )
         
         trips = (
@@ -175,11 +284,19 @@ def generate_tax_report(
         total_income = Decimal(total_income)
         total_expenses = Decimal(total_expenses)
 
-        deductible_expenses, non_deductible_expenses = calculate_deductions(
+        deductions = calculate_deductions(
             user=user,
             expenses=expenses,
             mileage_deduction=mileage_deduction,
         )
+
+        deductible_expenses = deductions["deductible_expenses"]
+        non_deductible_expenses = deductions["non_deductible_expenses"]
+        vehicle_expenses = deductions["vehicle_expenses"]
+        expense_breakdown = deductions["expense_breakdown"]
+        non_deductible_breakdown = deductions["non_deductible_breakdown"]
+        largest_expense_category = deductions["largest_expense_category"]
+        largest_expense_amount = deductions["largest_expense_amount"]
 
         total_deductions = deductible_expenses
 
@@ -209,24 +326,20 @@ def generate_tax_report(
                 detail="No tax brackets found"
             )
 
-        tax_owed = Decimal("0")
-        remaining_income = taxable_income
+        tax_owed = calculate_tax(
+            taxable_income,
+            tax_brackets,
+        )
 
-        for bracket in tax_brackets:
-            if remaining_income <= 0:
-                break
 
-            lower = bracket.min_income
-            upper = bracket.max_income or Decimal("Infinity")
-            span = upper - lower
+        tax_without_deductions = calculate_tax(
+            total_income,
+            tax_brackets,
+        )
 
-            taxable_in_bracket = min(
-                remaining_income,
-                span
-            )
-
-            tax_owed += taxable_in_bracket * bracket.rate
-            remaining_income -= taxable_in_bracket
+        estimated_tax_savings = (
+            tax_without_deductions - tax_owed
+        ).quantize(Decimal("0.01"))
 
         return {
             "year": year,
@@ -250,16 +363,16 @@ def generate_tax_report(
             "net_profit": net_profit,
             "taxable_income": taxable_income,
             "tax_owed": tax_owed,
+            "estimated_tax_savings": estimated_tax_savings,
+            "tax_method": user.tax_method,
+            "business_type": user.business_type,
+            "largest_expense_category": largest_expense_category,
+            "largest_expense_amount": largest_expense_amount,
 
-            "total_expenses": total_expenses,
 
-            "deductible_expenses": deductible_expenses,
-
-            "non_deductible_expenses": non_deductible_expenses,
-
-            "mileage_deduction": mileage_deduction,
-
-            "total_deductions": total_deductions,
+            "vehicle_expenses": vehicle_expenses,
+            "expense_breakdown": expense_breakdown,
+            "non_deductible_breakdown": non_deductible_breakdown,
         }
 
     except SQLAlchemyError as e:

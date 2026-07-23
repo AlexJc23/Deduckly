@@ -19,10 +19,22 @@ export default function SettingsScreen() {
     >
       <Text>Settings</Text>
       <View style={{ backgroundColor: "lightgray", padding: 10, marginVertical: 10 }}>
-        <Pressable onPress={() => router.push("/settings/UserUpdateScreen") }>
+        <Pressable onPress={() => router.push("/settings/edit-profile") }>
           <Text>{user?.first_name} {user?.last_name}</Text>
           <Text>{user?.email}</Text>
         </Pressable>
+      </View>
+      <View>
+        {/* {icon} */}
+        <View>
+          <Text>
+            Upgrade to Premium
+          </Text>
+          <Text>
+            Unlock more features and save.
+          </Text>
+        </View>
+        {/* {icon} */}
       </View>
       <View style={{ backgroundColor: "lightgray", padding: 10, marginVertical: 10 }}>
         <Pressable onPress={() => { }}>
@@ -32,7 +44,7 @@ export default function SettingsScreen() {
       </View>
       <View style={{ backgroundColor: "lightgray", padding: 10, marginVertical: 10 }}>
         <Text>TAX SETTINGS</Text>
-        <Pressable onPress={() => { }}>
+        <Pressable onPress={() => {router.push("/settings/mileage-rate")}}>
           <Text>Mileage Rate</Text>
           <Text>{currentYear} IRS Standard(fixed)</Text>
         </Pressable>
@@ -43,10 +55,15 @@ export default function SettingsScreen() {
           title="Security"
           onPress={() => { router.push("/settings/security"); }}
         />
+        <Pressable onPress={() => router.push('/settings/privacy')}>
+          <Text>
+            Privacy
+          </Text>
+        </Pressable>
       </View>
       <View style={{ backgroundColor: "lightgray", padding: 10, marginVertical: 10 }}>
         <Text>LEGAL</Text>
-        <Pressable onPress={() => { }}>
+        <Pressable onPress={() => {router.push("/settings/legal/legal-screen")}}>
           <Text>Legal</Text>
           <Text>Terms of Service</Text>
         </Pressable>

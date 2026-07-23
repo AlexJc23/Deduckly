@@ -9,6 +9,8 @@ import {
     useCurrentUser
 } from "@/features/auth/hooks/use-current-user";
 import { router } from "expo-router";
+import { HeaderBackButton } from "@react-navigation/elements";
+import { BackHeader } from "@/components/ui/BackButton";
 
 
 export default function SecuritySettingsScreen() {
@@ -16,20 +18,18 @@ export default function SecuritySettingsScreen() {
 
 
     return (
+    <View>
+        <BackHeader />
+
         <View
-            style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-            }}
+        
         >
-            <Button title="Back to Settings" onPress={() => router.back()} />
             
 
             <View>
                 <Button
                     title="Change Password"
-                    onPress={() => router.push("/settings/UserUpdatePassword")}
+                    onPress={() => router.push("/settings/change-password")}
                     />
                 <Button
                     title="Two-Factor Authentication"
@@ -44,8 +44,22 @@ export default function SecuritySettingsScreen() {
                     }}
                     />
             </View>
+            <View>
+        {/* {icon} */}
+        <View>
+          <Text>
+            Keep your account secure
+          </Text>
+          <Text>
+            We recommend using a strong password
+            and enabling 2FA to protect your account.
+          </Text>
+        </View>
+      </View>
             
 
         </View>
+    </View>
+
     );
 }
