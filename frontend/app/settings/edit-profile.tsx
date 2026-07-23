@@ -95,11 +95,12 @@ export default function UserUpdateScreen() {
     );
   }
 
+
   return (
     <View>
       <BackHeader />
     
-    <View style={{ flex: 1, padding: 20, margin: "auto", marginTop: 40,justifyContent: "center" }}>
+    <View style={{ padding: 20, margin: "auto", marginTop: 40,justifyContent: "center" }}>
       <Text>First Name</Text>
       <TextInput value={firstName} onChangeText={setFirstName} />
 

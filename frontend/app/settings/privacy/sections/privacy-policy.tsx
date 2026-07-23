@@ -43,7 +43,7 @@ const Privacy = () => {
         <Text style={styles.title}>Privacy Policy</Text>
 
         <Text style={styles.subtitle}>
-          Effective Date: July 22, 2026
+          Effective Date: August 1, 2026
         </Text>
 
         <Text style={styles.appName}>

@@ -24,6 +24,18 @@ export default function SettingsScreen() {
           <Text>{user?.email}</Text>
         </Pressable>
       </View>
+      <View>
+        {/* {icon} */}
+        <View>
+          <Text>
+            Upgrade to Premium
+          </Text>
+          <Text>
+            Unlock more features and save.
+          </Text>
+        </View>
+        {/* {icon} */}
+      </View>
       <View style={{ backgroundColor: "lightgray", padding: 10, marginVertical: 10 }}>
         <Pressable onPress={() => { }}>
           <Text>PREMIUM</Text>
@@ -51,7 +63,7 @@ export default function SettingsScreen() {
       </View>
       <View style={{ backgroundColor: "lightgray", padding: 10, marginVertical: 10 }}>
         <Text>LEGAL</Text>
-        <Pressable onPress={() => { }}>
+        <Pressable onPress={() => {router.push("/settings/legal/legal-screen")}}>
           <Text>Legal</Text>
           <Text>Terms of Service</Text>
         </Pressable>

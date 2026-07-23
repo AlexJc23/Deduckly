@@ -24,7 +24,6 @@ export default function SecuritySettingsScreen() {
         <View
         
         >
-            <Button title="Back to Settings" onPress={() => router.back()} />
             
 
             <View>
@@ -45,6 +44,18 @@ export default function SecuritySettingsScreen() {
                     }}
                     />
             </View>
+            <View>
+        {/* {icon} */}
+        <View>
+          <Text>
+            Keep your account secure
+          </Text>
+          <Text>
+            We recommend using a strong password
+            and enabling 2FA to protect your account.
+          </Text>
+        </View>
+      </View>
             
 
         </View>
