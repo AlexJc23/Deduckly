@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 from fastapi import HTTPException
 from decimal import Decimal, InvalidOperation
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date, timedelta
 
 from app.models import TaxBracket, User, Expense, Income, Trip
 from app.models.enums import TaxMethod, ExpenseCategory
@@ -78,46 +78,45 @@ def deductible_amount(expense: Expense) -> Decimal:
     ).quantize(Decimal("0.01"))
 
 
-def calculate_deductions(
+def calculate_expense_summary(
     user: User,
     expenses: list[Expense],
     mileage_deduction: Decimal,
 ):
-    deductible_expenses = Decimal("0")
-    non_deductible_expenses = Decimal("0")
-    vehicle_expenses = Decimal("0")
+    deductible_expense_total = Decimal("0")
+    non_deductible_expense_total = Decimal("0")
+    vehicle_expense_total = Decimal("0")
+
     expense_breakdown = {}
-    non_deductible_breakdown = []
+    deductible_breakdown = {}
+    non_deductible_breakdown = {}
 
     largest_expense_category = None
     largest_expense_amount = Decimal("0")
 
     for expense in expenses:
 
-        amount = deductible_amount(expense)
+        raw_amount = expense.amount
+        business_amount = deductible_amount(expense)
 
         category = expense.category.value
 
+        # Finance breakdown (actual money spent)
         expense_breakdown.setdefault(
             category,
             {
                 "amount": Decimal("0"),
                 "count": 0,
                 "business_percentage": expense.business_percentage,
-            }
+            },
         )
-        
 
-        expense_breakdown[category]["amount"] += amount
+        expense_breakdown[category]["amount"] += raw_amount
         expense_breakdown[category]["count"] += 1
 
-        if (
-            expense_breakdown[category]["amount"]
-            > largest_expense_amount
-        ):
+        if expense_breakdown[category]["amount"] > largest_expense_amount:
             largest_expense_amount = expense_breakdown[category]["amount"]
             largest_expense_category = category
-
 
         rule = CATEGORY_RULES.get(expense.category)
 
@@ -125,42 +124,76 @@ def calculate_deductions(
             continue
 
         if rule["vehicle"]:
-            vehicle_expenses += amount
+            vehicle_expense_total += business_amount
 
         if user.tax_method == TaxMethod.STANDARD_MILEAGE:
 
             if rule["standard"]:
-                deductible_expenses += amount
-            else:
-                non_deductible_expenses += amount
+                deductible_expense_total += business_amount
 
-                non_deductible_breakdown.append({
-                    "category": category,
-                    "amount": amount,
-                    "reason": "Included in the Standard Mileage deduction."
-                })
+                deductible_breakdown.setdefault(
+                    category,
+                    {
+                        "amount": Decimal("0"),
+                        "count": 0,
+                    },
+                )
+
+                deductible_breakdown[category]["amount"] += business_amount
+                deductible_breakdown[category]["count"] += 1
+
+            else:
+                non_deductible_expense_total += business_amount
+
+                non_deductible_breakdown.setdefault(
+                    category,
+                    {
+                        "amount": Decimal("0"),
+                        "count": 0,
+                        "reason": "Included in the Standard Mileage deduction.",
+                    },
+                )
+
+                non_deductible_breakdown[category]["amount"] += business_amount
+                non_deductible_breakdown[category]["count"] += 1
 
         else:  # ACTUAL_EXPENSES
 
             if rule["actual"]:
-                deductible_expenses += amount
+                deductible_expense_total += business_amount
+
+                deductible_breakdown.setdefault(
+                    category,
+                    {
+                        "amount": Decimal("0"),
+                        "count": 0,
+                    },
+                )
+
+                deductible_breakdown[category]["amount"] += business_amount
+                deductible_breakdown[category]["count"] += 1
+
             else:
-                non_deductible_expenses += amount
+                non_deductible_expense_total += business_amount
 
-                non_deductible_breakdown.append({
-                    "category": category,
-                    "amount": amount,
-                    "reason": "Not deductible."
-                })
+                non_deductible_breakdown.setdefault(
+                    category,
+                    {
+                        "amount": Decimal("0"),
+                        "count": 0,
+                        "reason": "Not deductible.",
+                    },
+                )
 
-    if user.tax_method == TaxMethod.STANDARD_MILEAGE:
-        deductible_expenses += mileage_deduction
+                non_deductible_breakdown[category]["amount"] += business_amount
+                non_deductible_breakdown[category]["count"] += 1
 
     return {
-        "deductible_expenses": deductible_expenses,
-        "non_deductible_expenses": non_deductible_expenses,
-        "vehicle_expenses": vehicle_expenses,
+        "deductible_expense_total": deductible_expense_total,
+        "non_deductible_expense_total": non_deductible_expense_total,
+        "vehicle_expense_total": vehicle_expense_total,
         "expense_breakdown": expense_breakdown,
+        "deductible_breakdown": deductible_breakdown,
         "non_deductible_breakdown": non_deductible_breakdown,
         "largest_expense_category": largest_expense_category,
         "largest_expense_amount": largest_expense_amount,
@@ -194,18 +227,53 @@ def calculate_tax(
 
     return tax.quantize(Decimal("0.01"))
 
+def build_date_filters(
+    column,
+    year: Optional[int] = None,
+    month: Optional[int] = None,
+    day: Optional[int] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+):
+    filters = []
+
+    if start_date and end_date:
+        filters.append(column >= start_date)
+        filters.append(column < (end_date + timedelta(days=1)))
+        return filters
+
+    if year is not None:
+        filters.append(func.extract("year", column) == year)
+
+    if month is not None:
+        filters.append(func.extract("month", column) == month)
+
+    if day is not None:
+        filters.append(func.extract("day", column) == day)
+
+    return filters
+
 def generate_tax_report(
     db: Session,
     user: User,
-    year: int,
+    year: Optional[int] = None,
     month: Optional[int] = None,
-    day: Optional[int] = None
+    day: Optional[int] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
 ):
     try:
         # 💰 income filters
         income_filters = [
             Income.user_id == user.id,
-            func.extract("year", Income.received_at) == year,
+            *build_date_filters(
+                Income.received_at,
+                year,
+                month,
+                day,
+                start_date,
+                end_date,
+            ),
         ]
 
         if month is not None:
@@ -225,10 +293,33 @@ def generate_tax_report(
             or Decimal("0")
         )
 
+
+        if (
+            start_date
+            and end_date
+            and start_date.year != end_date.year
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="Custom reports cannot span multiple tax years."
+            )
+
+        report_year = year
+
+        if report_year is None and start_date:
+            report_year = start_date.year
+
         # 💸 expense filters
         expense_filters = [
             Expense.user_id == user.id,
-            func.extract("year", Expense.incurred_at) == year,
+            *build_date_filters(
+                Expense.incurred_at,
+                year,
+                month,
+                day,
+                start_date,
+                end_date,
+            ),
         ]
 
         if month is not None:
@@ -254,7 +345,14 @@ def generate_tax_report(
         # 🚗 trip filters
         trip_filters = [
             Trip.user_id == user.id,
-            func.extract("year", Trip.created_at) == year,
+            *build_date_filters(
+                Trip.created_at,
+                year,
+                month,
+                day,
+                start_date,
+                end_date,
+            ),
         ]
 
         if month is not None:
@@ -284,21 +382,28 @@ def generate_tax_report(
         total_income = Decimal(total_income)
         total_expenses = Decimal(total_expenses)
 
-        deductions = calculate_deductions(
+        deductions = calculate_expense_summary(
             user=user,
             expenses=expenses,
             mileage_deduction=mileage_deduction,
         )
 
-        deductible_expenses = deductions["deductible_expenses"]
-        non_deductible_expenses = deductions["non_deductible_expenses"]
-        vehicle_expenses = deductions["vehicle_expenses"]
+        deductible_expense_total = deductions["deductible_expense_total"]
+        non_deductible_expense_total = deductions["non_deductible_expense_total"]
+        vehicle_expense_total = deductions["vehicle_expense_total"]
         expense_breakdown = deductions["expense_breakdown"]
         non_deductible_breakdown = deductions["non_deductible_breakdown"]
         largest_expense_category = deductions["largest_expense_category"]
         largest_expense_amount = deductions["largest_expense_amount"]
+        deductible_breakdown = deductions["deductible_breakdown"]
 
-        total_deductions = deductible_expenses
+        if user.tax_method == TaxMethod.STANDARD_MILEAGE:
+            total_deductions = (
+                deductible_expense_total +
+                mileage_deduction
+            )
+        else:
+            total_deductions = deductible_expense_total
 
         # 📉 profit
         net_profit = total_income - total_deductions
@@ -309,12 +414,17 @@ def generate_tax_report(
             Decimal("0")
         )
 
+        report_year = year
+
+        if report_year is None and start_date:
+            report_year = start_date.year
+
         # 🧮 tax calculation
         tax_brackets = (
             db.query(TaxBracket)
             .filter(
-                TaxBracket.year == year,
-                TaxBracket.filing_status == user.filing_status
+                TaxBracket.year == report_year,
+                TaxBracket.filing_status == user.filing_status,
             )
             .order_by(TaxBracket.min_income.asc())
             .all()
@@ -342,13 +452,15 @@ def generate_tax_report(
         ).quantize(Decimal("0.01"))
 
         return {
-            "year": year,
+            "year": report_year,
             "month": month,
             "day": day,
+            "start_date": start_date,
+            "end_date": end_date,
             "first_name": getattr(user, "first_name", "N/A"),
             "last_name": getattr(user, "last_name", "N/A"),
             "filing_status": user.filing_status,
-            "generated_at": datetime.now(timezone.utc),
+            "generated_at_utc": datetime.now(timezone.utc),
 
             "total_income": total_income,
             "total_expenses": total_expenses,
@@ -356,13 +468,14 @@ def generate_tax_report(
             "total_miles": total_miles,
             "mileage_deduction": mileage_deduction,
 
-            "deductible_expenses": deductible_expenses,
-            "non_deductible_expenses": non_deductible_expenses,
+            "deductible_expense_total": deductible_expense_total,
+            "non_deductible_expense_total": non_deductible_expense_total,
+            "deductible_breakdown": deductible_breakdown,
 
             "total_deductions": total_deductions,
             "net_profit": net_profit,
             "taxable_income": taxable_income,
-            "tax_owed": tax_owed,
+            "estimated_tax_owed": tax_owed,
             "estimated_tax_savings": estimated_tax_savings,
             "tax_method": user.tax_method,
             "business_type": user.business_type,
@@ -370,13 +483,12 @@ def generate_tax_report(
             "largest_expense_amount": largest_expense_amount,
 
 
-            "vehicle_expenses": vehicle_expenses,
+            "vehicle_expense_total": vehicle_expense_total,
             "expense_breakdown": expense_breakdown,
             "non_deductible_breakdown": non_deductible_breakdown,
         }
 
     except SQLAlchemyError as e:
-        print(e)
         raise HTTPException(
             status_code=500,
             detail=str(e)

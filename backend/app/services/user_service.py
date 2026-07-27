@@ -5,7 +5,14 @@ from app.schemas.v1.user import UserCreate, UserUpdate
 from app.core.security import hash_password, verify_password
 from fastapi import HTTPException, status
 from typing import Optional
+from datetime import datetime, timedelta, timezone
+from decimal import Decimal
+from zoneinfo import ZoneInfo
 
+from sqlalchemy import func
+
+
+from app.models import Income
 
 def create_user(db: Session, user_in: UserCreate) -> User:
     try:
@@ -129,6 +136,56 @@ def update_user(db: Session, user_id: int, user_in: UserUpdate) -> User:
             detail="Failed to update user"
         )
 
+
+def get_weekly_income(
+    db: Session,
+    user_id: int,
+) -> Decimal:
+    """
+    Returns the total income earned during the current week
+    (Monday through today).
+    """
+    tz = ZoneInfo("America/New_York")
+    now = datetime.now(tz)
+
+
+    start_of_week = (
+        now - timedelta(days=now.weekday())
+    ).replace(
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+
+
+
+    total = (
+        db.query(
+            func.coalesce(
+                func.sum(Income.amount),
+                0,
+            )
+        )
+        .filter(
+            Income.user_id == user_id,
+            Income.received_at >= start_of_week,
+        )
+        .scalar()
+    )
+
+
+
+    incomes = (
+        db.query(Income)
+        .filter(
+            Income.user_id == user_id,
+            Income.received_at >= start_of_week,
+        )
+        .all()
+    )
+
+    return Decimal(total)
 
 def delete_user(db: Session, user_id: int) -> None:
     try:

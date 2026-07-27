@@ -1,8 +1,9 @@
-from sqlalchemy import String, Integer, DateTime, Boolean, func, true, false, text, Enum as SqlEnum
+from sqlalchemy import String, Integer, DateTime, Numeric, Boolean, func, true, false, text, Enum as SqlEnum
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from app.models.enums import FilingStatus, UserRole, BusinessType, TaxMethod
 from app.db.base import Base
 
+from decimal import Decimal
 
 class User(Base):
     __tablename__ = "users"
@@ -71,6 +72,17 @@ class User(Base):
         Boolean,
         server_default=false(),
         nullable=False
+    )
+
+    weekly_goal_type: Mapped[str] = mapped_column(
+        String(20),
+        server_default=text("'income'"),
+        nullable=False,
+    )
+
+    weekly_goal_amount: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2),
+        nullable=True,
     )
 
     created_at: Mapped[DateTime] = mapped_column(

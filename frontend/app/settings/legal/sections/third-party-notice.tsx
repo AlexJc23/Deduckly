@@ -15,7 +15,7 @@ export default function ThirdPartyServicesNoticeScreen() {
   };
 
   const openEmail = () => {
-    Linking.openURL('mailto:support@karlsonworks.com');
+    Linking.openURL('mailto:deducklysupport@karlsonworks.com');
   };
 
   const Bullet = ({ children }: { children: React.ReactNode }) => (

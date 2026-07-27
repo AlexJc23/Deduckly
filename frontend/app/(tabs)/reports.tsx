@@ -1,15 +1,14 @@
-import { View, Text } from "react-native";
+import FreeTierReportScreen from "app/reports/FreeTierReport";
+import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import PremiumReportScreen from "app/reports/PremiumReport";
 
-export default function DashboardScreen() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Reports</Text>
-    </View>
-  );
+
+export default function FreeTierReportsScreen() {
+
+  const isPremium = true;
+
+  const userQuery = useCurrentUser();
+
+
+  return !isPremium ? <FreeTierReportScreen /> : <PremiumReportScreen />;
 }

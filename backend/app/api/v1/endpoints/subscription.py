@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -64,10 +66,62 @@ def revenuecat_webhook(
             detail="Missing app_user_id"
         )
 
-    # find user
-    # update subscription
+    user = (
+        db.query(User)
+        .filter(User.id == app_user_id)
+        .first()
+    )
 
-    return {"success": True}
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    purchased_at_ms = event.get("purchased_at_ms")
+    expiration_at_ms = event.get("expiration_at_ms")
+
+    subscription_data = {
+        "product_id": event.get("product_id"),
+        "original_transaction_id": event.get(
+            "original_transaction_id"
+        ),
+        "latest_transaction_id": event.get(
+            "transaction_id"
+        ),
+        "environment": event.get("environment"),
+        "purchase_date": (
+            datetime.fromtimestamp(
+                purchased_at_ms / 1000,
+                tz=UTC
+            )
+            if purchased_at_ms
+            else datetime.now(UTC)
+        ),
+        "expiration_date": (
+            datetime.fromtimestamp(
+                expiration_at_ms / 1000,
+                tz=UTC
+            )
+            if expiration_at_ms
+            else None
+        ),
+        "auto_renew": event.get("type") != "CANCELLATION",
+        "apple_response": event,
+    }
+
+    subscription = process_subscription(
+        db,
+        user.id,
+        subscription_data
+    )
+
+    return {
+        "success": True,
+        "subscription": subscription,
+    }
+
 
 @router.post(
     "/restore",
@@ -84,12 +138,21 @@ def restore_subscription(
         subscription_data.model_dump()
     )
 
+
 @router.post("/sync")
 def sync_subscription(
     payload: dict,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # update local subscription state
 
-    return {"success": True}
+    subscription = process_subscription(
+        db,
+        current_user.id,
+        payload
+    )
+
+    return {
+        "success": True,
+        "subscription": subscription,
+    }

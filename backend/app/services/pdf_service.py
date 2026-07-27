@@ -1,82 +1,229 @@
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
+from datetime import datetime
+from app.services.report_helper import get_report_period
 
 
-def money(val):
-    return f"${val:,.2f}"
+def money(value):
+    if value is None:
+        return "$0.00"
+
+    return f"${value:,.2f}"
 
 
 def build_tax_report_pdf(buffer, data):
+    period = get_report_period(data)
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
 
-    # 🖼️ Logo
-    c.drawImage("app/static/logo.png", 50, height - 80, width=80, height=80)
+    y = height - 50
 
-    # 🧾 Title
+    # Logo
+    c.drawImage(
+        "app/static/logo.png",
+        50,
+        y - 30,
+        width=50,
+        height=50,
+        preserveAspectRatio=True,
+        mask="auto",
+    )
+
+    # Title
     c.setFont("Helvetica-Bold", 20)
-    c.drawString(150, height - 50, f"Tax Report {data['year']}")
+    c.drawString(
+        120,
+        y,
+        f"Deduckly Tax Report"
+    )
 
-    # Meta info
+    y -= 25
+
+    c.setFont("Helvetica", 12)
+
+    c.drawString(
+        120,
+        y,
+        f"Report Period: {period}"
+)
+
+    y -= 30
+
+    # User Info
     c.setFont("Helvetica", 10)
-    c.drawString(150, height - 70, f"First Name: {data['first_name']}")
-    c.drawString(150, height - 70, f"Last Name: {data['last_name']}")
-    c.drawString(150, height - 85, f"Filing Status: {data['filing_status']}")
-    c.drawString(150, height - 100, f"Generated: {data['generated_at']}")
 
-    # Divider
+    generated = data["generated_at_utc"]
+
+    if isinstance(generated, str):
+        generated = datetime.fromisoformat(generated)
+
+    c.drawString(
+        120,
+        y,
+        f"{data['first_name']} {data['last_name']}",
+    )
+    y -= 15
+
+    c.drawString(
+        120,
+        y,
+        f"Filing Status: {data['filing_status'].replace('_', ' ').title()}",
+    )
+    y -= 15
+
+    c.drawString(
+        120,
+        y,
+        f"Generated: {generated.strftime('%B %d, %Y %I:%M %p UTC')}",
+    )
+
+    y -= 15
+
     c.setStrokeColor(colors.grey)
-    c.line(50, height - 110, width - 50, height - 110)
+    c.line(50, y, width - 50, y)
 
-    y = height - 140
+    y -= 30
 
     def section(title):
         nonlocal y
+
+        if y < 100:
+            c.showPage()
+            y = height - 50
+
         c.setFont("Helvetica-Bold", 14)
+        c.setFillColor(colors.black)
         c.drawString(50, y, title)
+
         y -= 20
 
     def row(label, value):
         nonlocal y
-        c.setFont("Helvetica", 12)
-        c.drawString(70, y, label)
-        c.drawRightString(width - 50, y, value)
-        y -= 18
 
-    # 💰 Income
+        if y < 60:
+            c.showPage()
+            y = height - 50
+
+        c.setFont("Helvetica", 11)
+        c.drawString(65, y, label)
+        c.drawRightString(width - 50, y, value)
+
+        y -= 16
+
+    # Income
     section("Income")
     row("Total Income", money(data["total_income"]))
 
-    # 💸 Expenses
+    y -= 10
+
+    # Expenses
     section("Expenses")
     row("Total Expenses", money(data["total_expenses"]))
+    row(
+        "Deductible Expenses",
+        money(data["deductible_expense_total"]),
+    )
+    row(
+        "Non-Deductible Expenses",
+        money(data["non_deductible_expense_total"]),
+    )
+    row(
+        "Vehicle Expenses",
+        money(data["vehicle_expense_total"]),
+    )
 
-    # 🚗 Mileage
+    y -= 10
+
+    # Mileage
     section("Mileage")
-    row("Total Miles", f"{data['total_miles']:,}")
-    row("Rate", f"${data['mileage_rate']}")
-    row("Deduction", money(data["mileage_deduction"]))
+    row("Total Miles", f"{data['total_miles']:.1f}")
+    row(
+        "Mileage Deduction",
+        money(data["mileage_deduction"]),
+    )
 
-    # 🧾 Deductions
-    section("Deductions")
-    row("Total Deductions", money(data["total_deductions"]))
+    y -= 10
 
-    # 📊 Summary
-    section("Summary")
+    # Tax Summary
+    section("Tax Summary")
+    row(
+        "Total Deductions",
+        money(data["total_deductions"]),
+    )
     row("Net Profit", money(data["net_profit"]))
+    row(
+        "Taxable Income",
+        money(data["taxable_income"]),
+    )
+    row(
+        "Estimated Tax Owed",
+        money(data["estimated_tax_owed"]),
+    )
+    row(
+        "Estimated Tax Savings",
+        money(data["estimated_tax_savings"]),
+    )
 
-    c.setFont("Helvetica-Bold", 12)
-    row("Taxable Income", money(data["taxable_income"]))
-    row("Estimated Tax Owed", money(data["tax_owed"]))
+    y -= 10
+
+    # Business Information
+    section("Business Information")
+
+    row(
+        "Business Type",
+        data["business_type"].replace("_", " ").title(),
+    )
+
+    row(
+        "Tax Method",
+        data["tax_method"].replace("_", " ").title(),
+    )
+
+    largest_category = data.get("largest_expense_category")
+
+    row(
+        "Largest Expense Category",
+        (
+            largest_category.replace("_", " ").title()
+            if largest_category
+            else "None"
+        ),
+    )
+
+    row(
+        "Largest Expense Amount",
+        (
+            money(data["largest_expense_amount"])
+            if data.get("largest_expense_amount") is not None
+            else "$0.00"
+        ),
+    )
+
+    y -= 15
+
+    # Deductible Expense Breakdown
+    section("Deductible Expense Breakdown")
+
+    if data["deductible_breakdown"]:
+        for category, details in data["deductible_breakdown"].items():
+            label = (
+                f"{category.replace('_', ' ').title()} "
+                f"({details['count']})"
+            )
+
+            row(label, money(details["amount"]))
+    else:
+        row("No deductible expenses", "$0.00")
 
     # Footer
     c.setFont("Helvetica-Oblique", 9)
     c.setFillColor(colors.grey)
+
     c.drawString(
         50,
         40,
-        "This report is an estimate and should be reviewed by a tax professional."
+        "Generated by Deduckly • This report is an estimate and should not replace professional tax advice.",
     )
 
     c.save()
