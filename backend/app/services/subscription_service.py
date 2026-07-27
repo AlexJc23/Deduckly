@@ -11,13 +11,28 @@ def process_subscription(
     user_id: int,
     data: dict
 ) -> Subscription:
-
+    print(user_id, "yeet")
     try:
         original_tx = data["original_transaction_id"]
 
         existing = db.query(Subscription).filter(
             Subscription.original_transaction_id == original_tx
         ).first()
+
+        # JSONB cannot store datetime objects directly
+        provider_response = {
+            **data,
+            "purchase_date": (
+                data["purchase_date"].isoformat()
+                if data.get("purchase_date")
+                else None
+            ),
+            "expiration_date": (
+                data["expiration_date"].isoformat()
+                if data.get("expiration_date")
+                else None
+            ),
+        }
 
         # UPDATE EXISTING SUBSCRIPTION
         if existing:
@@ -26,7 +41,7 @@ def process_subscription(
             existing.expiration_date = data["expiration_date"]
             existing.auto_renew = data["auto_renew"]
             existing.environment = data["environment"]
-            existing.provider_response = data
+            existing.provider_response = provider_response
 
             db.commit()
             db.refresh(existing)
@@ -45,7 +60,7 @@ def process_subscription(
             purchase_date=data["purchase_date"],
             expiration_date=data["expiration_date"],
             auto_renew=data["auto_renew"],
-            provider_response=data,
+            provider_response=provider_response,
         )
 
         db.add(new_sub)

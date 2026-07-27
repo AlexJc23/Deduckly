@@ -2,7 +2,7 @@ from app.models.enums import FilingStatus, UserRole, BusinessType, TaxMethod
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator, Field
 from datetime import datetime
 from typing import Optional
-
+from decimal import Decimal
 
 class UserBase(BaseModel):
     first_name: str = Field(min_length=1, max_length=50)
@@ -46,6 +46,8 @@ class UserUpdate(BaseModel):
     filing_status: Optional[FilingStatus] = None
     tax_method: Optional[TaxMethod] = None
     business_type: Optional[BusinessType] = None
+    weekly_goal_type: str | None = None
+    weekly_goal_amount: Decimal | None = None
     @field_validator("password")
     @classmethod
     def validate_password(cls, value: Optional[str]) -> Optional[str]:
@@ -77,6 +79,8 @@ class UserResponse(BaseModel):
     tax_method: str
     business_type: str
     is_active: bool
-    filing_status: Optional[FilingStatus]  
+    filing_status: Optional[FilingStatus] 
+    weekly_goal_type: str
+    weekly_goal_amount: Decimal | None 
     created_at: datetime
 

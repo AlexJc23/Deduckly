@@ -13,8 +13,8 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
-        name="trips"
-        options={{ title: "Trips" }}
+        name="activity"
+        options={{ title: "Activity" }}
       />
 
       <Tabs.Screen

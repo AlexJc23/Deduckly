@@ -11,6 +11,8 @@ from app.api.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
+
+
 @router.post("/tax-brackets", response_model=list[TaxBracketResponse])
 def create_tax_brackets_endpoint(
     brackets_in: list[TaxBracketCreate],

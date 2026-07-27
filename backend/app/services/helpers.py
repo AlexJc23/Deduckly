@@ -91,3 +91,4 @@ CATEGORY_RULES = {
         "vehicle": False,
     },
 }
+
