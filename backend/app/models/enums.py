@@ -105,3 +105,15 @@ class FilingStatus(str, Enum):
 class UserRole(str, Enum):
     USER = "user"
     ADMIN = "admin"
+
+class DistanceUnit(str, Enum):
+    MI = "mi"
+    KM = "km"
+
+
+class WeekStartsOn(str, Enum):
+    SUNDAY = "sunday"
+    MONDAY = "monday"
+
+class Currency(str, Enum):
+    USD = "USD"

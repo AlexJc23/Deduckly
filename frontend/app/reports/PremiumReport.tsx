@@ -13,14 +13,14 @@ import {
 import { OverviewCard } from "@/features/reports/components/OverViewCard";
 import { ExpenseBreakdownCard } from "@/features/reports/components/ExpenseBreakdownCard";
 import { ProfitSummaryCard } from "@/features/reports/components/ProfitSummaryCard";
-import { WeeklyIncomeGoalCard } from "@/features/reports/components/WeeklyIncomeGoal";
+import { MonthlyIncomeGoalCard } from "@/features/reports/components/MonthlyIncomeGoal";
 import { QuickActionsCard } from "@/features/reports/components/QuickActionCard";
 
 import { ExportReportModal } from "@/features/reports/modals/ExportReportModal";
 import { CustomReportModal } from "@/features/reports/modals/CustomReportModal";
 
 import { useCurrentReport } from "@/features/reports/hooks/use-current-report";
-import { useWeeklyGoal } from "@/features/users/hooks/use-weekly-goal";
+import { useMonthlyGoal } from "@/features/users/hooks/use-monthly-goal";
 
 import { buildReportParams } from "@/features/reports/utils/build-report-params";
 
@@ -61,8 +61,8 @@ export default function PremiumReportScreen() {
   const { data, isLoading } =
     useCurrentReport(reportParams);
 
-  const { data: weeklyGoal } =
-    useWeeklyGoal();
+  const { data: monthlyGoal } =
+    useMonthlyGoal();
 
   if (!data || isLoading) {
     return <ActivityIndicator />;
@@ -89,9 +89,9 @@ export default function PremiumReportScreen() {
           onSelect={handlePeriodChange}
         />
 
-        {weeklyGoal && (
-          <WeeklyIncomeGoalCard
-            weeklyGoal={weeklyGoal}
+        {monthlyGoal && (
+          <MonthlyIncomeGoalCard
+            monthlyGoal={monthlyGoal}
           />
         )}
 

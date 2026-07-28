@@ -15,7 +15,7 @@
         ]
       },
       "supportsTablet": true,
-      "bundleIdentifier": "com.deduckly.frontend"
+      "bundleIdentifier": "com.karlsonworks.deduckly"
     },
     "android": {
       "adaptiveIcon": {

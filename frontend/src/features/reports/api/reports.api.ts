@@ -58,6 +58,11 @@ export async function getReport(
   }
 }
 
+export async function getTodayReport() {
+  const response = await api.get("/api/v1/reports/today");
+  return response.data
+}
+
 export async function exportPdf(report: CurrentReport) {
   const response = await api.post("/api/v1/reports/exports/pdf", 
     report,
