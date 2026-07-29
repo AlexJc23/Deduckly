@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateCurrentUser } from "../api/user.api";
+import { router } from "expo-router";
 
 export function useUpdateUser() {
   const queryClient = useQueryClient();
@@ -8,9 +9,8 @@ export function useUpdateUser() {
     mutationFn: updateCurrentUser,
 
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["current-user"],
-      });
+      queryClient.invalidateQueries();
+      router.back()
     },
   });
 }

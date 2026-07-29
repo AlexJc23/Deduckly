@@ -226,7 +226,7 @@ export default function DashboardScreen() {
             transform: [{ scale: pressed ? 0.98 : 1 }],
             opacity: pressed ? 0.92 : 1,
           })}
-          onPress={() => {} }
+          onPress={() => {router.push("/offer-analyzer/screens/OfferAnalyzerScreen")} }
         >
           <Text>Offer Analyzer</Text>
         </Pressable>
