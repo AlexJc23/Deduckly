@@ -37,6 +37,7 @@ def get_expenses_for_user(
     user_id: int,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
+    sort: str = "desc",
 ) -> List[Expense]:
 
     try:
@@ -50,7 +51,12 @@ def get_expenses_for_user(
             end_dt = _to_utc(datetime.combine(end_date, time.max))
             query = query.filter(Expense.incurred_at <= end_dt)
 
-        return query.order_by(Expense.incurred_at.desc()).all()
+        if sort == "asc":
+            query = query.order_by(Expense.incurred_at.asc())
+        else:
+            query = query.order_by(Expense.incurred_at.desc())
+
+        return query.all()
 
     except SQLAlchemyError:
         raise HTTPException(status_code=500, detail="Failed to fetch expenses")
@@ -91,6 +97,7 @@ def create_expense(db: Session, expense_in: ExpenseCreate, user_id: int) -> Expe
         if expense_in.receipt_url
         else None,
     )
+
 
     try:
         db.add(db_expense)

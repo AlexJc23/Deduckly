@@ -1,28 +1,24 @@
+import { useState } from "react";
 import {
-  View,
   ActivityIndicator,
   ScrollView,
 } from "react-native";
-import { useState } from "react";
 
 import PremiumHeader from "@/features/reports/components/PremiumHeader";
+import { OverviewCard } from "@/features/reports/components/OverViewCard";
+import { ExpenseBreakdownCard } from "@/features/reports/components/ExpenseBreakdownCard";
+import { MonthlyIncomeGoalCard } from "@/features/reports/components/MonthlyIncomeGoal";
 import {
   ReportPeriod,
   ReportPeriodSelector,
 } from "@/features/reports/components/ReportPeriodSelector";
-import { OverviewCard } from "@/features/reports/components/OverViewCard";
-import { ExpenseBreakdownCard } from "@/features/reports/components/ExpenseBreakdownCard";
 import { ProfitSummaryCard } from "@/features/reports/components/ProfitSummaryCard";
-import { MonthlyIncomeGoalCard } from "@/features/reports/components/MonthlyIncomeGoal";
 import { QuickActionsCard } from "@/features/reports/components/QuickActionCard";
-
-import { ExportReportModal } from "@/features/reports/modals/ExportReportModal";
 import { CustomReportModal } from "@/features/reports/modals/CustomReportModal";
-
+import { ExportReportModal } from "@/features/reports/modals/ExportReportModal";
 import { useCurrentReport } from "@/features/reports/hooks/use-current-report";
-import { useMonthlyGoal } from "@/features/users/hooks/use-monthly-goal";
-
 import { buildReportParams } from "@/features/reports/utils/build-report-params";
+import { useMonthlyGoal } from "@/features/users/hooks/use-monthly-goal";
 
 export default function PremiumReportScreen() {
   const [selectedPeriod, setSelectedPeriod] =
@@ -89,11 +85,11 @@ export default function PremiumReportScreen() {
           onSelect={handlePeriodChange}
         />
 
-        {monthlyGoal && (
+        {/* {monthlyGoal && (
           <MonthlyIncomeGoalCard
             monthlyGoal={monthlyGoal}
           />
-        )}
+        )} */}
 
         <OverviewCard report={data} />
 

@@ -6,6 +6,8 @@ import {
   ActivityIndicator,
   Modal,
   Animated,
+  SafeAreaView,
+  StyleSheet,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { router } from "expo-router";
@@ -20,25 +22,19 @@ import { useDeleteUser } from "@/features/auth/hooks/use-delete-account";
 import { useQueryClient } from "@tanstack/react-query";
 import { BackHeader } from "@/components/ui/BackButton";
 
-
-
 export default function UserUpdateScreen() {
   const userQuery = useCurrentUser();
   const updateUserMutation = useUpdateUser();
   const queryClient = useQueryClient();
-    
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [filingStatus, setFilingStatus] = useState<string | null>(null);
+
   const [showFilingStatusModal, setShowFilingStatusModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const [showDeleteModal, setShowDeleteModal] =
-  useState(false);
-  
   const deleteUserMutation = useDeleteUser();
-
-  const [error, setError] = useState<string | null>(null);
 
   const slideAnim = useRef(new Animated.Value(300)).current;
 
@@ -58,7 +54,7 @@ export default function UserUpdateScreen() {
   }, [userQuery.data]);
 
   useEffect(() => {
-    if (showFilingStatusModal) {
+    if (showFilingStatusModal || showDeleteModal) {
       slideAnim.setValue(300);
 
       Animated.timing(slideAnim, {
@@ -67,71 +63,88 @@ export default function UserUpdateScreen() {
         useNativeDriver: true,
       }).start();
     }
-  }, [showFilingStatusModal]);
-
-  useEffect(() => {
-    if (showDeleteModal) {
-      slideAnim.setValue(300);
-
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [showDeleteModal]);
+  }, [showFilingStatusModal, showDeleteModal]);
 
   if (userQuery.isLoading) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <ActivityIndicator />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#2DBE60" />
       </View>
     );
   }
 
-
   return (
-    <View>
+    <View style={styles.container}>
       <BackHeader />
-    
-    <View style={{ padding: 20, margin: "auto", marginTop: 40,justifyContent: "center" }}>
-      <Text>First Name</Text>
-      <TextInput value={firstName} onChangeText={setFirstName} />
 
-      <Text>Last Name</Text>
-      <TextInput value={lastName} onChangeText={setLastName} />
+      <View style={styles.content}>
+        <Text style={styles.title}>Account</Text>
 
-      <Text>Filing Status</Text>
-      <Pressable onPress={() => setShowFilingStatusModal(true)}>
-        <Text>{filingStatus || "Select Filing Status"}</Text>
-      </Pressable>
+        <Text style={styles.subtitle}>
+          Update your personal information and filing status.
+        </Text>
 
-      <Pressable
-        onPress={async () => {
-          await updateUserMutation.mutateAsync({
-            first_name: firstName,
-            last_name: lastName,
-            filing_status: filingStatus,
-          });
+        <View style={styles.card}>
+          <Text style={styles.label}>First Name</Text>
 
-          router.back();
-        }}
-      >
-        <Text>Update</Text>
-      </Pressable>
-      <Pressable
-        onPress={() => {
-            setShowDeleteModal(true);
-        }}
-      >
-        <Text>Delete Account</Text>
-      </Pressable>
+          <TextInput
+            style={styles.input}
+            value={firstName}
+            onChangeText={setFirstName}
+            placeholder="First Name"
+            placeholderTextColor="#9CA3AF"
+          />
+
+          <Text style={styles.label}>Last Name</Text>
+
+          <TextInput
+            style={styles.input}
+            value={lastName}
+            onChangeText={setLastName}
+            placeholder="Last Name"
+            placeholderTextColor="#9CA3AF"
+          />
+
+          <Text style={styles.label}>Filing Status</Text>
+
+          <Pressable
+            style={styles.selectButton}
+            onPress={() => setShowFilingStatusModal(true)}
+          >
+            <Text style={styles.selectText}>
+              {filingStatuses.find(
+                status => status.value === filingStatus
+              )?.label ?? "Select Filing Status"}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={styles.saveButton}
+            onPress={async () => {
+              await updateUserMutation.mutateAsync({
+                first_name: firstName,
+                last_name: lastName,
+                filing_status: filingStatus,
+              });
+            }}
+          >
+            <Text style={styles.saveButtonText}>
+              {updateUserMutation.isPending
+                ? "Saving..."
+                : "Save Changes"}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={styles.deleteButton}
+            onPress={() => setShowDeleteModal(true)}
+          >
+            <Text style={styles.deleteButtonText}>
+              Delete Account
+            </Text>
+          </Pressable>
+        </View>
+      </View>
 
       <Modal
         transparent
@@ -139,83 +152,223 @@ export default function UserUpdateScreen() {
         visible={showFilingStatusModal}
         onRequestClose={() => setShowFilingStatusModal(false)}
       >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "flex-end",
-            backgroundColor: "rgba(0, 0, 0, 0.28)",
-          }}
-        >
+        <View style={styles.modalOverlay}>
           <Animated.View
-            style={{
-              backgroundColor: "#fff",
-              borderTopLeftRadius: 16,
-              borderTopRightRadius: 16,
-              padding: 16,
-              transform: [{ translateY: slideAnim }],
-            }}
+            style={[
+              styles.bottomSheet,
+              {
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
           >
-            <View
-              style={{
-                width: 40,
-                height: 5,
-                borderRadius: 3,
-                backgroundColor: "#D1D1D6",
-                alignSelf: "center",
-                marginBottom: 20,
-              }}
-            />
+            <View style={styles.grabber} />
 
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: "600",
-                marginBottom: 16,
-              }}
-            >
+            <Text style={styles.sheetTitle}>
               Choose Filing Status
             </Text>
 
-            {filingStatuses.map((status) => (
+            {filingStatuses.map(status => (
               <Pressable
                 key={status.value}
-                style={{ paddingVertical: 12 }}
+                style={styles.option}
                 onPress={() => {
                   setFilingStatus(status.value);
                   setShowFilingStatusModal(false);
                 }}
               >
-                <Text>{status.label}</Text>
+                <Text style={styles.optionText}>
+                  {status.label}
+                </Text>
               </Pressable>
             ))}
 
-            <Pressable onPress={() => setShowFilingStatusModal(false)}>
-              <Text
-                style={{
-                  textAlign: "center",
-                  marginTop: 16,
-                }}
-              >
+            <Pressable
+              onPress={() => setShowFilingStatusModal(false)}
+            >
+              <Text style={styles.cancel}>
                 Cancel
               </Text>
             </Pressable>
           </Animated.View>
         </View>
       </Modal>
+
       <DeleteAccountModal
         visible={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onDelete={async () => {
-            await deleteUserMutation.mutateAsync();
+          await deleteUserMutation.mutateAsync();
 
-            await clearTokens();
+          await clearTokens();
 
-            queryClient.clear();
+          queryClient.clear();
 
-            router.replace("/login");
+          router.replace("/login");
         }}
-        />
-    </View>
+      />
     </View>
   );
 }
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F6F8FA",
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F6F8FA",
+  },
+
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 30,
+  },
+
+  title: {
+    fontSize: 30,
+    fontWeight: "700",
+    color: "#111827",
+  },
+
+  subtitle: {
+    fontSize: 15,
+    color: "#6B7280",
+    marginTop: 6,
+    marginBottom: 24,
+  },
+
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 20,
+
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+
+    elevation: 3,
+  },
+
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 8,
+    marginTop: 18,
+  },
+
+  input: {
+    height: 52,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: "#111827",
+  },
+
+  selectButton: {
+    height: 52,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    backgroundColor: "#FFFFFF",
+    justifyContent: "center",
+    paddingHorizontal: 16,
+  },
+
+  selectText: {
+    fontSize: 16,
+    color: "#111827",
+  },
+
+  saveButton: {
+    marginTop: 30,
+    height: 54,
+    borderRadius: 16,
+    backgroundColor: "#2DBE60",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  saveButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  deleteButton: {
+    marginTop: 14,
+    height: 54,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#DC2626",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  deleteButtonText: {
+    color: "#DC2626",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+
+  bottomSheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 34,
+  },
+
+  grabber: {
+    width: 42,
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: "#D1D5DB",
+    alignSelf: "center",
+    marginBottom: 18,
+  },
+
+  sheetTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#111827",
+    marginBottom: 20,
+  },
+
+  option: {
+    paddingVertical: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+
+  optionText: {
+    fontSize: 16,
+    color: "#111827",
+  },
+
+  cancel: {
+    textAlign: "center",
+    color: "#DC2626",
+    fontWeight: "600",
+    fontSize: 16,
+    marginTop: 22,
+  },
+});

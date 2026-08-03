@@ -51,14 +51,15 @@ export default function PreferenceScreen() {
                         }
                     />
 
-                    <PreferenceInput
+                    {/* {future feature} */}
+                    {/* <PreferenceInput
                         label="Weekly Income Goal"
                         value={preferences.weeklyIncomeGoal}
                         keyboardType="numeric"
                         onChangeText={(text) =>
                             updateField("weeklyIncomeGoal", text)
                         }
-                    />
+                    /> */}
                 </PreferenceSection>
 
                 <PreferenceSection title="Offer Analyzer">
@@ -89,14 +90,14 @@ export default function PreferenceScreen() {
                         }
                     />
 
-                    <PreferenceInput
+                    {/* <PreferenceInput
                         label="Vehicle Cost Per Mile"
                         value={preferences.costPerMile}
                         keyboardType="numeric"
                         onChangeText={(text) =>
                             updateField("costPerMile", text)
                         }
-                    />
+                    /> */}
 
                     <PreferenceInput
                         label="Preferred Max Distance"
@@ -154,7 +155,8 @@ export default function PreferenceScreen() {
                     />
                 </PreferenceSection>
 
-                <PreferenceSection title="Tracking">
+                        {/* {future feature} */}
+                {/* <PreferenceSection title="Tracking">
                     <PreferenceToggle
                         label="Automatic Trip Detection"
                         value={preferences.autoTripDetection}
@@ -162,7 +164,7 @@ export default function PreferenceScreen() {
                             updateToggle("autoTripDetection", value)
                         }
                     />
-                </PreferenceSection>
+                </PreferenceSection> */}
 
                 <Pressable
                     style={[

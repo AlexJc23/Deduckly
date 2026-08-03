@@ -5,7 +5,7 @@ import PremiumReportScreen from "app/reports/PremiumReport";
 
 export default function FreeTierReportsScreen() {
 
-  const isPremium = true;
+  const isPremium = false; // Replace with actual logic to determine if the user is premium
 
   const userQuery = useCurrentUser();
 

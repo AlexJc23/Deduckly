@@ -282,15 +282,18 @@ export default function DashboardScreen() {
             alignSelf: "center",
           }}
         >
-          <View
-            style={{
-              flex: 1,
-              padding: 18,
-              borderRadius: 12,
-              borderWidth: 1,
+            
+            <Pressable
+              style={{
+                flex: 1,
+                padding: 18,
+                borderRadius: 12,
+                borderWidth: 1,
               borderColor: "#E5E7EB",
               alignItems: "center",
             }}
+
+            onPress={() => router.push("/income/create")}
           >
             <Text
               style={{
@@ -299,9 +302,10 @@ export default function DashboardScreen() {
             >
               Add Income
             </Text>
-          </View>
+          </Pressable>
 
-          <View
+          <Pressable
+            onPress={() => router.push("/expense/create")}
             style={{
               flex: 1,
               padding: 18,
@@ -318,7 +322,7 @@ export default function DashboardScreen() {
             >
               Add Expense
             </Text>
-          </View>
+          </Pressable>
         </View>
 
         <View>

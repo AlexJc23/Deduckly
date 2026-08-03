@@ -6,25 +6,80 @@ import {
   Platform,
   TouchableWithoutFeedback,
   StyleSheet,
+  ScrollView,
 } from "react-native";
-
-import { OfferForm } from "../../../src/features/offer-analyzer/components/OfferForm";
-import { OfferResultCard } from "../../../src/features/offer-analyzer/components/OfferResultCard";
-import { OfferInput, OfferResult } from "../../../src/features/offer-analyzer/types/offer.types";
-import { analyzeOffer } from "../../../src/features/offer-analyzer/utils/verdict";
 
 import { BackHeader } from "@/components/ui/BackButton";
 import PremiumButton from "@/components/ui/PremiumButton";
 
+import { OfferForm } from "@/features/offer-analyzer/components/OfferForm";
+import { OfferResultCard } from "@/features/offer-analyzer/components/OfferResultCard";
+
+import {
+  OfferInput,
+  OfferResult,
+  PremiumOfferResult,
+} from "@/features/offer-analyzer/types/offer.types";
+
+import { analyzeOffer } from "@/features/offer-analyzer/utils/verdict";
+import { analyzePremiumOffer } from "@/features/offer-analyzer/utils/premium";
+
+import { usePreferences } from "@/features/settings/hooks/usePreferences";
+
 export default function OfferAnalyzerScreen() {
-  const [result, setResult] =
-    useState<OfferResult | null>(null);
+  const [result, setResult] = useState<
+    OfferResult | PremiumOfferResult | null
+  >(null);
+
+  const { preferences } = usePreferences();
+
+  // TODO: Replace with RevenueCat
+  const isPremium = true;
 
   function handleAnalyze(
-    offer: OfferInput
+    offer: OfferInput,
   ) {
     Keyboard.dismiss();
-    setResult(analyzeOffer(offer));
+
+    if (isPremium) {
+      if (!preferences) {
+        return;
+      }
+
+      const premiumResult =
+        analyzePremiumOffer(
+          offer,
+          {
+            costPerMile: Number(
+              preferences.costPerMile,
+            ),
+            minimumProfit: Number(
+              preferences.minimumProfit,
+            ),
+            minimumHourRate: Number(
+              preferences.minimumHourlyRate,
+            ),
+            minimumDollarsPerMile:
+              Number(
+                preferences.minimumDollarsPerMile,
+              ),
+            preferredMaxDistance:
+              Number(
+                preferences.preferredMaxDistance,
+              ),
+          },
+        );
+
+      setResult(
+        premiumResult,
+      );
+      return;
+    }
+
+    const freeResult =
+      analyzeOffer(offer);
+
+    setResult(freeResult);
   }
 
   return (
@@ -36,42 +91,54 @@ export default function OfferAnalyzerScreen() {
           : undefined
       }
     >
-        <BackHeader />
-      <TouchableWithoutFeedback
-        onPress={Keyboard.dismiss}
-      >
-        <View style={styles.content}>
+      <BackHeader />
 
-          <OfferForm
-            onAnalyze={handleAnalyze}
-          />
-
-          {result && (
-            <OfferResultCard
-              result={result}
+      <ScrollView>
+        <TouchableWithoutFeedback
+          onPress={
+            Keyboard.dismiss
+          }
+        >
+          <View
+            style={styles.content}
+          >
+            <OfferForm
+              onAnalyze={
+                handleAnalyze
+              }
             />
-          )}
 
-          <PremiumButton
-            title="Get Personalized Insights"
-            message="Upgrade to Pro to use your own preferences and unlock profit estimates, breakdowns, and more."
-          />
-        </View>
-      </TouchableWithoutFeedback>
+            {result && (
+              <OfferResultCard
+                result={result}
+              />
+            )}
+
+            {!isPremium && (
+              <PremiumButton
+                title="Get Personalized Insights"
+                message="Upgrade to Pro to use your own preferences and unlock profit estimates, breakdowns, and more."
+              />
+            )}
+          </View>
+        </TouchableWithoutFeedback>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
+const styles =
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor:
+        "#FFFFFF",
+    },
 
-  content: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    gap: 10,
-  },
-});
+    content: {
+      flex: 1,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      gap: 10,
+    },
+  });

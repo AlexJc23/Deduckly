@@ -12,3 +12,41 @@ export type OfferResult = {
   color: string;
   reasons: string[];
 };
+
+// export type PremiumReason = {
+//   passed: boolean;
+//   message: string;
+// };
+
+export type OfferPreferences = {
+  costPerMile: number;
+  minimumProfit: number;
+  minimumHourRate: number;
+  minimumDollarsPerMile: number;
+  preferredMaxDistance: number;
+};
+
+
+export type PremiumRecommendation =
+  | "accept"
+  | "consider"
+  | "decline";
+
+  export type PremiumCheck = {
+  title: string;
+  passed: boolean;
+  actual: number;
+  target: number;
+};
+
+export type PremiumOfferResult = OfferResult & {
+  vehicleCost: number;
+  estimatedProfit: number;
+  profitHourlyRate: number;
+
+  score: number;
+  recommendation: PremiumRecommendation;
+  summary: string;
+
+  premiumChecks: PremiumCheck[];
+};

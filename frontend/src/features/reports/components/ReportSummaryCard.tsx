@@ -13,26 +13,26 @@ export function ReportSummaryCard({
     <View>
         <View>
             <Text>Income</Text>
-            <Text>${report.total_income}</Text>
+            <Text>${report.total_income?.toFixed(2)}</Text>
         </View>
         <View>
             <Text>Expenses</Text>
-            <Text>${report.deductible_expense_total}</Text>
+            <Text>${report.total_expenses?.toFixed(2)}</Text>
         </View>
         <View>
             <Text>Net Profit</Text>
-            <Text>${report.net_profit}</Text>
+            <Text>${report.net_profit?.toFixed(2)}</Text>
         </View>
         <View>
             <Text>Total Miles</Text>
-            <Text>${report.total_miles}</Text>
+            <Text>${report.total_miles?.toFixed(2)}</Text>
         </View>
         <View>
             <Text>Mileage Deduction</Text>
-            <Text>${report.mileage_deduction}</Text>
+            <Text>${report.mileage_deduction?.toFixed(2)}</Text>
         </View>
 
-      <Text>{report.total_miles}</Text>
+      <Text>{report.total_miles?.toFixed(2)}</Text>
     </View>
   );
 }

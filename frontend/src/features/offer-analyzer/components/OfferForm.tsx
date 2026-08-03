@@ -114,6 +114,7 @@ const styles = StyleSheet.create({
       height: 4,
     },
     elevation: 2,
+    marginTop: 10,
   },
 
   title: {
