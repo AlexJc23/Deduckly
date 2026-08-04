@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useUpdateUser } from "@/features/auth/hooks/use-update-user";
+import { registerForPushNotifications } from "@/services/notifications";
 
 export function usePreferences() {
     const { data: user } = useCurrentUser();
@@ -71,9 +72,28 @@ export function usePreferences() {
         }));
     }
 
-    function updateToggle(
+    async function updateToggle(
         key: keyof typeof preferences,
         value: boolean
+    ) {
+        if (key === "notificationsEnabled" && value) {
+            try {
+                await registerForPushNotifications();
+            } catch (error) {
+                console.error(error);
+                value = false;
+            }
+        }
+        console.log("Updating", key, value);
+        setPreferences((prev) => ({
+            ...prev,
+            [key]: value,
+        }));
+    }
+
+    function updateSelect(
+        key: keyof typeof preferences,
+        value: string
     ) {
         setPreferences((prev) => ({
             ...prev,
@@ -82,6 +102,7 @@ export function usePreferences() {
     }
 
     function savePreferences() {
+        console.log(preferences.notificationsEnabled);
         updateUser.mutate({
             monthly_income_goal:
                 preferences.monthlyIncomeGoal || null,
@@ -122,22 +143,12 @@ export function usePreferences() {
         });
     }
 
-    function updateSelect(
-        key: keyof typeof preferences,
-        value: string
-    ) {
-        setPreferences(prev => ({
-            ...prev,
-            [key]: value,
-        }));
-    }
-
     return {
         preferences,
         updateField,
         updateToggle,
-        savePreferences,
         updateSelect,
+        savePreferences,
         isSaving: updateUser.isPending,
     };
 }

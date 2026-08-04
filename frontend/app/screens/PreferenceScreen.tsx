@@ -171,9 +171,7 @@ export default function PreferenceScreen() {
                 <PreferenceSection title="Notifications">
                     <PreferenceToggle
                         label="Enable Notifications"
-                        value={
-                            preferences.notificationsEnabled
-                        }
+                        value={preferences.notificationsEnabled}
                         onValueChange={(value) => {
                             updateToggle(
                                 "notificationsEnabled",
