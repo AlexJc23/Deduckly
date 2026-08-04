@@ -21,19 +21,30 @@ export function useUpdateExpense() {
         expense,
       ),
 
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
+    onSuccess: async (
+      updatedExpense,
+      variables,
+    ) => {
+      // Update the expense detail cache immediately.
+      queryClient.setQueryData(
+        ["expense", variables.expenseId],
+        updatedExpense,
+      );
+
+      // Refresh all affected queries.
+      await queryClient.invalidateQueries({
         queryKey: ["expenses"],
       });
 
-      queryClient.invalidateQueries({
-          queryKey: ["today-report"],
-        }),
-      queryClient.invalidateQueries({
-          queryKey: ["report"],
-        }),
+      await queryClient.invalidateQueries({
+        queryKey: ["today-report"],
+      });
 
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
+        queryKey: ["report"],
+      });
+
+      await queryClient.invalidateQueries({
         queryKey: [
           "expense",
           variables.expenseId,

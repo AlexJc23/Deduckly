@@ -17,7 +17,7 @@ export default function PremiumButton({
         styles.button,
         pressed && styles.buttonPressed,
       ]}
-      onPress={() => {}}
+      // onPress={() => {}} replace with actual onPress handler when needed
     >
       <View style={styles.iconContainer}>
         <FontAwesome6 name="crown" size={35} color="#2DBE60" />

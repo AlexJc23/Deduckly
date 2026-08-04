@@ -26,8 +26,15 @@ export type ExpenseCategory =
   | "insurance"
   | "licenses_permits"
   | "professional_services"
-  | "taxes"
-  | "payroll"
+  | "legal_fees"
+  | "accounting"
+  | "postage_shipping"
+  | "interest"
+  | "taxes_fees"
+  | "marketing"
+  | "memberships_subscriptions"
+  | "home_office"
+  | "repairs_maintenance"
   | "other";
 
 export interface ExpenseBase {

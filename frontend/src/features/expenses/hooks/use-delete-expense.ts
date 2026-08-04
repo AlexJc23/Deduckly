@@ -8,10 +8,20 @@ export function useDeleteExpense() {
   return useMutation({
     mutationFn: deleteExpense,
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["expenses"],
-      });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["expenses"],
+        }),
+
+        queryClient.invalidateQueries({
+          queryKey: ["report"],
+        }),
+
+        queryClient.invalidateQueries({
+          queryKey: ["today-report"],
+        }),
+      ]);
     },
   });
 }

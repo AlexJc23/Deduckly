@@ -8,11 +8,13 @@ import {
   View,
   Image,
 } from "react-native";
-
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { useDeleteExpense } from "@/features/expenses/hooks/use-delete-expense";
 import {
   useExpenseDetail,
 } from "@/features/expenses/hooks/use-expense-detail";
-
+import { DeleteExpenseModal } from "@/features/expenses/modals/DeleteExpenseModal";
 import { EXPENSE_CATEGORY_LABELS } from "@/constants/expense-category-labels";
 import { BackHeader } from "@/components/ui/BackButton";
 
@@ -24,6 +26,15 @@ export default function ExpenseDetailsScreen() {
   const expenseId = Number(id);
 
   const expenseQuery = useExpenseDetail(expenseId);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const deleteMutation = useDeleteExpense();
+  
+
+  useFocusEffect(
+    useCallback(() => {
+      expenseQuery.refetch();
+    }, [expenseQuery])
+  );
 
   if (expenseQuery.isPending) {
     return (
@@ -45,7 +56,7 @@ export default function ExpenseDetailsScreen() {
 
   return (
     <>
-    <BackHeader />
+      <BackHeader />
       <Stack.Screen
         options={{
           title: "Expense Details",
@@ -108,7 +119,9 @@ export default function ExpenseDetailsScreen() {
             style={styles.receiptImage}
           />
         ) : (
-          <Text style={styles.value}>Not provided</Text>
+          <Text style={styles.value}>
+            Not provided
+          </Text>
         )}
 
         <View style={styles.buttonContainer}>
@@ -116,7 +129,7 @@ export default function ExpenseDetailsScreen() {
             style={styles.editButton}
             onPress={() =>
               router.push(
-                `/expense/${expense.id}/edit`,
+                `/expense/${expense.id}/edit`
               )
             }
           >
@@ -124,8 +137,37 @@ export default function ExpenseDetailsScreen() {
               Edit Expense
             </Text>
           </Pressable>
-          
         </View>
+        <View style={styles.buttonContainer}>
+          <Pressable
+            style={[
+              styles.editButton,
+              { backgroundColor: "#DC2626" },
+            ]}
+            onPress={() =>
+              setShowDeleteModal(true)
+            }
+          >
+            <Text style={styles.buttonText}>
+              Delete Expense
+            </Text>
+          </Pressable>
+
+        </View>
+        <DeleteExpenseModal
+          visible={showDeleteModal}
+          onClose={() =>
+            setShowDeleteModal(false)
+          }
+          onDelete={() => {
+            deleteMutation.mutate(expense.id, {
+              onSuccess: () => {
+                setShowDeleteModal(false);
+                router.back();
+              },
+            });
+          }}
+        />
       </ScrollView>
     </>
   );
@@ -186,10 +228,11 @@ const styles = StyleSheet.create({
     marginTop: 30,
     marginBottom: 20,
   },
+
   receiptImage: {
     width: "100%",
     height: 240,
-    borderRadius: 14,
+    borderRadius: 9,
     marginTop: 8,
   },
 
