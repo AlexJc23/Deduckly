@@ -499,3 +499,27 @@ def generate_tax_report(
             status_code=500,
             detail="Decimal calculation error"
         )
+
+
+def get_current_month_income(
+    db: Session,
+    user: User,
+) -> Decimal:
+    now = datetime.now()
+
+    total = (
+        db.query(
+            func.coalesce(
+                func.sum(Income.amount),
+                Decimal("0.00"),
+            )
+        )
+        .filter(
+            Income.user_id == user.id,
+            func.extract("year", Income.received_at) == now.year,
+            func.extract("month", Income.received_at) == now.month,
+        )
+        .scalar()
+    )
+
+    return total

@@ -5,6 +5,8 @@ import { ReportSummaryCard } from "@features/reports/components/ReportSummaryCar
 import { TaxCard } from "@/features/reports/components/TaxCard";
 import { ExpenseBreakdownCard } from "@/features/reports/components/ExpenseBreakdownCard";
 import PremiumButton from "@/components/ui/PremiumButton";
+import { useMonthlyGoal } from "@/features/users/hooks/use-monthly-goal";
+import { MonthlyIncomeGoalCard } from "@/features/reports/components/MonthlyIncomeGoal";
 
 
 
@@ -17,6 +19,10 @@ export default function FreeTierReportScreen() {
     year: year,
     month: month
   });
+
+
+  const { data: monthlyGoal } =
+      useMonthlyGoal();
 
 
   let date = formatReportDate(year, month)
@@ -42,6 +48,11 @@ export default function FreeTierReportScreen() {
         <Text>Taxes</Text>
         <TaxCard report={data} />
       </View>
+      {monthlyGoal && (
+        <MonthlyIncomeGoalCard
+          monthlyGoal={monthlyGoal}
+        />
+      )}
       <View>
         <Text>Expense Breakdown</Text>
         <ExpenseBreakdownCard report={data} />

@@ -11,11 +11,11 @@ export function TaxCard({ report }: ReportSummaryCardProps) {
         <View>
             <View>
                 <Text>Estimated Tax Owed</Text>
-                <Text>{report.estimated_tax_owed}</Text>
+                <Text>${report.estimated_tax_owed?.toFixed(2)}</Text>
             </View>
             <View>
                 <Text>Estimated Tax Savings</Text>
-                <Text>{report.estimated_tax_savings}</Text>
+                <Text>${report.estimated_tax_savings?.toFixed(2)}</Text>
             </View>
         </View>
     );

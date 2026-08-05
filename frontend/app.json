@@ -1,21 +1,23 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "Deduckly Dev",
+    "slug": "deduckly",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "icon": "./assets/images/logo.png",
+    "scheme": "deduckly",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "infoPlist": {
         "UIBackgroundModes": [
+          "location",
           "location"
-        ]
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       },
       "supportsTablet": true,
-      "bundleIdentifier": "com.deduckly.frontend"
+      "bundleIdentifier": "com.karlsonworks.deduckly"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +27,11 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "output": "static",
@@ -59,6 +65,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "42cbf561-0bd5-43a9-9f7f-70faa7d45fe5"
+      }
+    },
+    "owner": "karlsonworks"
   }
 }

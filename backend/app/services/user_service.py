@@ -14,6 +14,28 @@ from sqlalchemy import func
 
 from app.models import Income
 
+ALLOWED_USER_UPDATE_FIELDS = [
+    "filing_status",
+    "business_type",
+    "tax_method",
+    "monthly_income_goal",
+    "weekly_income_goal",
+    "cost_per_mile",
+    "minimum_profit",
+    "minimum_hourly_rate",
+    "minimum_dollars_per_mile",
+    "preferred_max_distance",
+    "default_platform",
+    "timezone",
+    "currency",
+    "distance_unit",
+    "week_starts_on",
+    "notifications_enabled",
+    "trip_reminders_enabled",
+    "goal_reminders_enabled",
+    "auto_trip_detection",
+]
+
 def create_user(db: Session, user_in: UserCreate) -> User:
     try:
         existing_user = get_user_by_email(db, user_in.email)
@@ -84,58 +106,56 @@ def authenticate_user(db: Session, email: str, password: str):
     return user, "success"
 
 
-def update_user(db: Session, user_id: int, user_in: UserUpdate) -> User:
+def update_user(
+    db: Session,
+    user_id: int,
+    user_in: UserUpdate,
+) -> User:
     try:
         user = get_user(db, user_id)
 
-        # Update first name
+        # -------------------------------------------------
+        # Profile
+        # -------------------------------------------------
+
         if user_in.first_name is not None:
             user.first_name = user_in.first_name
 
-        # Update last name
         if user_in.last_name is not None:
             user.last_name = user_in.last_name
 
-        # Update email
-        if user_in.email is not None:
-            existing_user = get_user_by_email(db, user_in.email)
+        
 
-            if existing_user and existing_user.id != user.id:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Email already registered"
-                )
+        if user_in.password is not None:
+            user.hashed_password = hash_password(
+                user_in.password
+            )
 
-            user.email = user_in.email
+        # -------------------------------------------------
+        # Automatically update simple fields
+        # -------------------------------------------------
 
-        # Update filing status
-        if user_in.filing_status is not None:
-            user.filing_status = user_in.filing_status
 
-        # Update business type
-        if user_in.business_type is not None:
-            user.business_type = user_in.business_type
-
-        # Update tax method
-        if user_in.tax_method is not None:
-            user.tax_method = user_in.tax_method
-
+        for field in ALLOWED_USER_UPDATE_FIELDS:
+            value = getattr(user_in, field)
+            print(field, value)
+            if value is not None:
+                setattr(user, field, value)
+        print(user_in.model_dump(exclude_unset=True))
+        print("BEFORE COMMIT")
         db.commit()
+        print("AFTER COMMIT")
         db.refresh(user)
-
+        print("AFTER REFRESH")
         return user
 
     except HTTPException:
         raise
 
-    except SQLAlchemyError:
+    except Exception as e:
         db.rollback()
-
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update user"
-        )
-
+        print(e)
+        raise
 
 def get_weekly_income(
     db: Session,
@@ -183,6 +203,37 @@ def get_weekly_income(
             Income.received_at >= start_of_week,
         )
         .all()
+    )
+
+    return Decimal(total)
+
+def get_monthly_income(
+    db: Session,
+    user_id: int,
+) -> Decimal:
+    tz = ZoneInfo("America/New_York")
+    now = datetime.now(tz)
+
+    start_of_month = now.replace(
+        day=1,
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+
+    total = (
+        db.query(
+            func.coalesce(
+                func.sum(Income.amount),
+                0,
+            )
+        )
+        .filter(
+            Income.user_id == user_id,
+            Income.received_at >= start_of_month,
+        )
+        .scalar()
     )
 
     return Decimal(total)

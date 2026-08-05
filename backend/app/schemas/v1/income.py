@@ -34,10 +34,11 @@ class IncomeCreate(IncomeBase):
 
 class IncomeUpdate(BaseModel):
     amount: Optional[Decimal] = None
-    received_at: Optional[datetime] = None
+    source: Optional[IncomeType] = None
     platform: Optional[TripPlatform] = None
     business_name: Optional[str] = None
-    notes : Optional[str] = None
+    received_at: Optional[datetime] = None
+    notes: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

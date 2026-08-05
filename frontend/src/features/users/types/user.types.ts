@@ -1,4 +1,4 @@
-export type WeeklyGoal = {
+export type MonthlyGoal = {
     goal: number;
     current: number;
     remaining: number;
@@ -6,3 +6,4 @@ export type WeeklyGoal = {
     progress: number;
     percentage: number
 }
+
