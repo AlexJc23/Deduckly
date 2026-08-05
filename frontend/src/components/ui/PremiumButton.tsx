@@ -3,32 +3,62 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import AntDesign from "@expo/vector-icons/AntDesign";
 
 type PremiumButtonProps = {
-  message: string;
   title: string;
+  message: string;
+  features?: string[];
+  onPress?: () => void;
 };
 
 export default function PremiumButton({
-  message,
   title,
+  message,
+  features,
+  onPress,
 }: PremiumButtonProps) {
   return (
     <Pressable
+      onPress={onPress}
       style={({ pressed }) => [
         styles.button,
         pressed && styles.buttonPressed,
       ]}
-      // onPress={() => {}} replace with actual onPress handler when needed
     >
       <View style={styles.iconContainer}>
-        <FontAwesome6 name="crown" size={35} color="#2DBE60" />
+        <FontAwesome6
+          name="crown"
+          size={35}
+          color="#2DBE60"
+        />
       </View>
 
       <View style={styles.textContainer}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.message}>{message}</Text>
+        <Text style={styles.title}>
+          {title}
+        </Text>
+
+        <Text style={styles.message}>
+          {message}
+        </Text>
+
+        {features && (
+          <View style={styles.featuresContainer}>
+            {features.map((feature) => (
+              <Text
+                key={feature}
+                style={styles.feature}
+              >
+                {feature}
+              </Text>
+            ))}
+          </View>
+        )}
       </View>
 
-      <AntDesign name="right" size={20} color="#2DBE60" />
+      <AntDesign
+        name="right"
+        size={20}
+        color="#2DBE60"
+      />
     </Pressable>
   );
 }
@@ -36,11 +66,11 @@ export default function PremiumButton({
 const styles = StyleSheet.create({
   button: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     backgroundColor: "#2dbe6039",
     borderRadius: 18,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
 
     borderWidth: 2,
     borderColor: "#2DBE60",
@@ -67,7 +97,8 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 11,
+    marginRight: 12,
+    marginTop: 2,
   },
 
   textContainer: {
@@ -78,13 +109,23 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
     color: "#111827",
-    marginBottom: 4,
+    marginBottom: 6,
   },
 
   message: {
     fontSize: 13,
     color: "#6B7280",
     lineHeight: 20,
-    marginRight: 6,
+  },
+
+  featuresContainer: {
+    marginTop: 12,
+    gap: 6,
+  },
+
+  feature: {
+    fontSize: 14,
+    color: "#374151",
+    fontWeight: "500",
   },
 });

@@ -16,7 +16,7 @@ import { Trip } from "@/features/trips/types/trips.types";
 import { ExpenseList } from "@/features/expenses/components/ExpenseList";
 import { ActivityDateFilter } from "@/features/activity/components/ActivityDateFilter";
 import { ActivityDateModal, ActivityDateOption } from "@/features/activity/modals/ActivtiyDateModal";
-
+import { usePremium } from "@/features/subscriptions/hooks/use-premium";
 
 const DATE_OPTIONS: Intl.DateTimeFormatOptions = {
   month: "long",
@@ -79,7 +79,7 @@ export default function ActivityScreen() {
   const [tab, setTab] = useState<TabValue>("trips");
   const [sort, setSort] = useState<SortValue>("desc");
   const [showSortModal, setShowSortModal] = useState(false);
-  const isPremium = false; // Replace with actual logic to determine if the user is premium
+  const { isPremium } = usePremium(); 
   
   // Date filtering state
   const [showDateModal, setShowDateModal] =

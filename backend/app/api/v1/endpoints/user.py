@@ -1,3 +1,4 @@
+from app.mappers.user_mapper import to_user_response
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -6,6 +7,7 @@ from app.models import User
 from app.models.enums import UserRole
 from app.api.dependencies.auth import get_current_user
 from app.schemas.v1.user import UserResponse, UserUpdate
+from app.services.subscription_service import is_user_premium
 from app.services.user_service import (
     get_weekly_income,
     get_monthly_income,
@@ -36,7 +38,8 @@ def get_users(
 def get_me(
     current_user: User = Depends(get_current_user),
 ):
-    return current_user
+    return to_user_response(current_user)
+
 
 
 @router.get("/me/weekly-goal")
@@ -116,12 +119,13 @@ def update_me(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    print(user_update)
-    return update_user(
+    updated_user = update_user(
         db=db,
         user_id=current_user.id,
         user_in=user_update,
     )
+
+    return to_user_response(updated_user)
 
 
 @router.delete("/me", response_model=dict)

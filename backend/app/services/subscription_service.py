@@ -1,23 +1,28 @@
 from datetime import datetime, timezone
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
+
 from fastapi import HTTPException
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 from app.models import Subscription
+from app.models.user import User
 
 
 def process_subscription(
     db: Session,
     user_id: int,
-    data: dict
+    data: dict,
 ) -> Subscription:
-    print(user_id, "yeet")
     try:
         original_tx = data["original_transaction_id"]
 
-        existing = db.query(Subscription).filter(
-            Subscription.original_transaction_id == original_tx
-        ).first()
+        existing = (
+            db.query(Subscription)
+            .filter(
+                Subscription.original_transaction_id == original_tx
+            )
+            .first()
+        )
 
         # JSONB cannot store datetime objects directly
         provider_response = {
@@ -36,7 +41,10 @@ def process_subscription(
 
         # UPDATE EXISTING SUBSCRIPTION
         if existing:
-            existing.latest_transaction_id = data["latest_transaction_id"]
+            existing.status = data["status"]
+            existing.latest_transaction_id = data[
+                "latest_transaction_id"
+            ]
             existing.product_id = data["product_id"]
             existing.expiration_date = data["expiration_date"]
             existing.auto_renew = data["auto_renew"]
@@ -53,9 +61,14 @@ def process_subscription(
         # CREATE NEW SUBSCRIPTION
         new_sub = Subscription(
             user_id=user_id,
+            status=data["status"],
             product_id=data["product_id"],
-            original_transaction_id=data["original_transaction_id"],
-            latest_transaction_id=data["latest_transaction_id"],
+            original_transaction_id=data[
+                "original_transaction_id"
+            ],
+            latest_transaction_id=data[
+                "latest_transaction_id"
+            ],
             environment=data["environment"],
             purchase_date=data["purchase_date"],
             expiration_date=data["expiration_date"],
@@ -71,20 +84,19 @@ def process_subscription(
 
         return new_sub
 
-    except SQLAlchemyError as e:
+    except SQLAlchemyError:
         db.rollback()
-        print(e)
 
         raise HTTPException(
             status_code=500,
-            detail="Failed to process subscription"
+            detail="Failed to process subscription",
         )
 
 
 def get_user_subscription(
     db: Session,
-    user_id: int
-):
+    user_id: int,
+) -> Subscription | None:
     return (
         db.query(Subscription)
         .filter(Subscription.user_id == user_id)
@@ -95,12 +107,32 @@ def get_user_subscription(
 
 def has_active_subscription(
     db: Session,
-    user_id: int
+    user_id: int,
 ) -> bool:
-
     sub = get_user_subscription(db, user_id)
 
     if not sub:
         return False
 
-    return sub.expiration_date > datetime.now(timezone.utc)
+    return (
+        sub.status == "active"
+        and sub.expiration_date > datetime.now(timezone.utc)
+    )
+
+
+def is_user_premium(user: User) -> bool:
+    if not user.subscriptions:
+        return False
+
+    subscription = max(
+        user.subscriptions,
+        key=lambda s: s.expiration_date,
+    )
+
+    if subscription.status != "active":
+        return False
+
+    return (
+        subscription.expiration_date
+        > datetime.now(timezone.utc)
+    )

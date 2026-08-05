@@ -9,7 +9,7 @@ import {
 type PreferenceInputProps = {
   label: string;
   value: string;
-  onChangeText: (text: string) => void;
+  onChangeText?: (text: string) => void;
   helperText?: string;
 } & TextInputProps;
 
@@ -18,6 +18,7 @@ export function PreferenceInput({
   helperText,
   value,
   onChangeText,
+  editable = true,
   ...props
 }: PreferenceInputProps) {
   return (
@@ -35,7 +36,11 @@ export function PreferenceInput({
       <TextInput
         value={value}
         onChangeText={onChangeText}
-        style={styles.input}
+        editable={editable}
+        style={[
+          styles.input,
+          !editable && styles.inputDisabled,
+        ]}
         {...props}
       />
     </View>
@@ -68,5 +73,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 16,
     backgroundColor: "#F9FAFB",
+  },
+
+  inputDisabled: {
+    opacity: 0.6,
+    backgroundColor: "#F3F4F6",
   },
 });

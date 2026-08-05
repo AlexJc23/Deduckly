@@ -1,52 +1,65 @@
 import {
+  PropsWithChildren,
   createContext,
   useContext,
-  useState,
+  useEffect,
 } from "react";
 
-type SubscriptionContextType = {
-  isPremium: boolean;
-  setPremium: (
-    value: boolean
-  ) => void;
-};
+import Purchases from "react-native-purchases";
+import { useQueryClient } from "@tanstack/react-query";
+
+import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { revenueCatService } from "../services/revenuecat.service";
+
+type SubscriptionContextType = {};
 
 const SubscriptionContext =
-  createContext<
-    SubscriptionContextType | undefined
-  >(undefined);
+  createContext<SubscriptionContextType>({});
 
 export function SubscriptionProvider({
   children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [isPremium, setPremium] =
-    useState(false);
+}: PropsWithChildren) {
+  const queryClient = useQueryClient();
+
+  const { data: user } = useCurrentUser();
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    revenueCatService.configure(
+      user.id.toString(),
+    );
+  }, [user]);
+
+  useEffect(() => {
+    const listener = async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["current-user"],
+      });
+    };
+
+    Purchases.addCustomerInfoUpdateListener(
+      listener,
+    );
+
+    return () => {
+      Purchases.removeCustomerInfoUpdateListener(
+        listener,
+      );
+    };
+  }, [queryClient]);
 
   return (
-    <SubscriptionContext.Provider
-      value={{
-        isPremium,
-        setPremium,
-      }}
-    >
+    <SubscriptionContext.Provider value={{}}>
       {children}
     </SubscriptionContext.Provider>
   );
 }
 
 export function useSubscription() {
-  const context =
-    useContext(
-      SubscriptionContext
-    );
-
-  if (!context) {
-    throw new Error(
-      "SubscriptionContext missing"
-    );
-  }
-
-  return context;
+  return useContext(
+    SubscriptionContext,
+  );
 }

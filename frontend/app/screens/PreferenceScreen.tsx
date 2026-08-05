@@ -1,6 +1,8 @@
 import { ScrollView, StyleSheet, Pressable, Text, View } from "react-native";
-import { SafeAreaView, } from "react-native-safe-area-context";
 import { useState } from "react";
+
+import { BackHeader } from "@/components/ui/BackButton";
+import PremiumButton from "../../src/components/ui/PremiumButton";
 
 import { PreferenceSection } from "../../src/features/settings/components/PreferenceSection";
 import { PreferenceInput } from "../../src/features/settings/components/PreferenceInput";
@@ -15,8 +17,7 @@ import { currencies } from "../../src/features/settings/constants/currencies";
 import { distanceUnits } from "../../src/features/settings/constants/distance-units";
 import { weekStarts } from "../../src/features/settings/constants/week-starts";
 
-import PremiumButton from "../../src/components/ui/PremiumButton";
-import { BackHeader } from "@/components/ui/BackButton";
+import { usePremium } from "@/features/subscriptions/hooks/use-premium";
 
 export default function PreferenceScreen() {
     const {
@@ -37,39 +38,17 @@ export default function PreferenceScreen() {
     const [weekStartsModalVisible, setWeekStartsModalVisible] =
         useState(false);
 
-    // TODO: Replace with your RevenueCat subscription state
-    const isPremium = true;;
+    const { isPremium } = usePremium();
 
     return (
         <View style={styles.container}>
             <BackHeader />
+
             <ScrollView
                 contentContainerStyle={styles.content}
                 showsVerticalScrollIndicator={false}
             >
-                {/* <PreferenceSection title="Trip Tracking">
-                    <PreferenceToggle
-                        label="Automatic Trip Detection"
-                        value={preferences.autoTripDetection}
-                        onValueChange={(value) =>
-                            updateToggle("autoTripDetection", value)
-                        }
-                    />
-                </PreferenceSection> */}
-
                 <PreferenceSection title="Goals">
-                    {/* <PreferenceInput
-                        label="Weekly Income Goal"
-                        value={preferences.weeklyIncomeGoal}
-                        keyboardType="numeric"
-                        onChangeText={(text) =>
-                            updateField(
-                                "weeklyIncomeGoal",
-                                text
-                            )
-                        }
-                    /> */}
-
                     <PreferenceInput
                         label="Monthly Income Goal"
                         value={preferences.monthlyIncomeGoal}
@@ -83,64 +62,110 @@ export default function PreferenceScreen() {
                     />
                 </PreferenceSection>
 
-                {!isPremium ? (
+                <PreferenceSection title="Offer Analyzer">
+                    {isPremium ? (
+                        <>
+                            <PreferenceInput
+                                label="Minimum Hourly Rate"
+                                value={preferences.minimumHourlyRate}
+                                keyboardType="numeric"
+                                onChangeText={(text) =>
+                                    updateField(
+                                        "minimumHourlyRate",
+                                        text
+                                    )
+                                }
+                            />
 
-                        <PremiumButton
-                            title="Unlock Offer Analyzer Preferences"
-                            message="Customize your offer analyzer with your own earnings goals and preferences."
-                        />
+                            <PreferenceInput
+                                label="Minimum Profit"
+                                value={preferences.minimumProfit}
+                                keyboardType="numeric"
+                                onChangeText={(text) =>
+                                    updateField(
+                                        "minimumProfit",
+                                        text
+                                    )
+                                }
+                            />
 
-                ) : (
-                    <PreferenceSection title="Offer Analyzer">
-                        <PreferenceInput
-                            label="Minimum Hourly Rate"
-                            value={preferences.minimumHourlyRate}
-                            keyboardType="numeric"
-                            onChangeText={(text) =>
-                                updateField(
-                                    "minimumHourlyRate",
-                                    text
-                                )
-                            }
-                        />
+                            <PreferenceInput
+                                label="Minimum $ per Mile"
+                                value={
+                                    preferences.minimumDollarsPerMile
+                                }
+                                keyboardType="numeric"
+                                onChangeText={(text) =>
+                                    updateField(
+                                        "minimumDollarsPerMile",
+                                        text
+                                    )
+                                }
+                            />
 
-                        <PreferenceInput
-                            label="Minimum Profit"
-                            value={preferences.minimumProfit}
-                            keyboardType="numeric"
-                            onChangeText={(text) =>
-                                updateField(
-                                    "minimumProfit",
-                                    text
-                                )
-                            }
-                        />
+                            <PreferenceInput
+                                label="Maximum Delivery Distance"
+                                value={
+                                    preferences.preferredMaxDistance
+                                }
+                                keyboardType="numeric"
+                                onChangeText={(text) =>
+                                    updateField(
+                                        "preferredMaxDistance",
+                                        text
+                                    )
+                                }
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <PreferenceInput
+                                label="Minimum Hourly Rate"
+                                value=""
+                                editable={false}
+                                placeholder="🔒 Premium"
+                            />
 
-                        <PreferenceInput
-                            label="Minimum $ per Mile"
-                            value={preferences.minimumDollarsPerMile}
-                            keyboardType="numeric"
-                            onChangeText={(text) =>
-                                updateField(
-                                    "minimumDollarsPerMile",
-                                    text
-                                )
-                            }
-                        />
+                            <PreferenceInput
+                                label="Minimum Profit"
+                                value=""
+                                editable={false}
+                                placeholder="🔒 Premium"
+                            />
 
-                        <PreferenceInput
-                            label="Maximum Delivery Distance"
-                            value={preferences.preferredMaxDistance}
-                            keyboardType="numeric"
-                            onChangeText={(text) =>
-                                updateField(
-                                    "preferredMaxDistance",
-                                    text
-                                )
-                            }
-                        />
-                    </PreferenceSection>
-                )}
+                            <PreferenceInput
+                                label="Minimum $ per Mile"
+                                value=""
+                                editable={false}
+                                placeholder="🔒 Premium"
+                            />
+
+                            <PreferenceInput
+                                label="Maximum Delivery Distance"
+                                value=""
+                                editable={false}
+                                placeholder="🔒 Premium"
+                            />
+
+                            <View style={{ marginTop: 12 }}>
+                                <PremiumButton
+                                    title="Unlock Offer Analyzer"
+                                    message="Customize your offer analyzer with your own business goals and receive smarter recommendations."
+                                    features={[
+                                        "✓ Minimum Hourly Rate",
+                                        "✓ Minimum Profit",
+                                        "✓ Minimum $ per Mile",
+                                        "✓ Maximum Delivery Distance",
+                                    ]}
+                                    onPress={() =>
+                                        // router.push("/paywall")
+                                        {}
+                                    }
+                                />
+                            </View>
+                        </>
+                    )}
+                </PreferenceSection>
 
                 <PreferenceSection title="Units">
                     <PreferencePicker
@@ -167,8 +192,7 @@ export default function PreferenceScreen() {
                         }
                     />
                 </PreferenceSection>
-
-                <PreferenceSection title="Notifications">
+                                <PreferenceSection title="Notifications">
                     <PreferenceToggle
                         label="Enable Notifications"
                         value={preferences.notificationsEnabled}
@@ -191,49 +215,21 @@ export default function PreferenceScreen() {
                             }
                         }}
                     />
-
-                    {/* <PreferenceToggle
-                        label="Trip Reminders"
-                        value={
-                            preferences.tripRemindersEnabled
-                        }
-                        disabled={
-                            !preferences.notificationsEnabled
-                        }
-                        onValueChange={(value) =>
-                            updateToggle(
-                                "tripRemindersEnabled",
-                                value
-                            )
-                        }
-                    /> */}
-
-                    {/* <PreferenceToggle
-                        label="Goal Reminders"
-                        value={
-                            preferences.goalRemindersEnabled
-                        }
-                        disabled={
-                            !preferences.notificationsEnabled
-                        }
-                        onValueChange={(value) =>
-                            updateToggle(
-                                "goalRemindersEnabled",
-                                value
-                            )
-                        }
-                    /> */}
                 </PreferenceSection>
-                                <Pressable
+
+                <Pressable
                     style={[
                         styles.saveButton,
-                        isSaving && styles.saveButtonDisabled,
+                        isSaving &&
+                            styles.saveButtonDisabled,
                     ]}
                     disabled={isSaving}
                     onPress={savePreferences}
                 >
                     <Text style={styles.saveButtonText}>
-                        {isSaving ? "Saving..." : "Save Changes"}
+                        {isSaving
+                            ? "Saving..."
+                            : "Save Changes"}
                     </Text>
                 </Pressable>
             </ScrollView>
@@ -243,38 +239,65 @@ export default function PreferenceScreen() {
                 title="Currency"
                 options={currencies}
                 selectedValue={preferences.currency}
-                onClose={() => setCurrencyModalVisible(false)}
+                onClose={() =>
+                    setCurrencyModalVisible(false)
+                }
                 onSelect={(value) => {
-                    updateSelect("currency", value);
+                    updateSelect(
+                        "currency",
+                        value
+                    );
                     setCurrencyModalVisible(false);
                 }}
             />
 
             <PreferenceSelectedModal
-                visible={distanceUnitModalVisible}
+                visible={
+                    distanceUnitModalVisible
+                }
                 title="Distance Unit"
                 options={distanceUnits}
-                selectedValue={preferences.distanceUnit}
+                selectedValue={
+                    preferences.distanceUnit
+                }
                 onClose={() =>
-                    setDistanceUnitModalVisible(false)
+                    setDistanceUnitModalVisible(
+                        false
+                    )
                 }
                 onSelect={(value) => {
-                    updateSelect("distanceUnit", value);
-                    setDistanceUnitModalVisible(false);
+                    updateSelect(
+                        "distanceUnit",
+                        value
+                    );
+                    setDistanceUnitModalVisible(
+                        false
+                    );
                 }}
             />
 
             <PreferenceSelectedModal
-                visible={weekStartsModalVisible}
+                visible={
+                    weekStartsModalVisible
+                }
                 title="Week Starts On"
                 options={weekStarts}
-                selectedValue={preferences.weekStartsOn}
+                selectedValue={
+                    preferences.weekStartsOn
+                }
                 onClose={() =>
-                    setWeekStartsModalVisible(false)
+                    setWeekStartsModalVisible(
+                        false
+                    )
                 }
                 onSelect={(value) => {
-                    updateSelect("weekStartsOn", value);
-                    setWeekStartsModalVisible(false);
+                    updateSelect(
+                        "weekStartsOn",
+                        value
+                    );
+                    setWeekStartsModalVisible(
+                        false
+                    );
                 }}
             />
         </View>

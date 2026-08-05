@@ -115,6 +115,7 @@ class UserResponse(BaseModel):
     filing_status: Optional[FilingStatus]
     business_type: str
     tax_method: str
+    is_premium: bool
 
     # Goals
     monthly_income_goal: Decimal | None = None
