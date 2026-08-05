@@ -53,6 +53,7 @@ async def send_test_push_notification(
             status_code=400,
             detail="No push token found for the user."
         )
+    
 
     response = await send_expo_push_notification(
         token=current_user.expo_push_token,
@@ -64,3 +65,4 @@ async def send_test_push_notification(
         "message": "Push notification sent successfully.",
         "response": response,
     }
+

@@ -25,6 +25,7 @@ from app.models.enums import (
     WeekStartsOn,
 )
 
+from datetime import datetime
 
 class User(Base):
     __tablename__ = "users"
@@ -237,6 +238,16 @@ class User(Base):
         Boolean,
         server_default=true(),
         nullable=False,
+    )
+
+    last_goal_notification_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+    )
+
+    last_goal_celebration_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
     )
 
     # ------------------------------------------------------------------
