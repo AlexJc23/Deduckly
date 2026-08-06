@@ -133,6 +133,21 @@ export default function SettingsScreen() {
                     color="#9CA3AF"
                 />
             </Pressable>
+            <Text style={styles.sectionTitle}>SUPPORT</Text>
+
+            <Pressable
+                style={styles.card}
+                onPress={() => router.push("/settings/feedback")}
+            >
+                <View>
+                    <Text style={styles.rowTitle}>Feedback</Text>
+                    <Text style={styles.subtitle}>
+                        Report bugs, request features, or share feedback.
+                    </Text>
+                </View>
+
+                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+            </Pressable>
 
             {/* Legal */}
             <Text style={styles.sectionTitle}>LEGAL</Text>

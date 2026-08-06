@@ -41,7 +41,7 @@ export default function PaywallScreen() {
             
           >
             <Image
-            source={require("../../assets/images/logofrenchblue.png")}
+            source={require("../../assets/images/logo.png")}
             style={{
                 width: 100,
                 height: 100,

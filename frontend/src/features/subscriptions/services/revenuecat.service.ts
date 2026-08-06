@@ -14,9 +14,7 @@ class RevenueCatService {
   }
 
   async getOfferings() {
-    const offerings = await Purchases.getOfferings();
-
-    return offerings;
+    return null;
   }
 
   async purchasePackage(

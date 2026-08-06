@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     aws_secret_key: str
     aws_region: str
     s3_bucket: str
+    resend_api_key: str
+    from_email: str
+    support_email: str
 
     class Config:
         env_file = ".env"
@@ -25,4 +28,3 @@ settings = Settings()
 
 
 
-#  python -m uvicorn app.main:app --reload

@@ -57,8 +57,8 @@ def start_scheduler() -> None:
 
     scheduler.add_job(
         check_all_goal_reminders,
-        trigger="interval",
-        minutes=1,
+        trigger="cron",
+        hour=8, 
         id="goal_reminders",
         replace_existing=True,
         max_instances=1,
