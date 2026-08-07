@@ -17,11 +17,12 @@ import { getCurrentMonthAndYear } from "@/features/reports/utils/date";
 import { StartTripModal } from "@/features/tracking/components/StartTripModal";
 import { useTracking } from "@/features/tracking/context/tracking.context";
 import { useMonthlyGoal } from "@/features/users/hooks/use-monthly-goal";
+import { getPendingTrip } from "@/services/siri.service";
 
 export default function DashboardScreen() {
   const userQuery = useCurrentUser();
   const { saved } = useLocalSearchParams();
-  const { isTracking } = useTracking();
+  const { isTracking, startTrackingFromSiri } = useTracking();
 
   const [showStartTripModal, setShowStartTripModal] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
@@ -100,9 +101,12 @@ export default function DashboardScreen() {
     };
   }, [saved]);
 
+ 
   if (monthlyLoading || todayLoading) {
     return <ActivityIndicator />;
   }
+
+  
 
   return (
     <SafeAreaView style={styles.safeArea}>
