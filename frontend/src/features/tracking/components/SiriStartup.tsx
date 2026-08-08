@@ -8,26 +8,24 @@ export function SiriStartup() {
   const { startTrackingFromSiri } = useTracking();
 
   useEffect(() => {
-    const checkPendingTrip = async () => {
-      console.log("🚀 SiriStartup running");
-
+    const timer = setTimeout(async () => {
       const pendingTrip = await getPendingTrip();
 
-      console.log("📦 Pending Trip:", pendingTrip);
-
-      if (!pendingTrip) return;
+      if (!pendingTrip) {
+        return;
+      }
 
       await startTrackingFromSiri(pendingTrip.platform);
 
-      console.log("✅ Tracking started");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          router.replace("/tracking/active");
+        });
+      });
+    }, 1000);
 
-      router.replace("/tracking/active");
-
-      console.log("➡️ Router replace called");
-    };
-
-    checkPendingTrip();
-  }, []);
+    return () => clearTimeout(timer);
+  }, [startTrackingFromSiri]);
 
   return null;
 }

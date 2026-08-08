@@ -5,7 +5,6 @@
 //  Created by AlexJames on 8/7/26.
 //
 
-
 import Foundation
 import React
 
@@ -17,6 +16,7 @@ class SiriBridge: NSObject {
         _ resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) {
+        
 
         let defaults = UserDefaults(
             suiteName: "group.com.karlsonworks.deduckly"
@@ -38,8 +38,40 @@ class SiriBridge: NSObject {
         ])
     }
 
+    @objc(getPendingStop:rejecter:)
+    func getPendingStop(
+        _ resolve: @escaping RCTPromiseResolveBlock,
+        rejecter reject: @escaping RCTPromiseRejectBlock
+    ) {
+        let defaults = UserDefaults(
+            suiteName: "group.com.karlsonworks.deduckly"
+        )
+
+        let shouldStop = defaults?.bool(forKey: "stop_trip") == true
+
+        defaults?.removeObject(forKey: "stop_trip")
+
+        resolve(shouldStop)
+    }
+
     @objc
     static func requiresMainQueueSetup() -> Bool {
         false
     }
+  
+  @objc(getPendingCancel:rejecter:)
+  func getPendingCancel(
+      _ resolve: @escaping RCTPromiseResolveBlock,
+      rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+      let defaults = UserDefaults(
+          suiteName: "group.com.karlsonworks.deduckly"
+      )
+
+      let shouldCancel = defaults?.bool(forKey: "cancel_trip") == true
+
+      defaults?.removeObject(forKey: "cancel_trip")
+
+      resolve(shouldCancel)
+  }
 }

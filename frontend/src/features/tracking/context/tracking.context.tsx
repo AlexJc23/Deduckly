@@ -183,16 +183,21 @@ export function TrackingProvider({
     setStartTime(new Date());
 
     setIsTracking(true);
+
   };
    const startTrackingFromSiri = async (
-      platform: string
-    ) => {
-      await startTracking({
-        category: "business",
-        platform,
-        trackingMethod: "automatic",
-      });
-    };
+  platform: string
+) => {
+
+
+  await startTracking({
+    category: "business",
+    platform,
+    trackingMethod: "automatic",
+  });
+
+
+};
 
   const cancelTracking = () => {
     locationSubscription.current?.remove();
@@ -222,7 +227,7 @@ export function TrackingProvider({
 
     locationSubscription.current?.remove();
     locationSubscription.current = null;
-
+    
     if (
       !startTime ||
       startLatitude === null ||
@@ -256,8 +261,6 @@ export function TrackingProvider({
     )
     : null;
 
-    console.log("Start ", startAddress);
-    console.log("End", endAddress)
 
 
     const payload = buildTripPayload({
@@ -284,9 +287,7 @@ export function TrackingProvider({
     });
 
     try {
-      console.log(
-        JSON.stringify(payload, null, 2)
-      )
+
       await createTrip(payload);
 
       setIsTracking(false);
@@ -308,17 +309,7 @@ export function TrackingProvider({
 
       return true;
     } catch (error: any) {
-  console.log("========== AXIOS ERROR ==========");
-
-  console.log("Status:", error.response?.status);
-
-  console.log(
-    "Data:",
-    JSON.stringify(error.response?.data, null, 2)
-  );
-
-  console.log("================================");
-
+  
   return false;
 }
   };

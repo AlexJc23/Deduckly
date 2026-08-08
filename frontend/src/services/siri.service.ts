@@ -13,3 +13,19 @@ export async function getPendingTrip(): Promise<PendingTrip> {
 
   return await SiriBridge.getPendingTrip();
 }
+
+export async function getPendingStop(): Promise<boolean> {
+  if (!SiriBridge) {
+    return false;
+  }
+
+  return await SiriBridge.getPendingStop();
+}
+
+export async function getPendingCancel(): Promise<boolean> {
+  if (!SiriBridge) {
+    return false;
+  }
+
+  return await SiriBridge.getPendingCancel();
+}

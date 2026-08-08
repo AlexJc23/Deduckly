@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 
+
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { MonthlyIncomeGoalCard } from "@/features/reports/components/MonthlyIncomeGoal";
 import { useCurrentReport } from "@/features/reports/hooks/use-current-report";
@@ -17,16 +18,30 @@ import { getCurrentMonthAndYear } from "@/features/reports/utils/date";
 import { StartTripModal } from "@/features/tracking/components/StartTripModal";
 import { useTracking } from "@/features/tracking/context/tracking.context";
 import { useMonthlyGoal } from "@/features/users/hooks/use-monthly-goal";
-import { getPendingTrip } from "@/services/siri.service";
+import { getPendingTrip, getPendingStop } from "@/services/siri.service";
+
+const subtitles = [
+  "Making taxes slightly less terrible.",
+  "Your accountant would be proud.",
+  "The IRS hates this app.",
+  "Adulting, unfortunately.",
+  "Because guessing isn't bookkeeping.",
+  "Finding money you already earned.",
+  "The numbers don't judge.",
+  "Money in. Stress out.",
+  "Less paperwork. More driving.",
+  "Turning 'I think...' into 'I know.'",
+  "Every mile has a story.",
+];
 
 export default function DashboardScreen() {
   const userQuery = useCurrentUser();
   const { saved } = useLocalSearchParams();
-  const { isTracking, startTrackingFromSiri } = useTracking();
+  const { isTracking, startTrackingFromSiri, stopTracking } = useTracking();
 
   const [showStartTripModal, setShowStartTripModal] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
-  const hideBannerTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bannerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: monthlyGoal } = useMonthlyGoal();
   const { year, month } = getCurrentMonthAndYear();
@@ -38,27 +53,13 @@ export default function DashboardScreen() {
   });
 
   const estimatedTaxOwed = monthlyReport?.estimated_tax_owed.toFixed(2) ?? "--";
-  const estimatedTaxSavings = monthlyReport?.estimated_tax_savings.toFixed(2) ?? "--";
+  const estimatedTaxSavings =
+    monthlyReport?.estimated_tax_savings.toFixed(2) ?? "--";
   const todayMiles = todayReport?.total_miles.toFixed(2) ?? "--";
   const todayExpenses = todayReport?.total_expenses.toFixed(2) ?? "--";
 
   const openStartModal = useCallback(() => setShowStartTripModal(true), []);
   const closeStartModal = useCallback(() => setShowStartTripModal(false), []);
-
-  const subtitles = [
-    "Making taxes slightly less terrible.",
-    "Your accountant would be proud.",
-    "The IRS hates this app.",
-    "Adulting, unfortunately.",
-    "Because guessing isn't bookkeeping.",
-    "Finding money you already earned.",
-    "Your accountant would be proud.",
-    "The numbers don't judge.",
-    "Money in. Stress out.",
-    "Less paperwork. More driving.",
-    "Turning 'I think...' into 'I know.'",
-    "Every mile has a story.",
-  ];
 
   const [subtitle] = useState(
     () => subtitles[Math.floor(Math.random() * subtitles.length)],
@@ -85,28 +86,55 @@ export default function DashboardScreen() {
 
     setShowBanner(true);
 
-    if (hideBannerTimeout.current) {
-      clearTimeout(hideBannerTimeout.current);
+    if (bannerTimeoutRef.current) {
+      clearTimeout(bannerTimeoutRef.current);
     }
 
-    hideBannerTimeout.current = setTimeout(() => {
+    bannerTimeoutRef.current = setTimeout(() => {
       setShowBanner(false);
-      hideBannerTimeout.current = null;
+      bannerTimeoutRef.current = null;
     }, 3000);
 
     return () => {
-      if (hideBannerTimeout.current) {
-        clearTimeout(hideBannerTimeout.current);
+      if (bannerTimeoutRef.current) {
+        clearTimeout(bannerTimeoutRef.current);
       }
     };
   }, [saved]);
 
- 
-  if (monthlyLoading || todayLoading) {
-    return <ActivityIndicator />;
-  }
+  useEffect(() => {
+  const interval = setInterval(async () => {
+    const shouldStop = await getPendingStop();
 
-  
+    if (shouldStop) {
+      clearInterval(interval);
+
+      const result = await stopTracking(null);
+
+      if (result === true) {
+        router.replace("/(tabs)/dashboard");
+      }
+
+      return;
+    }
+
+    const pendingTrip = await getPendingTrip();
+
+    if (!pendingTrip) return;
+
+    clearInterval(interval);
+
+    await startTrackingFromSiri(pendingTrip.platform);
+
+    router.replace("/tracking/active");
+  }, 500);
+
+  return () => clearInterval(interval);
+}, []);
+
+  if (monthlyLoading || todayLoading) {
+    return <ActivityIndicator size="large" />;
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>

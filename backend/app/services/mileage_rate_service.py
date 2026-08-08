@@ -42,11 +42,7 @@ def get_business_rate_for_date(
             status_code=404,
             detail=f"No mileage rate found for {trip_date}"
         )
-    print(
-    f"Trip Date: {trip_date}, "
-    f"Rate Date: {mileage_rate.effective_date}, "
-    f"Rate: {mileage_rate.business_rate}"
-)
+
     return mileage_rate
 
 def create_mileage_rate(db: Session, rate_in: MileageRateCreate, user: User) -> MileageRate:

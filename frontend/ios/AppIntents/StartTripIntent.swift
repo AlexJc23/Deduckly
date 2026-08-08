@@ -39,10 +39,10 @@ struct StartTripIntent: AppIntent {
         let defaults = UserDefaults(
             suiteName: "group.com.karlsonworks.deduckly"
         )
-
+      print("✅ Writing pending platform: \(platform.rawValue)")
         defaults?.set(platform.rawValue, forKey: "pending_platform")
         defaults?.set(true, forKey: "start_trip")
-
+      print("✅ UserDefaults write complete")
         return .result()
     }
 }

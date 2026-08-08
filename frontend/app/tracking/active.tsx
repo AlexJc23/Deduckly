@@ -7,7 +7,10 @@ import { useTracking } from "@/features/tracking/context/tracking.context";
 import { getCurrentLocation, requestLocationPermission } from "@/features/tracking/services/location.service";
 import { IncomeModal } from "@/features/tracking/components/IncomeModal";
 import { CancelTripModal } from "@/features/trips/components/CancelTripModal";
-
+import { 
+  getPendingStop,
+  getPendingCancel
+} from "@/services/siri.service";
 
 function formatTime(seconds: number) {
   const hours = Math.floor(
@@ -31,12 +34,13 @@ function formatTime(seconds: number) {
 }
 
 export default function ActiveTripScreen() {
+
     const [showEndModal, setShowEndModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [elapsedSeconds, setElapsedSeconds] = useState(0)
-    const {category, platform, startTime, distanceMiles, stopTracking, cancelTracking} = useTracking();
+    const {category, platform, startTime, distanceMiles, cancelTracking, stopTracking, } = useTracking();
     const [showIncomeModal, setShowIncomeModal] = useState(false);
-
+  
     useEffect(() => {
         if (!startTime) return;
 
@@ -50,8 +54,69 @@ export default function ActiveTripScreen() {
 
         return () => clearInterval(interval);
     }, [startTime])
+    useEffect(() => {
+    const interval = setInterval(async () => {
+      const shouldStop = await getPendingStop();
 
+      if (!shouldStop) return;
 
+      
+
+      clearInterval(interval);
+
+      const result = await stopTracking(null);
+
+      
+
+      if (result === true || result === "discarded") {
+        
+
+        router.replace("/(tabs)/dashboard");
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const shouldCancel = await getPendingCancel();
+
+      if (shouldCancel) {
+        
+
+        clearInterval(interval);
+
+        cancelTracking();
+
+        
+
+        router.replace("/(tabs)/dashboard");
+
+        return;
+      }
+
+      const shouldStop = await getPendingStop();
+
+      if (!shouldStop) return;
+
+      
+
+      clearInterval(interval);
+
+      const result = await stopTracking(null);
+
+      
+
+      if (result === true || result === "discarded") {
+        
+
+        router.replace("/(tabs)/dashboard");
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <View

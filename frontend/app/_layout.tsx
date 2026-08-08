@@ -21,16 +21,10 @@ export default function RootLayout() {
 
   useEffect(() => {
     const handleUrl = ({ url }: { url: string }) => {
-      console.log("🔥 Siri URL:", url);
     };
 
     const subscription = Linking.addEventListener("url", handleUrl);
 
-    Linking.getInitialURL().then((url) => {
-      if (url) {
-        console.log("🔥 Initial URL:", url);
-      }
-    });
 
     return () => subscription.remove();
   }, []);

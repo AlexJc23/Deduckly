@@ -54,8 +54,6 @@ def process_subscription(
             db.commit()
             db.refresh(existing)
 
-            print(f"Updated subscription: {original_tx}")
-
             return existing
 
         # CREATE NEW SUBSCRIPTION
@@ -80,7 +78,6 @@ def process_subscription(
         db.commit()
         db.refresh(new_sub)
 
-        print(f"Created subscription: {original_tx}")
 
         return new_sub
 

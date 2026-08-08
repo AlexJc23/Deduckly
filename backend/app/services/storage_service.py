@@ -70,9 +70,7 @@ def generate_presigned_url(file_url: str | None) -> str | None:
         ExpiresIn=3600,
     )
 
-    print("=" * 80)
-    print(url)
-    print("=" * 80)
+
 
     return url
 
