@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 
 type PremiumButtonProps = {
@@ -24,17 +24,23 @@ export default function PremiumButton({
       ]}
     >
       <View style={styles.iconContainer}>
-        <FontAwesome6
-          name="crown"
-          size={35}
-          color="#2DBE60"
+        <Ionicons
+          name="sparkles-outline"
+          size={21}
+          color="#4A6FE3"
         />
       </View>
 
       <View style={styles.textContainer}>
-        <Text style={styles.title}>
-          {title}
-        </Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>{title}</Text>
+
+          <View style={styles.proBadge}>
+            <Text style={styles.proBadgeText}>
+              PRO
+            </Text>
+          </View>
+        </View>
 
         <Text style={styles.message}>
           {message}
@@ -43,22 +49,34 @@ export default function PremiumButton({
         {features && (
           <View style={styles.featuresContainer}>
             {features.map((feature) => (
-              <Text
+              <View
                 key={feature}
-                style={styles.feature}
+                style={styles.featureRow}
               >
-                {feature}
-              </Text>
+                <View style={styles.featureIcon}>
+                  <Ionicons
+                    name="checkmark"
+                    size={12}
+                    color="#4A6FE3"
+                  />
+                </View>
+
+                <Text style={styles.feature}>
+                  {feature}
+                </Text>
+              </View>
             ))}
           </View>
         )}
       </View>
 
-      <AntDesign
-        name="right"
-        size={20}
-        color="#2DBE60"
-      />
+      <View style={styles.chevronContainer}>
+        <AntDesign
+          name="right"
+          size={15}
+          color="#4A6FE3"
+        />
+      </View>
     </Pressable>
   );
 }
@@ -67,65 +85,113 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#2dbe6039",
+    backgroundColor: "#FFFFFF",
     borderRadius: 18,
     paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingHorizontal: 15,
+    borderWidth: 1,
+    borderColor: "#C9D6FF",
 
-    borderWidth: 2,
-    borderColor: "#2DBE60",
-
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
+    shadowColor: "#111827",
+    shadowOpacity: 0.05,
     shadowRadius: 10,
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 3,
     },
 
-    elevation: 3,
+    elevation: 2,
   },
 
   buttonPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.98 }],
+    backgroundColor: "#F8FAFC",
+    borderColor: "#4A6FE3",
+    transform: [{ scale: 0.985 }],
   },
 
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#DCE6FF",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
-    marginTop: 2,
   },
 
   textContainer: {
     flex: 1,
+    paddingRight: 8,
+  },
+
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 7,
   },
 
   title: {
-    fontSize: 17,
-    fontWeight: "700",
+    fontSize: 16,
+    fontWeight: "800",
     color: "#111827",
-    marginBottom: 6,
+    letterSpacing: -0.2,
+  },
+
+  proBadge: {
+    backgroundColor: "#4A6FE3",
+    borderRadius: 5,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+
+  proBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 0.7,
   },
 
   message: {
-    fontSize: 13,
-    color: "#6B7280",
-    lineHeight: 20,
+    marginTop: 5,
+    fontSize: 12,
+    lineHeight: 18,
+    color: "#64748B",
   },
 
   featuresContainer: {
     marginTop: 12,
-    gap: 6,
+    gap: 7,
+  },
+
+  featureRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  featureIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "#DCE6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
   },
 
   feature: {
-    fontSize: 14,
-    color: "#374151",
-    fontWeight: "500",
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 17,
+    color: "#334155",
+    fontWeight: "600",
+  },
+
+  chevronContainer: {
+    width: 28,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 2,
   },
 });

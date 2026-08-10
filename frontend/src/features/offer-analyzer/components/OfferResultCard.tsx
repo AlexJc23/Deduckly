@@ -3,6 +3,7 @@ import {
   Text,
   StyleSheet,
 } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   OfferResult,
   PremiumOfferResult,
@@ -17,21 +18,17 @@ export function OfferResultCard({
 }: OfferResultCardProps) {
   const isPremium = "score" in result;
 
-
-
-
-
   const recommendationColor = isPremium
     ? result.recommendation === "accept"
-      ? "#16A34A"
+      ? "#22C55E"
       : result.recommendation === "consider"
-      ? "#D97706"
-      : "#DC2626"
+      ? "#F59E0B"
+      : "#EF4444"
     : result.color;
 
   const backgroundColor = isPremium
     ? result.recommendation === "accept"
-      ? "#ECFDF5"
+      ? "#F0FDF4"
       : result.recommendation === "consider"
       ? "#FFFBEB"
       : "#FEF2F2"
@@ -47,13 +44,21 @@ export function OfferResultCard({
         },
       ]}
     >
-      {/* Hero */}
-
       {isPremium ? (
         <View style={styles.hero}>
-          <Text style={styles.score}>
-            {result.score}
-          </Text>
+          <View
+            style={[
+              styles.scoreContainer,
+              {
+                backgroundColor:
+                  recommendationColor + "14",
+              },
+            ]}
+          >
+            <Text style={styles.score}>
+              {result.score}
+            </Text>
+          </View>
 
           <Text
             style={[
@@ -83,8 +88,6 @@ export function OfferResultCard({
       )}
 
       <View style={styles.divider} />
-
-      {/* Breakdown */}
 
       <Text style={styles.sectionTitle}>
         Offer Breakdown
@@ -207,35 +210,30 @@ export function OfferResultCard({
                       : styles.negativeIcon,
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.iconText,
+                  <Ionicons
+                    name={
                       check.passed
-                        ? styles.positiveIconText
-                        : styles.negativeIconText,
-                    ]}
-                  >
-                    {check.passed
-                      ? "✓"
-                      : "✕"}
-                  </Text>
+                        ? "checkmark"
+                        : "close"
+                    }
+                    size={13}
+                    color={
+                      check.passed
+                        ? "#16A34A"
+                        : "#DC2626"
+                    }
+                  />
                 </View>
 
-                <View style={{ flex: 1 }}>
+                <View style={styles.reasonContent}>
                   <Text style={styles.reason}>
                     {check.title}
                   </Text>
 
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: "#6B7280",
-                      marginTop: 2,
-                    }}
-                  >
+                  <Text style={styles.checkDetails}>
                     Current:{" "}
                     {check.actual.toFixed(2)}
-                    {" • "}
+                    {"  •  "}
                     Goal:{" "}
                     {check.target.toFixed(2)}
                   </Text>
@@ -272,18 +270,19 @@ export function OfferResultCard({
                         : styles.negativeIcon,
                     ]}
                   >
-                    <Text
-                      style={[
-                        styles.iconText,
+                    <Ionicons
+                      name={
                         passed
-                          ? styles.positiveIconText
-                          : styles.negativeIconText,
-                      ]}
-                    >
-                      {passed
-                        ? "✓"
-                        : "✕"}
-                    </Text>
+                          ? "checkmark"
+                          : "close"
+                      }
+                      size={13}
+                      color={
+                        passed
+                          ? "#16A34A"
+                          : "#DC2626"
+                      }
+                    />
                   </View>
 
                   <Text style={styles.reason}>
@@ -296,88 +295,100 @@ export function OfferResultCard({
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 24,
-    padding: 20,
+    borderRadius: 18,
+    padding: 18,
     marginBottom: 50,
-    borderWidth: 1.5,
+    borderWidth: 1,
 
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
+    shadowColor: "#111827",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 3,
     },
-    elevation: 3,
 
+    elevation: 2,
     gap: 16,
   },
 
   hero: {
     alignItems: "center",
     justifyContent: "center",
-    gap: 4,
+    gap: 5,
     paddingVertical: 8,
   },
 
+  scoreContainer: {
+    width: 82,
+    height: 82,
+    borderRadius: 41,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 4,
+  },
+
   score: {
-    fontSize: 56,
-    fontWeight: "900",
+    fontSize: 42,
+    fontWeight: "800",
     color: "#111827",
-    lineHeight: 60,
+    lineHeight: 48,
+    letterSpacing: -1,
   },
 
   recommendation: {
-    fontSize: 20,
-    fontWeight: "900",
+    fontSize: 16,
+    fontWeight: "800",
     letterSpacing: 1,
   },
 
   dpm: {
-    fontSize: 44,
-    fontWeight: "900",
+    fontSize: 40,
+    fontWeight: "800",
     color: "#111827",
+    letterSpacing: -1,
   },
 
   subtitle: {
     textAlign: "center",
-    color: "#6B7280",
-    fontSize: 14,
-    lineHeight: 20,
-    maxWidth: 250,
+    color: "#64748B",
+    fontSize: 13,
+    lineHeight: 19,
+    maxWidth: 280,
   },
 
   divider: {
     height: 1,
-    backgroundColor: "rgba(17,24,39,.08)",
+    backgroundColor: "#E5E7EB",
   },
 
   sectionTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "800",
     color: "#111827",
-    marginBottom: -4,
+    marginBottom: -3,
   },
 
   statRow: {
+    minHeight: 28,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 2,
   },
 
   label: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: 13,
+    color: "#64748B",
     fontWeight: "600",
   },
 
   value: {
-    fontSize: 15,
+    fontSize: 14,
     color: "#111827",
-    fontWeight: "800",
+    fontWeight: "700",
   },
 
   reasonRow: {
@@ -389,7 +400,7 @@ const styles = StyleSheet.create({
   icon: {
     width: 22,
     height: 22,
-    borderRadius: 11,
+    borderRadius: 7,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 1,
@@ -403,25 +414,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#FEE2E2",
   },
 
-  iconText: {
-    fontSize: 12,
-    fontWeight: "900",
-  },
-
-  positiveIconText: {
-    color: "#16A34A",
-  },
-
-  negativeIconText: {
-    color: "#DC2626",
+  reasonContent: {
+    flex: 1,
   },
 
   reason: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#374151",
-    fontWeight: "500",
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#334155",
+    fontWeight: "600",
+  },
+
+  checkDetails: {
+    fontSize: 11,
+    color: "#64748B",
+    marginTop: 3,
+    lineHeight: 16,
   },
 });
-

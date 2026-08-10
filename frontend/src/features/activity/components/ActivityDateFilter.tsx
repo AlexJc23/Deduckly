@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 type Props = {
   label: string;
@@ -11,40 +12,53 @@ export function ActivityDateFilter({
 }: Props) {
   return (
     <Pressable
-      style={styles.button}
       onPress={onPress}
+      style={({ pressed }) => [
+        styles.button,
+        pressed && styles.buttonPressed,
+      ]}
     >
-      <Text style={styles.icon}>
-        📅
-      </Text>
+      <Ionicons
+        name="calendar-outline"
+        size={16}
+        color="#64748B"
+      />
 
       <Text style={styles.text}>
         {label}
       </Text>
+
+      <Ionicons
+        name="chevron-down"
+        size={14}
+        color="#94A3B8"
+      />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
+    minHeight: 44,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F9FAFB",
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    paddingHorizontal: 13,
     borderWidth: 1,
     borderColor: "#E5E7EB",
+    gap: 7,
   },
 
-  icon: {
-    marginRight: 8,
-    fontSize: 16,
+  buttonPressed: {
+    backgroundColor: "#F8FAFC",
+    transform: [{ scale: 0.98 }],
   },
 
   text: {
-    color: "#374151",
+    color: "#111827",
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: 13,
   },
 });

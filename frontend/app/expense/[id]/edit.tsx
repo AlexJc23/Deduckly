@@ -123,6 +123,7 @@ export default function EditExpenseScreen() {
       <BackHeader />
 
       <ExpenseForm
+      mode="edit"
         initialValues={{
           amount: String(
             expense.amount,

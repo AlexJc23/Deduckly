@@ -5,8 +5,11 @@ import {
   StyleSheet,
   Text,
   View,
+  Animated,
+  Easing,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 export type ActivityDateOption =
   | "current"
@@ -45,6 +48,14 @@ export function ActivityDateModal({
   const [endDate, setEndDate] =
     useState(new Date());
 
+  const backdropOpacity = useState(
+    new Animated.Value(0),
+  )[0];
+
+  const sheetTranslateY = useState(
+    new Animated.Value(400),
+  )[0];
+
   function selectPreset(
     option: Exclude<
       ActivityDateOption,
@@ -52,19 +63,58 @@ export function ActivityDateModal({
     >,
   ) {
     onSelectPreset(option);
-    onClose();
+    closeModal();
   }
 
   function requirePremium(
     action: () => void,
   ) {
     if (!isPremium) {
-      onClose();
+      closeModal();
       onUpgrade();
       return;
     }
 
     action();
+  }
+
+  function openModal() {
+    Animated.parallel([
+      Animated.timing(backdropOpacity, {
+        toValue: 1,
+        duration: 220,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+
+      Animated.timing(sheetTranslateY, {
+        toValue: 0,
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }
+
+  function closeModal() {
+    Animated.parallel([
+      Animated.timing(backdropOpacity, {
+        toValue: 0,
+        duration: 180,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: true,
+      }),
+
+      Animated.timing(sheetTranslateY, {
+        toValue: 400,
+        duration: 240,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setShowCustom(false);
+      onClose();
+    });
   }
 
   function LockedLabel({
@@ -79,9 +129,11 @@ export function ActivityDateModal({
         </Text>
 
         {!isPremium && (
-          <Text style={styles.lock}>
-            🔒
-          </Text>
+          <Ionicons
+            name="lock-closed-outline"
+            size={15}
+            color="#94A3B8"
+          />
         )}
       </View>
     );
@@ -91,95 +143,215 @@ export function ActivityDateModal({
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
-      onRequestClose={onClose}
+      animationType="none"
+      onShow={openModal}
+      onRequestClose={closeModal}
     >
       <View style={styles.backdrop}>
-        <Pressable
-          style={StyleSheet.absoluteFill}
-          onPress={onClose}
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              opacity: backdropOpacity,
+              backgroundColor:
+                "rgba(15, 23, 42, 0.45)",
+            },
+          ]}
         />
 
         <Pressable
-          style={styles.sheet}
-          onPress={() => {}}
+          style={StyleSheet.absoluteFill}
+          onPress={closeModal}
+        />
+
+        <Animated.View
+          style={[
+            styles.sheet,
+            {
+              transform: [
+                {
+                  translateY: sheetTranslateY,
+                },
+              ],
+            },
+          ]}
         >
           {!showCustom ? (
             <>
-              <Text style={styles.title}>
-                Activity Filter
-              </Text>
+              <View style={styles.header}>
+                <View>
+                  <Text style={styles.title}>
+                    Activity Filter
+                  </Text>
+                </View>
+
+                <Pressable
+                  style={styles.closeButton}
+                  onPress={closeModal}
+                  hitSlop={8}
+                >
+                  <Ionicons
+                    name="close"
+                    size={20}
+                    color="#64748B"
+                  />
+                </Pressable>
+              </View>
 
               <Pressable
-                style={styles.option}
+                style={({ pressed }) => [
+                  styles.option,
+                  pressed && styles.optionPressed,
+                ]}
                 onPress={() =>
-                  selectPreset(
-                    "current",
-                  )
+                  selectPreset("current")
                 }
               >
+                <View style={styles.optionIcon}>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={18}
+                    color="#4A6FE3"
+                  />
+                </View>
+
                 <Text style={styles.optionText}>
                   Current Month
                 </Text>
+
+                <Ionicons
+                  name="chevron-forward"
+                  size={17}
+                  color="#94A3B8"
+                />
               </Pressable>
 
               <Pressable
-                style={styles.option}
+                style={({ pressed }) => [
+                  styles.option,
+                  pressed && styles.optionPressed,
+                ]}
                 onPress={() =>
                   requirePremium(() =>
-                    selectPreset(
-                      "last",
-                    ),
+                    selectPreset("last"),
                   )
                 }
               >
+                <View style={styles.optionIcon}>
+                  <Ionicons
+                    name="arrow-back-outline"
+                    size={18}
+                    color="#64748B"
+                  />
+                </View>
+
                 <LockedLabel title="Last Month" />
+
+                {isPremium && (
+                  <Ionicons
+                    name="chevron-forward"
+                    size={17}
+                    color="#94A3B8"
+                  />
+                )}
               </Pressable>
 
               <Pressable
-                style={styles.option}
+                style={({ pressed }) => [
+                  styles.option,
+                  pressed && styles.optionPressed,
+                ]}
                 onPress={() =>
                   requirePremium(() =>
-                    selectPreset(
-                      "year",
-                    ),
+                    selectPreset("year"),
                   )
                 }
               >
+                <View style={styles.optionIcon}>
+                  <Ionicons
+                    name="calendar-number-outline"
+                    size={18}
+                    color="#64748B"
+                  />
+                </View>
+
                 <LockedLabel title="This Year" />
+
+                {isPremium && (
+                  <Ionicons
+                    name="chevron-forward"
+                    size={17}
+                    color="#94A3B8"
+                  />
+                )}
               </Pressable>
 
               <Pressable
-                style={styles.option}
+                style={({ pressed }) => [
+                  styles.option,
+                  pressed && styles.optionPressed,
+                ]}
                 onPress={() =>
                   requirePremium(() =>
-                    setShowCustom(
-                      true,
-                    ),
+                    setShowCustom(true),
                   )
                 }
               >
+                <View style={styles.optionIcon}>
+                  <Ionicons
+                    name="options-outline"
+                    size={18}
+                    color="#64748B"
+                  />
+                </View>
+
                 <LockedLabel title="Custom Range" />
+
+                {isPremium && (
+                  <Ionicons
+                    name="chevron-forward"
+                    size={17}
+                    color="#94A3B8"
+                  />
+                )}
               </Pressable>
 
               <Pressable
-                style={styles.cancelButton}
-                onPress={onClose}
+                style={({ pressed }) => [
+                  styles.cancelButton,
+                  pressed &&
+                    styles.cancelButtonPressed,
+                ]}
+                onPress={closeModal}
               >
-                <Text
-                  style={
-                    styles.cancelText
-                  }
-                >
+                <Text style={styles.cancelText}>
                   Cancel
                 </Text>
               </Pressable>
             </>
           ) : (
             <>
-              <Text style={styles.title}>
-                Custom Date Range
-              </Text>
+              <View style={styles.header}>
+                <View>
+
+                  <Text style={styles.title}>
+                    Custom Date Range
+                  </Text>
+                </View>
+
+                <Pressable
+                  style={styles.closeButton}
+                  onPress={closeModal}
+                  hitSlop={8}
+                >
+                  <Ionicons
+                    name="close"
+                    size={20}
+                    color="#64748B"
+                  />
+                </Pressable>
+              </View>
 
               <View style={styles.input}>
                 <Text style={styles.label}>
@@ -190,27 +362,14 @@ export function ActivityDateModal({
                   value={startDate}
                   mode="date"
                   display="compact"
-                  maximumDate={
-                    new Date()
-                  }
-                  onChange={(
-                    _,
-                    date,
-                  ) => {
-                    if (!date)
-                      return;
+                  maximumDate={new Date()}
+                  onChange={(_, date) => {
+                    if (!date) return;
 
-                    setStartDate(
-                      date,
-                    );
+                    setStartDate(date);
 
-                    if (
-                      date >
-                      endDate
-                    ) {
-                      setEndDate(
-                        date,
-                      );
+                    if (date > endDate) {
+                      setEndDate(date);
                     }
                   }}
                 />
@@ -225,73 +384,59 @@ export function ActivityDateModal({
                   value={endDate}
                   mode="date"
                   display="compact"
-                  minimumDate={
-                    startDate
-                  }
-                  maximumDate={
-                    new Date()
-                  }
-                  onChange={(
-                    _,
-                    date,
-                  ) => {
-                    if (!date)
-                      return;
+                  minimumDate={startDate}
+                  maximumDate={new Date()}
+                  onChange={(_, date) => {
+                    if (!date) return;
 
-                    setEndDate(
-                      date,
-                    );
+                    setEndDate(date);
                   }}
                 />
               </View>
 
               <Pressable
-                style={
-                  styles.primaryButton
-                }
+                style={({ pressed }) => [
+                  styles.primaryButton,
+                  pressed &&
+                    styles.primaryButtonPressed,
+                ]}
                 onPress={() => {
                   onApplyCustom(
                     startDate,
                     endDate,
                   );
 
-                  setShowCustom(
-                    false,
-                  );
-
-                  onClose();
+                  closeModal();
                 }}
               >
-                <Text
-                  style={
-                    styles.primaryText
-                  }
-                >
+                <Text style={styles.primaryText}>
                   Apply Filter
                 </Text>
               </Pressable>
 
               <Pressable
-                style={
-                  styles.cancelButton
-                }
+                style={({ pressed }) => [
+                  styles.cancelButton,
+                  pressed &&
+                    styles.cancelButtonPressed,
+                ]}
                 onPress={() =>
-                  setShowCustom(
-                    false,
-                  )
+                  setShowCustom(false)
                 }
               >
-                <Text
-                  style={
-                    styles.cancelText
-                  }
-                >
+                <Ionicons
+                  name="chevron-back"
+                  size={16}
+                  color="#64748B"
+                />
+
+                <Text style={styles.cancelText}>
                   Back
                 </Text>
               </Pressable>
             </>
           )}
-        </Pressable>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -301,46 +446,86 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor:
-      "rgba(0,0,0,0.45)",
   },
 
   sheet: {
-    backgroundColor: "#FFF",
+    backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 24,
-    gap: 16,
+    padding: 20,
+    gap: 10,
   },
 
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#111827",
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 8,
   },
 
-  option: {
-    paddingVertical: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+  eyebrow: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    color: "#64748B",
+    marginBottom: 4,
   },
 
-  optionRow: {
-    flexDirection: "row",
-    justifyContent:
-      "space-between",
-    alignItems: "center",
-  },
-
-  optionText: {
-    fontSize: 16,
-    fontWeight: "600",
+  title: {
+    fontSize: 23,
+    fontWeight: "800",
     color: "#111827",
   },
 
-  lock: {
-    fontSize: 16,
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 11,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  option: {
+    minHeight: 58,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    paddingHorizontal: 12,
+  },
+
+  optionPressed: {
+    backgroundColor: "#F8FAFC",
+    transform: [{ scale: 0.99 }],
+  },
+
+  optionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 11,
+  },
+
+  optionRow: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  optionText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#111827",
   },
 
   input: {
@@ -349,36 +534,51 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 12,
+    backgroundColor: "#F8FAFC",
   },
 
   label: {
-    fontSize: 13,
-    color: "#6B7280",
-    marginBottom: 8,
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#64748B",
+    marginBottom: 6,
   },
 
   primaryButton: {
-    marginTop: 12,
-    backgroundColor: "#2EAF4A",
+    marginTop: 8,
+    backgroundColor: "#4A6FE3",
     borderRadius: 14,
-    paddingVertical: 16,
+    minHeight: 50,
     alignItems: "center",
+    justifyContent: "center",
+  },
+
+  primaryButtonPressed: {
+    backgroundColor: "#3559C7",
+    transform: [{ scale: 0.985 }],
   },
 
   primaryText: {
-    color: "#FFF",
-    fontSize: 16,
+    color: "#FFFFFF",
+    fontSize: 15,
     fontWeight: "700",
   },
 
   cancelButton: {
+    minHeight: 44,
+    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
+    justifyContent: "center",
+    gap: 3,
+  },
+
+  cancelButtonPressed: {
+    opacity: 0.6,
   },
 
   cancelText: {
-    color: "#6B7280",
-    fontSize: 16,
+    color: "#64748B",
+    fontSize: 14,
     fontWeight: "600",
   },
 });

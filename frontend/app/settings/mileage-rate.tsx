@@ -1,234 +1,509 @@
 import {
-  View,
-  Text,
   ActivityIndicator,
   Linking,
   Pressable,
-  StyleSheet,
   SafeAreaView,
   ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
-import { BackHeader } from '@/components/ui/BackButton'
-import React from 'react'
 
-import { useMileageRates } from '@/features/settings/hooks/use-mileage-rate'
+import React from "react";
 
-export default function Mileage_rate() {
-    const { data: mileageRates, isLoading } = useMileageRates()
-    const currentRate = mileageRates?.[0]
-    const IRS_MILEAGE_URL = "https://www.irs.gov/irb/2026-29_irb";
-    function formatEffectiveDate(date: string): string {
-        return new Date(date).toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-            timeZone: "UTC", // Prevents timezone shifts
-        });
-    }
-    return (
-  <View style={styles.container}>
-    <BackHeader />
+import { BackHeader } from "@/components/ui/BackButton";
+import { useMileageRates } from "@/features/settings/hooks/use-mileage-rate";
 
-    <ScrollView
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.currentCard}>
-        <Text style={styles.heading}>Current IRS Mileage Rate</Text>
+export default function MileageRate() {
+  const {
+    data: mileageRates,
+    isLoading,
+  } = useMileageRates();
 
-        {isLoading ? (
-          <ActivityIndicator size="large" color="#2DBE60" />
-        ) : (
-          <Text style={styles.currentRate}>
-            {(currentRate?.business_rate * 100).toFixed(1)}¢ / mile
-          </Text>
-        )}
+  const currentRate = mileageRates?.[0];
 
-        {isLoading ? (
-          <ActivityIndicator color="#2DBE60" />
-        ) : (
-          <Text style={styles.date}>
-            Effective {formatEffectiveDate(currentRate?.effective_date)}
-          </Text>
-        )}
+  const IRS_MILEAGE_URL =
+    "https://www.irs.gov/irb/2026-29_irb";
 
-        <Text style={styles.subtitle}>
-          Used to calculate your business mileage deduction.
-        </Text>
-      </View>
+  function formatEffectiveDate(
+    date?: string,
+  ): string {
+    if (!date) return "Not available";
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>
-          About the Mileage Rate
-        </Text>
+    return new Date(date).toLocaleDateString(
+      "en-US",
+      {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        timeZone: "UTC",
+      },
+    );
+  }
 
-        <Text style={styles.body}>
-          The IRS standard mileage rate is used to calculate your deduction for
-          business driving. It includes costs such as gas, maintenance,
-          depreciation, insurance, and repairs.
-        </Text>
+  return (
+    <View style={styles.screen}>
+      <BackHeader />
 
-        <Text style={styles.body}>
-          If you use the Standard Mileage method, these vehicle expenses
-          generally cannot be deducted separately.
-        </Text>
-
-        <Pressable
-          style={styles.linkButton}
-          onPress={() => Linking.openURL(IRS_MILEAGE_URL)}
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.link}>
-            View IRS Mileage Rates ↗
-          </Text>
-        </Pressable>
-      </View>
+          {/* Current Rate */}
 
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>
-          Previous Rates
-        </Text>
-
-        {isLoading ? (
-          <ActivityIndicator color="#2DBE60" />
-        ) : (
-          mileageRates?.map(
-            (rate: {
-              id: string;
-              effective_date: string;
-              business_rate: number;
-            }) => (
-              <View
-                key={rate.id}
-                style={styles.rateRow}
-              >
-                <Text style={styles.rateDate}>
-                  {formatEffectiveDate(rate.effective_date)}
+          <View style={styles.currentCard}>
+            <View style={styles.currentHeader}>
+              <View>
+                <Text style={styles.eyebrow}>
+                  IRS STANDARD RATE
                 </Text>
 
-                <Text style={styles.rateAmount}>
-                  {(rate.business_rate * 100).toFixed(1)}¢ / mile
+                <Text style={styles.currentTitle}>
+                  Business Mileage
                 </Text>
               </View>
-            )
-          )
-        )}
-      </View>
-    </ScrollView>
-  </View>
-);
+
+              <View style={styles.rateIcon}>
+                <Text style={styles.rateIconText}>
+                  $
+                </Text>
+              </View>
+            </View>
+
+            {isLoading ? (
+              <ActivityIndicator
+                size="large"
+                color="#4A6FE3"
+                style={styles.loader}
+              />
+            ) : (
+              <Text style={styles.currentRate}>
+                {currentRate
+                  ? (
+                      currentRate.business_rate *
+                      100
+                    ).toFixed(1)
+                  : "—"}
+                <Text style={styles.rateUnit}>
+                  ¢ / mile
+                </Text>
+              </Text>
+            )}
+
+            <View style={styles.divider} />
+
+            <View style={styles.currentFooter}>
+              <View>
+                <Text style={styles.footerLabel}>
+                  Effective
+                </Text>
+
+                <Text style={styles.date}>
+                  {formatEffectiveDate(
+                    currentRate?.effective_date,
+                  )}
+                </Text>
+              </View>
+
+              <View style={styles.statusBadge}>
+                <View style={styles.statusDot} />
+
+                <Text style={styles.statusText}>
+                  Current
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* About */}
+
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.sectionTitle}>
+                About the Mileage Rate
+              </Text>
+            </View>
+
+            <Text style={styles.body}>
+              The IRS standard mileage rate is
+              used to calculate your deduction
+              for business driving. It includes
+              costs such as gas, maintenance,
+              depreciation, insurance, and
+              repairs.
+            </Text>
+
+            <Text style={styles.body}>
+              If you use the Standard Mileage
+              method, these vehicle expenses
+              generally cannot be deducted
+              separately.
+            </Text>
+
+            <Pressable
+              style={styles.linkButton}
+              onPress={() =>
+                Linking.openURL(
+                  IRS_MILEAGE_URL,
+                )
+              }
+            >
+              <Text style={styles.link}>
+                View IRS Mileage Rates
+              </Text>
+
+              <Text style={styles.linkArrow}>
+                ↗
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* Previous Rates */}
+
+          <View style={styles.card}>
+            <View style={styles.historyHeader}>
+              <View>
+                <Text style={styles.sectionTitle}>
+                  Previous Rates
+                </Text>
+
+                <Text style={styles.historySubtitle}>
+                  Historical IRS business rates
+                </Text>
+              </View>
+            </View>
+
+            {isLoading ? (
+              <View style={styles.historyLoader}>
+                <ActivityIndicator
+                  color="#4A6FE3"
+                />
+              </View>
+            ) : mileageRates?.length ? (
+              <View style={styles.rateList}>
+                {mileageRates.map(
+                  (rate: {
+                    id: string;
+                    effective_date: string;
+                    business_rate: number;
+                  }) => (
+                    <View
+                      key={rate.id}
+                      style={styles.rateRow}
+                    >
+                      <View>
+                        <Text
+                          style={styles.rateDate}
+                        >
+                          {formatEffectiveDate(
+                            rate.effective_date,
+                          )}
+                        </Text>
+
+                        {rate.id ===
+                          currentRate?.id && (
+                          <Text
+                            style={
+                              styles.currentLabel
+                            }
+                          >
+                            Current rate
+                          </Text>
+                        )}
+                      </View>
+
+                      <Text
+                        style={styles.rateAmount}
+                      >
+                        {(
+                          rate.business_rate *
+                          100
+                        ).toFixed(1)}
+                        <Text
+                          style={
+                            styles.rateAmountUnit
+                          }
+                        >
+                          ¢ / mile
+                        </Text>
+                      </Text>
+                    </View>
+                  ),
+                )}
+              </View>
+            ) : (
+              <Text style={styles.emptyText}>
+                No mileage rates available.
+              </Text>
+            )}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
+  );
 }
+
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: "#F6F8FA",
+    backgroundColor: "#F6F8FB",
+  },
+
+  safeArea: {
+    flex: 1,
   },
 
   content: {
-    padding: 20,
-    gap: 20,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 40,
+    gap: 16,
   },
 
   currentCard: {
-    backgroundColor: "#2DBE60",
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    padding: 24,
-    alignItems: "center",
-
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-
-    elevation: 4,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#E5EAF2",
   },
 
-  heading: {
-    color: "#EAFBF0",
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 12,
+  currentHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  eyebrow: {
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    color: "#94A3B8",
+    marginBottom: 4,
+  },
+
+  currentTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#273449",
+  },
+
+  rateIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: "#EEF2FF",
+    borderWidth: 1,
+    borderColor: "#DDE5FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  rateIconText: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#4A6FE3",
   },
 
   currentRate: {
-    fontSize: 42,
+    marginTop: 22,
+    fontSize: 40,
+    lineHeight: 46,
+    fontWeight: "800",
+    letterSpacing: -1,
+    color: "#273449",
+  },
+
+  rateUnit: {
+    fontSize: 15,
     fontWeight: "700",
-    color: "#FFF",
+    letterSpacing: 0,
+    color: "#64748B",
+  },
+
+  loader: {
+    marginVertical: 20,
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: "#EEF1F5",
+    marginTop: 20,
+    marginBottom: 14,
+  },
+
+  currentFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  footerLabel: {
+    fontSize: 11,
+    color: "#94A3B8",
+    marginBottom: 2,
   },
 
   date: {
-    marginTop: 8,
-    color: "#F3FFF7",
-    fontSize: 15,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#475569",
   },
 
-  subtitle: {
-    marginTop: 18,
-    textAlign: "center",
-    color: "#F8FFF9",
-    lineHeight: 22,
-    fontSize: 15,
+  statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EEF2FF",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#4A6FE3",
+    marginRight: 6,
+  },
+
+  statusText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#3B5FCC",
   },
 
   card: {
-    backgroundColor: "#FFF",
+    backgroundColor: "#FFFFFF",
     borderRadius: 18,
     padding: 20,
+    borderWidth: 1,
+    borderColor: "#E5EAF2",
+  },
 
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-
-    elevation: 2,
+  cardHeader: {
+    marginBottom: 12,
   },
 
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 16,
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#273449",
   },
 
   body: {
-    fontSize: 15,
-    color: "#4B5563",
-    lineHeight: 24,
-    marginBottom: 16,
+    fontSize: 14,
+    lineHeight: 21,
+    color: "#64748B",
+    marginBottom: 14,
   },
 
   linkButton: {
+    flexDirection: "row",
+    alignItems: "center",
     alignSelf: "flex-start",
+    marginTop: 2,
+    paddingVertical: 5,
   },
 
   link: {
-    color: "#2563EB",
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#4A6FE3",
+  },
+
+  linkArrow: {
+    marginLeft: 5,
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: "700",
+    color: "#4A6FE3",
+  },
+
+  historyHeader: {
+    marginBottom: 4,
+  },
+
+  historySubtitle: {
+    marginTop: 3,
+    fontSize: 12,
+    color: "#94A3B8",
+  },
+
+  rateList: {
+    marginTop: 8,
   },
 
   rateRow: {
+    minHeight: 58,
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 16,
+    justifyContent: "space-between",
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    borderBottomColor: "#EEF1F5",
   },
 
   rateDate: {
-    fontSize: 15,
-    color: "#374151",
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#475569",
+  },
+
+  currentLabel: {
+    marginTop: 3,
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#4A6FE3",
   },
 
   rateAmount: {
     fontSize: 16,
-    fontWeight: "700",
-    color: "#2DBE60",
+    fontWeight: "800",
+    color: "#273449",
+  },
+
+  rateAmountUnit: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+
+  historyLoader: {
+    paddingVertical: 24,
+  },
+
+  emptyText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: "#94A3B8",
+  },
+
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F6F8FB",
+  },
+
+  errorContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 30,
+    backgroundColor: "#F6F8FB",
+  },
+
+  errorTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#273449",
+  },
+
+  errorText: {
+    marginTop: 6,
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#64748B",
+    textAlign: "center",
   },
 });

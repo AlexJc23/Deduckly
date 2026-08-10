@@ -120,11 +120,11 @@ export default function OfferAnalyzerScreen() {
               title="Unlock Deduckly Pro"
               message="See personalized profit estimates, hourly earnings, vehicle costs, and smart recommendations tailored to your preferences."
               features={[
-                "✓ Personalized Offer Analysis",
-                "✓ Profit After Vehicle Costs",
-                "✓ Hourly Earnings",
-                "✓ Custom Acceptance Rules",
-                "✓ Smart Recommendations",
+                "Personalized Offer Analysis",
+                "Profit After Vehicle Costs",
+                "Hourly Earnings",
+                "Custom Acceptance Rules",
+                "Smart Recommendations",
               ]}
             />
           )}

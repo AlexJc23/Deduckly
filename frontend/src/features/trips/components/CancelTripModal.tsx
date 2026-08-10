@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleSheet,
 } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 type CancelTripModalProps = {
   visible: boolean;
@@ -26,29 +27,50 @@ export function CancelTripModal({
     >
       <View style={styles.overlay}>
         <View style={styles.modal}>
+          <View style={styles.iconContainer}>
+            <Ionicons
+              name="close-circle-outline"
+              size={26}
+              color="#DC2626"
+            />
+          </View>
+
           <Text style={styles.title}>
             Cancel Trip?
           </Text>
 
           <Text style={styles.description}>
             This will cancel the current active trip.
-
           </Text>
 
           <View style={styles.buttonRow}>
             <Pressable
-              style={[styles.button, styles.cancelButton]}
+              style={({ pressed }) => [
+                styles.button,
+                styles.cancelButton,
+                pressed && styles.cancelButtonPressed,
+              ]}
               onPress={onClose}
             >
               <Text style={styles.cancelText}>
-                Cancel
+                Keep Trip
               </Text>
             </Pressable>
 
             <Pressable
-              style={[styles.button, styles.deleteButton]}
+              style={({ pressed }) => [
+                styles.button,
+                styles.deleteButton,
+                pressed && styles.deleteButtonPressed,
+              ]}
               onPress={onCancel}
             >
+              <Ionicons
+                name="close"
+                size={17}
+                color="#FFFFFF"
+              />
+
               <Text style={styles.deleteText}>
                 Cancel Trip
               </Text>
@@ -63,63 +85,111 @@ export function CancelTripModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor: "rgba(15, 23, 42, 0.62)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 24,
+    paddingHorizontal: 24,
   },
 
   modal: {
     width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 24,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 22,
+    padding: 22,
+
+    shadowColor: "#000000",
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+
+    elevation: 12,
+  },
+
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: "#FEE2E2",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    marginBottom: 14,
   },
 
   title: {
     fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 12,
+    fontWeight: "800",
+    color: "#111827",
     textAlign: "center",
+    letterSpacing: -0.4,
   },
 
   description: {
-    fontSize: 16,
-    color: "#6B7280",
+    fontSize: 14,
+    color: "#64748B",
     textAlign: "center",
-    lineHeight: 22,
-    marginBottom: 28,
+    lineHeight: 20,
+    marginTop: 7,
+    marginBottom: 24,
   },
 
   buttonRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
   },
 
   button: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
+    minHeight: 50,
+    borderRadius: 14,
     alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 7,
   },
 
   cancelButton: {
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+
+  cancelButtonPressed: {
+    backgroundColor: "#F8FAFC",
+    transform: [{ scale: 0.985 }],
   },
 
   deleteButton: {
-    backgroundColor: "#EF4444",
+    backgroundColor: "#DC2626",
+
+    shadowColor: "#DC2626",
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+
+    elevation: 3,
+  },
+
+  deleteButtonPressed: {
+    backgroundColor: "#B91C1C",
+    transform: [{ scale: 0.985 }],
   },
 
   cancelText: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
     color: "#111827",
   },
 
   deleteText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 });

@@ -8,12 +8,16 @@ import {
   Animated,
   Easing,
 } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 type Props = {
   visible: boolean;
   onClose: () => void;
-  onGenerate: (startDate: Date, endDate: Date) => void;
+  onGenerate: (
+    startDate: Date,
+    endDate: Date,
+  ) => void;
 };
 
 export function CustomReportModal({
@@ -21,13 +25,17 @@ export function CustomReportModal({
   onClose,
   onGenerate,
 }: Props) {
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+  const [startDate, setStartDate] =
+    useState(new Date());
 
-  const [isMounted, setIsMounted] = useState(visible);
+  const [endDate, setEndDate] =
+    useState(new Date());
+
+  const [isMounted, setIsMounted] =
+    useState(visible);
 
   const translateY = useRef(
-    new Animated.Value(420)
+    new Animated.Value(420),
   ).current;
 
   useEffect(() => {
@@ -40,7 +48,7 @@ export function CustomReportModal({
           ? Easing.out(Easing.ease)
           : Easing.in(Easing.ease),
         useNativeDriver: true,
-      }
+      },
     );
 
     if (visible) {
@@ -54,6 +62,10 @@ export function CustomReportModal({
     });
   }, [visible, translateY]);
 
+  if (!isMounted) {
+    return null;
+  }
+
   return (
     <Modal
       visible={isMounted}
@@ -63,7 +75,7 @@ export function CustomReportModal({
     >
       <View style={styles.backdrop}>
         <Pressable
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           onPress={onClose}
         />
 
@@ -75,71 +87,120 @@ export function CustomReportModal({
             },
           ]}
         >
-          <Text style={styles.title}>
-            Custom Report
-          </Text>
+          <View style={styles.handle} />
 
-          <Text style={styles.subtitle}>
-            Select a date range.
-          </Text>
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.eyebrow}>
+                REPORTS
+              </Text>
 
-          <View style={styles.input}>
-            <Text style={styles.label}>
-              Start Date
-            </Text>
+              <Text style={styles.title}>
+                Custom Report
+              </Text>
 
-            <DateTimePicker
-              value={startDate}
-              mode="date"
-              display="compact"
-              maximumDate={new Date()}
-              onChange={(_, date) => {
-                if (!date) return;
+              <Text style={styles.subtitle}>
+                Choose the period you want to
+                analyze.
+              </Text>
+            </View>
 
-                setStartDate(date);
-
-                if (date > endDate) {
-                  setEndDate(date);
-                }
-              }}
-            />
+            <View style={styles.headerIcon}>
+              <Ionicons
+                name="calendar-outline"
+                size={19}
+                color="#4A6FE3"
+              />
+            </View>
           </View>
 
           <View style={styles.input}>
-            <Text style={styles.label}>
-              End Date
-            </Text>
+            <View style={styles.inputHeader}>
+              <View>
+                <Text style={styles.label}>
+                  Start Date
+                </Text>
 
-            <DateTimePicker
-              value={endDate}
-              mode="date"
-              display="compact"
-              minimumDate={startDate}
-              maximumDate={new Date()}
-              onChange={(_, date) => {
-                if (!date) return;
+                <Text style={styles.helper}>
+                  Beginning of report
+                </Text>
+              </View>
 
-                setEndDate(date);
-              }}
-            />
+              <DateTimePicker
+                value={startDate}
+                mode="date"
+                display="compact"
+                maximumDate={new Date()}
+                onChange={(_, date) => {
+                  if (!date) return;
+
+                  setStartDate(date);
+
+                  if (date > endDate) {
+                    setEndDate(date);
+                  }
+                }}
+              />
+            </View>
+          </View>
+
+          <View style={styles.input}>
+            <View style={styles.inputHeader}>
+              <View>
+                <Text style={styles.label}>
+                  End Date
+                </Text>
+
+                <Text style={styles.helper}>
+                  End of report
+                </Text>
+              </View>
+
+              <DateTimePicker
+                value={endDate}
+                mode="date"
+                display="compact"
+                minimumDate={startDate}
+                maximumDate={new Date()}
+                onChange={(_, date) => {
+                  if (!date) return;
+
+                  setEndDate(date);
+                }}
+              />
+            </View>
           </View>
 
           <Pressable
-            style={styles.primaryButton}
+            style={({ pressed }) => [
+              styles.primaryButton,
+              pressed &&
+                styles.primaryButtonPressed,
+            ]}
             onPress={() =>
               onGenerate(
                 startDate,
-                endDate
+                endDate,
               )
             }
           >
+            <Ionicons
+              name="document-text-outline"
+              size={18}
+              color="#FFFFFF"
+            />
+
             <Text style={styles.primaryText}>
               Generate Report
             </Text>
           </Pressable>
 
           <Pressable
-            style={styles.cancelButton}
+            style={({ pressed }) => [
+              styles.cancelButton,
+              pressed &&
+                styles.cancelButtonPressed,
+            ]}
             onPress={onClose}
           >
             <Text style={styles.cancelText}>
@@ -156,55 +217,131 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.45)",
+    backgroundColor:
+      "rgba(15, 23, 42, 0.42)",
   },
+
   sheet: {
-    backgroundColor: "#FFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    gap: 18,
+    backgroundColor: "#FCFDFE",
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 28,
+    gap: 12,
+    borderTopWidth: 1,
+    borderColor: "#E8ECF2",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#111827",
-  },
-  subtitle: {
-    fontSize: 15,
-    color: "#6B7280",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  label: {
-    fontSize: 13,
-    color: "#6B7280",
+
+  handle: {
+    alignSelf: "center",
+    width: 38,
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: "#CBD5E1",
     marginBottom: 8,
   },
-  primaryButton: {
-    marginTop: 12,
-    backgroundColor: "#2EAF4A",
-    paddingVertical: 16,
+
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 6,
+  },
+
+  eyebrow: {
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    color: "#94A3B8",
+    marginBottom: 3,
+  },
+
+  title: {
+    fontSize: 22,
+    fontWeight: "800",
+    letterSpacing: -0.4,
+    color: "#273449",
+  },
+
+  subtitle: {
+    marginTop: 4,
+    fontSize: 13,
+    lineHeight: 18,
+    color: "#64748B",
+  },
+
+  headerIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 11,
+    backgroundColor: "#EEF2FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  input: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E7EBF1",
     borderRadius: 14,
-    alignItems: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
-  primaryText: {
-    color: "#FFF",
-    fontSize: 16,
+
+  inputHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  label: {
+    fontSize: 13,
     fontWeight: "700",
+    color: "#273449",
   },
-  cancelButton: {
+
+  helper: {
+    marginTop: 2,
+    fontSize: 10,
+    color: "#94A3B8",
+  },
+
+  primaryButton: {
+    minHeight: 48,
+    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 4,
+    backgroundColor: "#4A6FE3",
+    borderRadius: 14,
   },
+
+  primaryButtonPressed: {
+    backgroundColor: "#3F61C9",
+    transform: [{ scale: 0.985 }],
+  },
+
+  primaryText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
+  cancelButton: {
+    minHeight: 38,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  cancelButtonPressed: {
+    opacity: 0.55,
+  },
+
   cancelText: {
-    color: "#6B7280",
-    fontSize: 16,
-    fontWeight: "600",
+    color: "#64748B",
+    fontSize: 13,
+    fontWeight: "700",
   },
 });

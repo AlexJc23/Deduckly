@@ -1,13 +1,13 @@
 import { CurrentReport } from "../types/report.types";
 
 const COLORS = [
-  "#2EAF4A",
-  "#239B45",
-  "#65C878",
-  "#9BDCA6",
+  "#4A6FE3", // Deduckly blue
+  "#6B8BEA", // lighter blue
+  "#8FA7F0", // soft blue
+  "#B8C7F5", // pale blue
 ];
 
-const OTHER_COLOR = "#6B7280";
+const OTHER_COLOR = "#94A3B8";
 
 const MAX_CATEGORIES = 4;
 

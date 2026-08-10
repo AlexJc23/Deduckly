@@ -13,7 +13,6 @@ export function ExpenseBreakdownCard({
 }: ReportSummaryCardProps) {
   return (
     <View>
-      <Text>Expense Breakdown</Text>
       <View>
       <ExpensePieChart
         expenseBreakdown={report.expense_breakdown}

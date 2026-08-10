@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
-
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { MonthlyIncomeGoalCard } from "@/features/reports/components/MonthlyIncomeGoal";
@@ -18,7 +18,10 @@ import { getCurrentMonthAndYear } from "@/features/reports/utils/date";
 import { StartTripModal } from "@/features/tracking/components/StartTripModal";
 import { useTracking } from "@/features/tracking/context/tracking.context";
 import { useMonthlyGoal } from "@/features/users/hooks/use-monthly-goal";
-import { getPendingTrip, getPendingStop } from "@/services/siri.service";
+import {
+  getPendingTrip,
+  getPendingStop,
+} from "@/services/siri.service";
 
 const subtitles = [
   "Making taxes slightly less terrible.",
@@ -37,32 +40,61 @@ const subtitles = [
 export default function DashboardScreen() {
   const userQuery = useCurrentUser();
   const { saved } = useLocalSearchParams();
-  const { isTracking, startTrackingFromSiri, stopTracking } = useTracking();
+  const {
+    isTracking,
+    startTrackingFromSiri,
+    stopTracking,
+  } = useTracking();
 
-  const [showStartTripModal, setShowStartTripModal] = useState(false);
+  const [showStartTripModal, setShowStartTripModal] =
+    useState(false);
   const [showBanner, setShowBanner] = useState(false);
-  const bannerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bannerTimeoutRef =
+    useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: monthlyGoal } = useMonthlyGoal();
   const { year, month } = getCurrentMonthAndYear();
 
-  const { data: todayReport, isLoading: todayLoading } = useTodayReport();
-  const { data: monthlyReport, isLoading: monthlyLoading } = useCurrentReport({
+  const {
+    data: todayReport,
+    isLoading: todayLoading,
+  } = useTodayReport();
+
+  const {
+    data: monthlyReport,
+    isLoading: monthlyLoading,
+  } = useCurrentReport({
     year,
     month,
   });
 
-  const estimatedTaxOwed = monthlyReport?.estimated_tax_owed.toFixed(2) ?? "--";
+  const estimatedTaxOwed =
+    monthlyReport?.estimated_tax_owed.toFixed(2) ?? "--";
+
   const estimatedTaxSavings =
     monthlyReport?.estimated_tax_savings.toFixed(2) ?? "--";
-  const todayMiles = todayReport?.total_miles.toFixed(2) ?? "--";
-  const todayExpenses = todayReport?.total_expenses.toFixed(2) ?? "--";
 
-  const openStartModal = useCallback(() => setShowStartTripModal(true), []);
-  const closeStartModal = useCallback(() => setShowStartTripModal(false), []);
+  const todayMiles =
+    todayReport?.total_miles.toFixed(2) ?? "--";
+
+  const todayExpenses =
+    todayReport?.total_expenses.toFixed(2) ?? "--";
+
+  const openStartModal = useCallback(
+    () => setShowStartTripModal(true),
+    []
+  );
+
+  const closeStartModal = useCallback(
+    () => setShowStartTripModal(false),
+    []
+  );
 
   const [subtitle] = useState(
-    () => subtitles[Math.floor(Math.random() * subtitles.length)],
+    () =>
+      subtitles[
+        Math.floor(Math.random() * subtitles.length)
+      ]
   );
 
   const greeting = (() => {
@@ -103,138 +135,306 @@ export default function DashboardScreen() {
   }, [saved]);
 
   useEffect(() => {
-  const interval = setInterval(async () => {
-    const shouldStop = await getPendingStop();
+    const interval = setInterval(async () => {
+      const shouldStop = await getPendingStop();
 
-    if (shouldStop) {
-      clearInterval(interval);
+      if (shouldStop) {
+        clearInterval(interval);
 
-      const result = await stopTracking(null);
+        const result = await stopTracking(null);
 
-      if (result === true) {
-        router.replace("/(tabs)/dashboard");
+        if (result === true) {
+          router.replace("/(tabs)/dashboard");
+        }
+
+        return;
       }
 
-      return;
-    }
+      const pendingTrip = await getPendingTrip();
 
-    const pendingTrip = await getPendingTrip();
+      if (!pendingTrip) return;
 
-    if (!pendingTrip) return;
+      clearInterval(interval);
 
-    clearInterval(interval);
+      await startTrackingFromSiri(
+        pendingTrip.platform
+      );
 
-    await startTrackingFromSiri(pendingTrip.platform);
+      router.replace("/tracking/active");
+    }, 500);
 
-    router.replace("/tracking/active");
-  }, 500);
-
-  return () => clearInterval(interval);
-}, []);
+    return () => clearInterval(interval);
+  }, []);
 
   if (monthlyLoading || todayLoading) {
-    return <ActivityIndicator size="large" />;
+    return (
+      <SafeAreaView style={styles.loadingScreen}>
+        <ActivityIndicator
+          size="small"
+          color="#4A6FE3"
+        />
+      </SafeAreaView>
+    );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={["top"]}
+    >
       {showBanner && (
         <View style={styles.banner}>
-          <Text style={styles.bannerText}>Trip Saved Successfully</Text>
+          <Ionicons
+            name="checkmark-circle"
+            size={18}
+            color="#FFFFFF"
+          />
+
+          <Text style={styles.bannerText}>
+            Trip Saved Successfully
+          </Text>
         </View>
       )}
 
       {userQuery.data && (
         <View style={styles.welcomeContainer}>
           <Text style={styles.welcomeText}>
-            <Text style={styles.welcomeLight}>{greeting}</Text>{" "}
-            <Text style={styles.welcomeName}>{userQuery.data.first_name}!</Text>
+            <Text style={styles.welcomeLight}>
+              {greeting}
+            </Text>{" "}
+            <Text style={styles.welcomeName}>
+              {userQuery.data.first_name}!
+            </Text>
           </Text>
 
-          <Text style={styles.welcomeSubtitle}>{subtitle}</Text>
+          <Text style={styles.welcomeSubtitle}>
+            {subtitle}
+          </Text>
         </View>
       )}
 
-      {monthlyGoal && <MonthlyIncomeGoalCard monthlyGoal={monthlyGoal} />}
+      {monthlyGoal && (
+        <MonthlyIncomeGoalCard
+          monthlyGoal={monthlyGoal}
+        />
+      )}
 
       <View style={styles.taxCard}>
-        <Text style={styles.taxAmount}>${estimatedTaxOwed}</Text>
+        <View style={styles.taxHeader}>
+          <View style={styles.taxIcon}>
+            <Ionicons
+              name="calculator-outline"
+              size={18}
+              color="#4A6FE3"
+            />
+          </View>
+
+          <Text style={styles.taxLabel}>
+            ESTIMATED TAXES
+          </Text>
+        </View>
+
+        <Text style={styles.taxAmount}>
+          ${estimatedTaxOwed}
+        </Text>
 
         <Text style={styles.taxHint}>
-          Estimated taxes this month (not fun... we know)
+          Estimated taxes this month
         </Text>
 
         <View style={styles.taxSavingsRow}>
+          <View style={styles.savingsIcon}>
+            <Ionicons
+              name="trending-down-outline"
+              size={15}
+              color="#22C55E"
+            />
+          </View>
+
           <Text style={styles.taxSavingsText}>
-            ${estimatedTaxSavings} cut so far
+            ${estimatedTaxSavings} saved
           </Text>
         </View>
       </View>
 
-      <View>
-        <Pressable
-          style={({ pressed }) => [
-            styles.offerAnalyzerButton,
-            pressed && styles.offerAnalyzerButtonPressed,
-          ]}
-          onPress={() => router.push("/offer-analyzer/screens/OfferAnalyzerScreen")}
-        >
-          <Text>Offer Analyzer</Text>
-        </Pressable>
-      </View>
+      <Pressable
+        style={({ pressed }) => [
+          styles.offerAnalyzerButton,
+          pressed &&
+            styles.offerAnalyzerButtonPressed,
+        ]}
+        onPress={() =>
+          router.push(
+            "/offer-analyzer/screens/OfferAnalyzerScreen"
+          )
+        }
+      >
+        <View style={styles.offerIcon}>
+          <Ionicons
+            name="analytics-outline"
+            size={20}
+            color="#4A6FE3"
+          />
+        </View>
+
+        <View style={styles.offerTextContainer}>
+          <Text style={styles.offerTitle}>
+            Offer Analyzer
+          </Text>
+
+          <Text style={styles.offerSubtitle}>
+            See if a gig is worth your time
+          </Text>
+        </View>
+
+        <Ionicons
+          name="chevron-forward"
+          size={19}
+          color="#64748B"
+        />
+      </Pressable>
 
       <View style={styles.metricRow}>
         <View style={styles.metricCard}>
-          <Text>{todayMiles} miles today</Text>
+          <View style={styles.metricIcon}>
+            <Ionicons
+              name="speedometer-outline"
+              size={17}
+              color="#4A6FE3"
+            />
+          </View>
+
+          <Text style={styles.metricValue}>
+            {todayMiles}
+          </Text>
+
+          <Text style={styles.metricLabel}>
+            miles today
+          </Text>
         </View>
 
         <View style={styles.metricCard}>
-          <Text>${todayExpenses} expenses</Text>
+          <View style={styles.metricIcon}>
+            <Ionicons
+              name="receipt-outline"
+              size={17}
+              color="#F4B942"
+            />
+          </View>
+
+          <Text style={styles.metricValue}>
+            ${todayExpenses}
+          </Text>
+
+          <Text style={styles.metricLabel}>
+            expenses
+          </Text>
         </View>
       </View>
 
       <View style={styles.actionsContainer}>
         <View style={styles.actionButtonsRow}>
           <Pressable
-            style={styles.actionButton}
-            onPress={() => router.push("/income/create")}
-          >
-            <Text style={styles.actionButtonText}>Add Income</Text>
-          </Pressable>
-
-          <Pressable
-            style={styles.actionButton}
-            onPress={() => router.push("/expense/create")}
-          >
-            <Text style={styles.actionButtonText}>Add Expense</Text>
-          </Pressable>
-        </View>
-
-        <View>
-          <Pressable
-            onPress={
-              !isTracking
-                ? openStartModal
-                : () => router.push("/tracking/active")
-            }
-            style={[
-              styles.startTripButton,
-              isTracking && styles.startTripButtonTracking,
+            style={({ pressed }) => [
+              styles.actionButton,
+              pressed &&
+                styles.actionButtonPressed,
             ]}
+            onPress={() =>
+              router.push("/income/create")
+            }
           >
-            <Text
-              style={[
-                styles.startTripButtonText,
-                isTracking && styles.startTripButtonTextTracking,
-              ]}
-            >
-              {isTracking ? "Trip in Progress" : "Start Trip"}
+            <Ionicons
+              name="add-circle-outline"
+              size={18}
+              color="#4A6FE3"
+            />
+
+            <Text style={styles.actionButtonText}>
+              Add Income
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.actionButton,
+              pressed &&
+                styles.actionButtonPressed,
+            ]}
+            onPress={() =>
+              router.push("/expense/create")
+            }
+          >
+            <Ionicons
+              name="receipt-outline"
+              size={18}
+              color="#64748B"
+            />
+
+            <Text style={styles.actionButtonText}>
+              Add Expense
             </Text>
           </Pressable>
         </View>
+
+        <Pressable
+          onPress={
+            !isTracking
+              ? openStartModal
+              : () =>
+                  router.push(
+                    "/tracking/active"
+                  )
+          }
+          style={({ pressed }) => [
+            styles.startTripButton,
+            isTracking &&
+              styles.startTripButtonTracking,
+            pressed &&
+              !isTracking &&
+              styles.startTripButtonPressed,
+          ]}
+        >
+          <Ionicons
+            name={
+              isTracking
+                ? "navigate"
+                : "play"
+            }
+            size={19}
+            color={
+              isTracking
+                ? "#64748B"
+                : "#FFFFFF"
+            }
+          />
+
+          <Text
+            style={[
+              styles.startTripButtonText,
+              isTracking &&
+                styles.startTripButtonTextTracking,
+            ]}
+          >
+            {isTracking
+              ? "Trip in Progress"
+              : "Start Trip"}
+          </Text>
+
+          {!isTracking && (
+            <Ionicons
+              name="chevron-forward"
+              size={18}
+              color="#FFFFFF"
+            />
+          )}
+        </Pressable>
       </View>
 
-      <StartTripModal visible={showStartTripModal} onClose={closeStartModal} />
+      <StartTripModal
+        visible={showStartTripModal}
+        onClose={closeStartModal}
+      />
     </SafeAreaView>
   );
 }
@@ -242,153 +442,338 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    padding: 20,
-    paddingTop: 0,
-    backgroundColor: "#FFF",
+    paddingHorizontal: 20,
+    backgroundColor: "#F8FAFC",
   },
+
+  loadingScreen: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F8FAFC",
+  },
+
   banner: {
     position: "absolute",
-    top: 60,
+    top: 12,
     left: 16,
     right: 16,
-    backgroundColor: "#34C759",
-    padding: 12,
-    borderRadius: 12,
     zIndex: 1000,
+    minHeight: 48,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    backgroundColor: "#111827",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+
+    shadowColor: "#111827",
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+
+    elevation: 5,
   },
+
   bannerText: {
-    color: "white",
-    fontWeight: "600",
-    textAlign: "center",
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
   },
+
   welcomeContainer: {
-    marginTop: 10,
-    marginBottom: 24,
+    marginTop: 8,
+    marginBottom: 20,
   },
+
   welcomeText: {
     fontSize: 28,
     letterSpacing: -0.8,
   },
+
   welcomeLight: {
-    color: "#6B7280",
+    color: "#64748B",
     fontWeight: "500",
   },
+
   welcomeName: {
     color: "#111827",
-    fontWeight: "900",
+    fontWeight: "800",
   },
+
   welcomeSubtitle: {
-    marginTop: 4,
-    fontSize: 15,
-    color: "#8B95A7",
+    marginTop: 5,
+    fontSize: 14,
+    lineHeight: 20,
+    color: "#64748B",
     fontWeight: "500",
   },
+
   taxCard: {
-    width: "90%",
-    backgroundColor: "#fff",
-    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: "#E5E7EB",
     padding: 18,
-    alignSelf: "center",
+    marginTop: 16,
+
+    shadowColor: "#111827",
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+
+    elevation: 2,
   },
+
+  taxHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+
+  taxIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: "#DCE6FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  taxLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1.1,
+    color: "#64748B",
+  },
+
   taxAmount: {
+    marginTop: 12,
     fontSize: 30,
-    fontWeight: "700",
+    lineHeight: 36,
+    fontWeight: "800",
+    letterSpacing: -0.7,
+    color: "#111827",
   },
+
   taxHint: {
-    color: "#6B7280",
-    marginTop: 4,
+    marginTop: 2,
     fontSize: 12,
+    color: "#64748B",
   },
+
   taxSavingsRow: {
-    marginTop: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+    paddingTop: 13,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
   },
+
+  savingsIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    backgroundColor: "#DCFCE7",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+
   taxSavingsText: {
-    fontSize: 26,
+    fontSize: 13,
     fontWeight: "700",
+    color: "#22C55E",
   },
+
   offerAnalyzerButton: {
-    marginTop: 20,
-    backgroundColor: "#2EAF4A",
-    borderRadius: 20,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
+    minHeight: 68,
+    marginTop: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    flexDirection: "row",
+    alignItems: "center",
+
+    shadowColor: "#111827",
+    shadowOpacity: 0.035,
+    shadowRadius: 8,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+
+    elevation: 1,
+  },
+
+  offerAnalyzerButtonPressed: {
+    backgroundColor: "#F1F5F9",
+    transform: [{ scale: 0.985 }],
+  },
+
+  offerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#DCE6FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  offerTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+
+  offerTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#111827",
+  },
+
+  offerSubtitle: {
+    marginTop: 2,
+    fontSize: 12,
+    color: "#64748B",
+  },
+
+  metricRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 12,
+  },
+
+  metricCard: {
+    flex: 1,
+    minHeight: 92,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 14,
+
+    shadowColor: "#111827",
+    shadowOpacity: 0.03,
+    shadowRadius: 7,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+
+    elevation: 1,
+  },
+
+  metricIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 9,
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  metricValue: {
+    marginTop: 8,
+    fontSize: 18,
+    fontWeight: "800",
+    letterSpacing: -0.3,
+    color: "#111827",
+  },
+
+  metricLabel: {
+    marginTop: 1,
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+
+  actionsContainer: {
+    marginTop: "auto",
+    marginBottom: 18,
+    paddingTop: 14,
+  },
+
+  actionButtonsRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+
+  actionButton: {
+    flex: 1,
+    minHeight: 46,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: "#47C862",
-    shadowColor: "#2EAF4A",
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    elevation: 8,
+    borderColor: "#E5E7EB",
+    gap: 7,
   },
-  offerAnalyzerButtonPressed: {
-    backgroundColor: "#279A41",
-    opacity: 0.92,
+
+  actionButtonPressed: {
+    backgroundColor: "#F8FAFC",
     transform: [{ scale: 0.98 }],
   },
-  metricRow: {
-    flexDirection: "row",
-    marginTop: 12,
-    gap: 12,
-    width: "90%",
-    alignSelf: "center",
-  },
-  metricCard: {
-    flex: 1,
-    backgroundColor: "#FFF",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    padding: 16,
-  },
-  actionsContainer: {
-    marginBottom: 30,
-    marginTop: "auto",
-  },
-  actionButtonsRow: {
-    flexDirection: "row",
-    gap: 12,
-    width: "90%",
-    alignSelf: "center",
-  },
-  actionButton: {
-    flex: 1,
-    padding: 18,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    alignItems: "center",
-  },
+
   actionButtonText: {
-    fontWeight: "600",
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#334155",
   },
+
   startTripButton: {
-    marginTop: 20,
-    marginBottom: "auto",
-    width: "90%",
-    alignSelf: "center",
-    backgroundColor: "#22C55E",
-    borderRadius: 30,
-    paddingVertical: 18,
+    marginTop: 12,
+    minHeight: 56,
+    borderRadius: 16,
+    backgroundColor: "#4A6FE3",
+    paddingHorizontal: 18,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: 9,
+
+    shadowColor: "#4A6FE3",
+    shadowOpacity: 0.22,
+    shadowRadius: 12,
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+
+    elevation: 4,
   },
+
+  startTripButtonPressed: {
+    backgroundColor: "#3559C7",
+    transform: [{ scale: 0.985 }],
+  },
+
   startTripButtonTracking: {
-    backgroundColor: "#D1D5DB",
+    backgroundColor: "#E2E8F0",
+    shadowOpacity: 0,
+    elevation: 0,
   },
+
   startTripButtonText: {
-    color: "#000",
-    fontSize: 18,
-    fontWeight: "600",
-    margin: 20,
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
   },
+
   startTripButtonTextTracking: {
-    color: "#ffffff",
+    color: "#475569",
   },
 });

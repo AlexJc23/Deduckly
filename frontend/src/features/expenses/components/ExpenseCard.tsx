@@ -1,5 +1,11 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { router } from "expo-router";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { Expense } from "../types/expense";
 import { EXPENSE_CATEGORY_LABELS } from "@/constants/expense-category-labels";
@@ -9,7 +15,7 @@ type Props = {
 };
 
 const DATE_OPTIONS: Intl.DateTimeFormatOptions = {
-  month: "long",
+  month: "short",
   day: "numeric",
 };
 
@@ -30,38 +36,73 @@ export function ExpenseCard({
 
   return (
     <Pressable
-      style={styles.card}
+      style={({ pressed }) => [
+        styles.card,
+        pressed && styles.cardPressed,
+      ]}
       onPress={() =>
         router.push(
           `/expense/${expense.id}`,
         )
       }
     >
-      <View style={styles.header}>
-        <Text style={styles.category}>
-          {category}
-        </Text>
+      <View style={styles.topRow}>
+        <View style={styles.categoryContainer}>
+          <View style={styles.categoryIcon}>
+            <Ionicons
+              name="receipt-outline"
+              size={16}
+              color="#4A6FE3"
+            />
+          </View>
 
-        <Text style={styles.chevron}>
-          ›
-        </Text>
+          <View>
+            <Text style={styles.category}>
+              {category}
+            </Text>
+
+            <Text style={styles.merchant}>
+              {expense.merchant ??
+                "Unknown Merchant"}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.amountContainer}>
+          <Text style={styles.amount}>
+            -$
+            {Number(
+              expense.amount,
+            ).toFixed(2)}
+          </Text>
+
+          <Ionicons
+            name="chevron-forward"
+            size={16}
+            color="#94A3B8"
+          />
+        </View>
       </View>
 
-      <Text style={styles.amount}>
-        $
-        {Number(
-          expense.amount,
-        ).toFixed(2)}
-      </Text>
+      <View style={styles.bottomRow}>
+        <View style={styles.dateRow}>
+          <Ionicons
+            name="calendar-outline"
+            size={13}
+            color="#94A3B8"
+          />
 
-      <Text style={styles.merchant}>
-        {expense.merchant ??
-          "Unknown Merchant"}
-      </Text>
+          <Text style={styles.date}>
+            {date}
+          </Text>
+        </View>
 
-      <Text style={styles.date}>
-        {date}
-      </Text>
+        <View style={styles.businessBadge}>
+          <Text style={styles.businessText}>
+            Expense
+          </Text>
+        </View>
+      </View>
     </Pressable>
   );
 }
@@ -69,46 +110,102 @@ export function ExpenseCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    padding: 18,
+    borderRadius: 16,
+    paddingHorizontal: 15,
+    paddingVertical: 14,
     borderWidth: 1,
-    borderColor: "#EEF2F6",
-    marginBottom: 12,
+    borderColor: "#E5E7EB",
+    marginBottom: 10,
   },
 
-  header: {
+  cardPressed: {
+    backgroundColor: "#F8FAFC",
+    transform: [{ scale: 0.99 }],
+  },
+
+  topRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    justifyContent: "space-between",
+  },
+
+  categoryContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    minWidth: 0,
+  },
+
+  categoryIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: "#DCE6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
   },
 
   category: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
     color: "#111827",
   },
 
-  chevron: {
-    fontSize: 24,
-    color: "#9CA3AF",
+  merchant: {
+    marginTop: 2,
+    fontSize: 12,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+
+  amountContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginLeft: 10,
+    gap: 6,
   },
 
   amount: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "800",
     color: "#DC2626",
   },
 
-  merchant: {
-    marginTop: 4,
-    fontSize: 15,
-    color: "#374151",
+  bottomRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 11,
+    paddingTop: 9,
+    borderTopWidth: 1,
+    borderTopColor: "#F1F5F9",
+  },
+
+  dateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
   },
 
   date: {
-    marginTop: 8,
-    color: "#6B7280",
-    fontSize: 14,
+    fontSize: 12,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+
+  businessBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 7,
+    backgroundColor: "#F1F5F9",
+  },
+
+  businessText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#64748B",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
   },
 });

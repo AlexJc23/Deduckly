@@ -132,11 +132,21 @@ export function MonthlyIncomeGoalCard({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
+    borderRadius: 18,
     padding: 18,
     borderWidth: 1,
-    borderColor: "#EEF2F6",
+    borderColor: "#E5E7EB",
     gap: 16,
+
+    shadowColor: "#111827",
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+
+    elevation: 2,
   },
 
   header: {
@@ -147,51 +157,51 @@ const styles = StyleSheet.create({
 
   left: {
     flex: 1,
-    paddingRight: 12,
+    paddingRight: 16,
   },
 
   eyebrow: {
-    color: "#8B95A7",
+    color: "#64748B",
     fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 1.6,
+    fontWeight: "800",
+    letterSpacing: 1.4,
   },
 
   current: {
     color: "#111827",
     fontSize: 28,
-    fontWeight: "900",
-    marginTop: 4,
-    letterSpacing: -0.8,
+    fontWeight: "800",
+    marginTop: 5,
+    letterSpacing: -0.7,
   },
 
   goal: {
-    color: "#6B7280",
+    color: "#64748B",
     fontSize: 13,
     fontWeight: "600",
     marginTop: 2,
   },
 
   orb: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: "#F2FBF5",
-    borderWidth: 2,
-    borderColor: "#2EAF4A",
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#DCE6FF",
+    borderWidth: 1,
+    borderColor: "#4A6FE3",
     alignItems: "center",
     justifyContent: "center",
   },
 
   percentage: {
-    color: "#2EAF4A",
-    fontSize: 17,
-    fontWeight: "900",
+    color: "#4A6FE3",
+    fontSize: 16,
+    fontWeight: "800",
   },
 
   progressBackground: {
     width: "100%",
-    height: 8,
+    height: 7,
     backgroundColor: "#E5E7EB",
     borderRadius: 999,
     overflow: "hidden",
@@ -199,7 +209,7 @@ const styles = StyleSheet.create({
 
   progressFill: {
     height: "100%",
-    backgroundColor: "#2EAF4A",
+    backgroundColor: "#4A6FE3",
     borderRadius: 999,
   },
 
@@ -210,14 +220,14 @@ const styles = StyleSheet.create({
   },
 
   status: {
-    color: "#2EAF4A",
-    fontSize: 11,
+    color: "#4A6FE3",
+    fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.8,
   },
 
   remaining: {
-    color: "#6B7280",
+    color: "#64748B",
     fontSize: 12,
     fontWeight: "600",
   },

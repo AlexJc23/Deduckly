@@ -1,23 +1,44 @@
-import { StyleSheet, Text, View } from "react-native";
-import { QuickActionButton } from "./QuickActionButton";
-import { CurrentReport } from "../types/report.types";
+import {
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
 
-type QuickActionCardProps = {
-    report: CurrentReport;
-    onExport: () => void;
+import { QuickActionButton } from "./QuickActionButton";
+import { CurrentReport } from "../types/report.types";
 
+type QuickActionCardProps = {
+  report: CurrentReport;
+  onExport: () => void;
 };
 
 export function QuickActionsCard({
-    report,
-    onExport
+  report,
+  onExport,
 }: QuickActionCardProps) {
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>
-        Quick Actions
-      </Text>
+    <View style={styles.card}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.eyebrow}>
+            TOOLS
+          </Text>
+
+          <Text style={styles.title}>
+            Quick Actions
+          </Text>
+        </View>
+
+        <View style={styles.headerIcon}>
+          <Ionicons
+            name="flash-outline"
+            size={17}
+            color="#4A6FE3"
+          />
+        </View>
+      </View>
 
       <View style={styles.row}>
         <QuickActionButton
@@ -27,45 +48,72 @@ export function QuickActionsCard({
           onPress={onExport}
         />
 
-        <View style={{ width: 12 }} />
+        <View style={styles.spacer} />
 
         <QuickActionButton
-                  title="IRS Summary"
-                  onPress={() => router.push({
-                      pathname: "/reports/IrsSummary",
-                      params: {
-                          year: report.year,
-                          month: report.month,
-                          day: report.day
-                      },
-                  })} icon={"filter"} subtitle={""}        />
-
-        <View style={{ width: 12 }} />
-
-        {/* <QuickActionButton
-          icon="share-social-outline"
-          title="Share Report"
-          subtitle="Send PDF"
-          onPress={() => {}}
-        /> */}
+          icon="document-text-outline"
+          title="IRS Summary"
+          subtitle="Tax details"
+          onPress={() =>
+            router.push({
+              pathname: "/reports/IrsSummary",
+              params: {
+                year: report.year,
+                month: report.month,
+                day: report.day,
+              },
+            })
+          }
+        />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginTop: 28,
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 16,
   },
 
-  heading: {
-    color: "#FFF",
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 16,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+
+  eyebrow: {
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 1.1,
+    color: "#94A3B8",
+    marginBottom: 2,
+  },
+
+  title: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#111827",
+  },
+
+  headerIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: "#EEF2FF",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   row: {
     flexDirection: "row",
+  },
+
+  spacer: {
+    width: 10,
   },
 });
