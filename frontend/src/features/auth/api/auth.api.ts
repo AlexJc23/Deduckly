@@ -35,6 +35,31 @@ export async function getCurrentUser(): Promise<User> {
   return response.data;
 }
 
+export async function forgotPassword(
+  data: { email: string }
+) {
+  const response = await api.post(
+    "/api/v1/auth/forgot-password",
+    data
+  );
+
+  return response.data;
+}
+
+export async function resetPassword(
+  data: {
+    token: string;
+    new_password: string;
+  }
+) {
+  const response = await api.post(
+    "/api/v1/auth/reset-password",
+    data
+  );
+
+  return response.data;
+}
+
 export async function register (
   payload: RegisterPayload
 ): Promise<AuthTokens> {

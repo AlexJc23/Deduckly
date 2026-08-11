@@ -10,76 +10,82 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { router, Link } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import Logo from "../../assets/images/logo.svg";
 
-import { login } from "@/features/auth/api/auth.api";
-import { saveTokens } from "@/features/auth/services/auth-service.service";
-import { useAuth } from "@/features/auth/context/auth.context";
-import { setTemporaryToken } from "@/features/auth/services/twofa-storage.service";
+import { resetPassword } from "@/features/auth/api/auth.api";
 
-export default function Login() {
-  const [email, setEmail] = useState("");
+export default function ResetPassword() {
+  const { token } = useLocalSearchParams<{
+    token?: string;
+  }>();
+
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
 
-  const { signIn } = useAuth();
+  const resetPasswordMutation = useMutation({
+    mutationFn: resetPassword,
 
-  const loginMutation = useMutation({
-    mutationFn: login,
-
-    onSuccess: async (data) => {
-      if (!data.refresh_token) {
-        await setTemporaryToken(data.access_token);
-
-        router.push("/(auth)/verify-2fa");
-        return;
-      }
-
-      await saveTokens(
-        data.access_token,
-        data.refresh_token,
-      );
-
-      signIn();
-
-      router.replace("/(tabs)/dashboard");
-    },
-
-    onError: (error) => {
-      console.log("Login failed:", error);
+    onSuccess: () => {
+      router.replace("/(auth)/login");
     },
   });
 
-  const handleLogin = () => {
+  const handleResetPassword = () => {
     Keyboard.dismiss();
 
-    if (!email.trim() || !password) {
+    if (!token) {
       return;
     }
 
-    loginMutation.mutate({
-      email: email.trim(),
-      password,
+    if (!password || !confirmPassword) {
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      return;
+    }
+
+    resetPasswordMutation.mutate({
+      token,
+      new_password: password,
     });
   };
 
+  const passwordsDoNotMatch =
+    confirmPassword.length > 0 &&
+    password !== confirmPassword;
+
   const isDisabled =
-    !email.trim() ||
+    !token ||
     !password ||
-    loginMutation.isPending;
+    !confirmPassword ||
+    passwordsDoNotMatch ||
+    resetPasswordMutation.isPending;
 
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.safeArea}>
-        <Pressable
-          style={styles.flex}
-          onPress={Keyboard.dismiss}
-        >
-          <View style={styles.container}>
-            {/* Logo */}
+        <View style={styles.container}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons
+              name="arrow-back"
+              size={20}
+              color="#273449"
+            />
 
+            <Text style={styles.backText}>
+              Back
+            </Text>
+          </Pressable>
+
+          <View style={styles.content}>
             <View style={styles.brand}>
               <Logo
                 width={58}
@@ -88,75 +94,26 @@ export default function Login() {
               />
             </View>
 
-            {/* Header */}
-
             <View style={styles.header}>
               <Text style={styles.eyebrow}>
-                WELCOME BACK
+                ACCOUNT RECOVERY
               </Text>
 
               <Text style={styles.title}>
-                Sign in to your account
+                Create a new password
               </Text>
 
               <Text style={styles.subtitle}>
-                Keep your income, expenses, and
-                mileage organized in one place.
+                Choose a strong password for your
+                Deduckly account.
               </Text>
             </View>
 
-            {/* Form */}
-
             <View style={styles.form}>
-              {/* Email */}
-
               <View style={styles.field}>
                 <Text style={styles.label}>
-                  Email
+                  New password
                 </Text>
-
-                <View style={styles.inputContainer}>
-                  <Ionicons
-                    name="mail-outline"
-                    size={18}
-                    color="#94A3B8"
-                  />
-
-                  <TextInput
-                    value={email}
-                    onChangeText={setEmail}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    keyboardType="email-address"
-                    textContentType="emailAddress"
-                    placeholder="you@example.com"
-                    placeholderTextColor="#A0AEC0"
-                    editable={
-                      !loginMutation.isPending
-                    }
-                    style={styles.input}
-                  />
-                </View>
-              </View>
-
-              {/* Password */}
-
-              <View style={styles.field}>
-                <View style={styles.labelRow}>
-                  <Text style={styles.label}>
-                    Password
-                  </Text>
-
-                  <Pressable
-                    onPress={() =>
-                      router.push("/(auth)/forgot-password")
-                    }
-                  >
-                    <Text style={styles.forgotText}>
-                      Forgot password?
-                    </Text>
-                  </Pressable>
-                </View>
 
                 <View style={styles.inputContainer}>
                   <Ionicons
@@ -169,22 +126,65 @@ export default function Login() {
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
-                    textContentType="password"
-                    placeholder="Enter your password"
+                    textContentType="newPassword"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    placeholder="Enter new password"
                     placeholderTextColor="#A0AEC0"
                     editable={
-                      !loginMutation.isPending
+                      !resetPasswordMutation.isPending
                     }
-                    returnKeyType="go"
-                    onSubmitEditing={handleLogin}
                     style={styles.input}
                   />
                 </View>
               </View>
 
-              {/* Error */}
+              <View style={styles.field}>
+                <Text style={styles.label}>
+                  Confirm password
+                </Text>
 
-              {loginMutation.isError && (
+                <View
+                  style={[
+                    styles.inputContainer,
+                    passwordsDoNotMatch &&
+                      styles.inputError,
+                  ]}
+                >
+                  <Ionicons
+                    name="lock-closed-outline"
+                    size={18}
+                    color="#94A3B8"
+                  />
+
+                  <TextInput
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry
+                    textContentType="newPassword"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    placeholder="Confirm new password"
+                    placeholderTextColor="#A0AEC0"
+                    editable={
+                      !resetPasswordMutation.isPending
+                    }
+                    returnKeyType="done"
+                    onSubmitEditing={
+                      handleResetPassword
+                    }
+                    style={styles.input}
+                  />
+                </View>
+
+                {passwordsDoNotMatch && (
+                  <Text style={styles.validationText}>
+                    Passwords do not match.
+                  </Text>
+                )}
+              </View>
+
+              {resetPasswordMutation.isError && (
                 <View style={styles.errorContainer}>
                   <Ionicons
                     name="alert-circle-outline"
@@ -193,24 +193,22 @@ export default function Login() {
                   />
 
                   <Text style={styles.errorText}>
-                    Please check your email and
-                    password and try again.
+                    This reset link is invalid or has
+                    expired. Please request a new one.
                   </Text>
                 </View>
               )}
 
-              {/* Sign In */}
-
               <Pressable
                 disabled={isDisabled}
                 style={[
-                  styles.signInButton,
+                  styles.button,
                   isDisabled &&
-                    styles.signInButtonDisabled,
+                    styles.buttonDisabled,
                 ]}
-                onPress={handleLogin}
+                onPress={handleResetPassword}
               >
-                {loginMutation.isPending ? (
+                {resetPasswordMutation.isPending ? (
                   <>
                     <ActivityIndicator
                       size="small"
@@ -218,17 +216,17 @@ export default function Login() {
                     />
 
                     <Text style={styles.buttonText}>
-                      Signing in...
+                      Resetting...
                     </Text>
                   </>
                 ) : (
                   <>
                     <Text style={styles.buttonText}>
-                      Sign In
+                      Reset Password
                     </Text>
 
                     <Ionicons
-                      name="arrow-forward"
+                      name="checkmark"
                       size={18}
                       color="#FFFFFF"
                     />
@@ -236,41 +234,20 @@ export default function Login() {
                 )}
               </Pressable>
             </View>
-
-            {/* Register */}
-
-            <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>
-                Don't have an account?
-              </Text>
-
-              <Link
-                href="/(auth)/register"
-                asChild
-              >
-                <Pressable>
-                  <Text style={styles.registerLink}>
-                    Create one
-                  </Text>
-                </Pressable>
-              </Link>
-            </View>
-
-            {/* Security */}
-
-            <View style={styles.security}>
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={15}
-                color="#94A3B8"
-              />
-
-              <Text style={styles.securityText}>
-                Your information is securely encrypted.
-              </Text>
-            </View>
           </View>
-        </Pressable>
+
+          <View style={styles.security}>
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={15}
+              color="#94A3B8"
+            />
+
+            <Text style={styles.securityText}>
+              Your information is securely encrypted.
+            </Text>
+          </View>
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -286,25 +263,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  flex: {
-    flex: 1,
-  },
-
   container: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 12,
     paddingBottom: 20,
   },
 
-  brand: {
-    width: "100%",
+  backButton: {
+    flexDirection: "row",
     alignItems: "center",
+    gap: 6,
+    alignSelf: "flex-start",
+    paddingVertical: 8,
+  },
+
+  backText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#273449",
+  },
+
+  content: {
+    flex: 1,
     justifyContent: "center",
   },
 
+  brand: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 30,
+  },
+
   header: {
-    marginTop: 34,
     alignItems: "center",
   },
 
@@ -327,7 +318,7 @@ const styles = StyleSheet.create({
 
   subtitle: {
     maxWidth: 340,
-    marginTop: 9,
+    marginTop: 10,
     fontSize: 14,
     lineHeight: 20,
     color: "#64748B",
@@ -335,18 +326,11 @@ const styles = StyleSheet.create({
   },
 
   form: {
-    marginTop: 34,
+    marginTop: 32,
   },
 
   field: {
     marginBottom: 18,
-  },
-
-  labelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
   },
 
   label: {
@@ -354,12 +338,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#475569",
     marginBottom: 8,
-  },
-
-  forgotText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#0072B5",
   },
 
   inputContainer: {
@@ -373,12 +351,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
 
+  inputError: {
+    borderColor: "#FCA5A5",
+  },
+
   input: {
     flex: 1,
     height: "100%",
     marginLeft: 10,
     fontSize: 15,
     color: "#273449",
+  },
+
+  validationText: {
+    marginTop: 6,
+    fontSize: 11,
+    color: "#B91C1C",
   },
 
   errorContainer: {
@@ -401,7 +389,7 @@ const styles = StyleSheet.create({
     color: "#B91C1C",
   },
 
-  signInButton: {
+  button: {
     height: 54,
     borderRadius: 15,
     backgroundColor: "#0072B5",
@@ -409,19 +397,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 9,
-
-    shadowColor: "#0072B5",
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
-
-    elevation: 3,
   },
 
-  signInButtonDisabled: {
+  buttonDisabled: {
     opacity: 0.45,
   },
 
@@ -431,27 +409,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
 
-  registerContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 25,
-    gap: 5,
-  },
-
-  registerText: {
-    fontSize: 13,
-    color: "#64748B",
-  },
-
-  registerLink: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#0072B5",
-  },
-
   security: {
-    marginTop: "auto",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

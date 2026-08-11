@@ -13,12 +13,13 @@ async def send_email(
     *,
     subject: str,
     html: str,
+    to_email: str | None = None,
 ) -> dict:
     try:
         response = resend.Emails.send(
             {
                 "from": settings.from_email,
-                "to": settings.support_email,
+                "to": to_email or settings.support_email,
                 "subject": subject,
                 "html": html,
                 "reply_to": settings.support_email,
