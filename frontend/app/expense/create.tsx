@@ -66,6 +66,7 @@ export default function CreateExpenseScreen() {
       />
 
       <ExpenseForm
+        mode="create"
         loading={
           createExpense.isPending
         }

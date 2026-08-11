@@ -107,7 +107,7 @@ def create_expense(db: Session, expense_in: ExpenseCreate, user_id: int) -> Expe
 
     except SQLAlchemyError as error:
         db.rollback()
-        print(error)
+  
         raise HTTPException(status_code=500, detail="Failed to create expense")
 
 

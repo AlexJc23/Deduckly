@@ -25,6 +25,7 @@ import { analyzeOffer } from "@/features/offer-analyzer/utils/verdict";
 import { analyzePremiumOffer } from "@/features/offer-analyzer/utils/premium";
 
 import { usePreferences } from "@/features/settings/hooks/usePreferences";
+import { usePremium } from "@/features/subscriptions/hooks/use-premium";
 
 export default function OfferAnalyzerScreen() {
   const [result, setResult] = useState<
@@ -34,7 +35,7 @@ export default function OfferAnalyzerScreen() {
   const { preferences } = usePreferences();
 
   // TODO: Replace with RevenueCat
-  const isPremium = true;
+  const { isPremium } = usePremium();
 
   function handleAnalyze(
     offer: OfferInput,
@@ -115,11 +116,18 @@ export default function OfferAnalyzerScreen() {
             )}
 
             {!isPremium && (
-              <PremiumButton
-                title="Get Personalized Insights"
-                message="Upgrade to Pro to use your own preferences and unlock profit estimates, breakdowns, and more."
-              />
-            )}
+            <PremiumButton
+              title="Unlock Deduckly Pro"
+              message="See personalized profit estimates, hourly earnings, vehicle costs, and smart recommendations tailored to your preferences."
+              features={[
+                "Personalized Offer Analysis",
+                "Profit After Vehicle Costs",
+                "Hourly Earnings",
+                "Custom Acceptance Rules",
+                "Smart Recommendations",
+              ]}
+            />
+          )}
           </View>
         </TouchableWithoutFeedback>
       </ScrollView>

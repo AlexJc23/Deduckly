@@ -1,15 +1,17 @@
 import {
+  ActivityIndicator,
   Modal,
   View,
   Text,
   Pressable,
   StyleSheet,
 } from "react-native";
+import { useState } from "react";
 
 type DeleteExpenseModalProps = {
   visible: boolean;
   onClose: () => void;
-  onDelete: () => void;
+  onDelete: () => void | Promise<void>;
 };
 
 export function DeleteExpenseModal({
@@ -17,12 +19,36 @@ export function DeleteExpenseModal({
   onClose,
   onDelete,
 }: DeleteExpenseModalProps) {
+  const [isDeleting, setIsDeleting] =
+    useState(false);
+
+  async function handleDelete() {
+    if (isDeleting) return;
+
+    try {
+      setIsDeleting(true);
+      await onDelete();
+    } catch (error) {
+      console.error(
+        "Failed to delete expense:",
+        error,
+      );
+      setIsDeleting(false);
+    }
+  }
+
+  function handleClose() {
+    if (isDeleting) return;
+
+    onClose();
+  }
+
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <View style={styles.overlay}>
         <View style={styles.modal}>
@@ -31,14 +57,20 @@ export function DeleteExpenseModal({
           </Text>
 
           <Text style={styles.description}>
-            This will permanently delete this expense.
-            This action cannot be undone.
+            This will permanently delete this
+            expense. This action cannot be undone.
           </Text>
 
           <View style={styles.buttonRow}>
             <Pressable
-              style={[styles.button, styles.cancelButton]}
-              onPress={onClose}
+              disabled={isDeleting}
+              style={[
+                styles.button,
+                styles.cancelButton,
+                isDeleting &&
+                  styles.disabledButton,
+              ]}
+              onPress={handleClose}
             >
               <Text style={styles.cancelText}>
                 Cancel
@@ -46,12 +78,31 @@ export function DeleteExpenseModal({
             </Pressable>
 
             <Pressable
-              style={[styles.button, styles.deleteButton]}
-              onPress={onDelete}
+              disabled={isDeleting}
+              style={[
+                styles.button,
+                styles.deleteButton,
+                isDeleting &&
+                  styles.disabledDeleteButton,
+              ]}
+              onPress={handleDelete}
             >
-              <Text style={styles.deleteText}>
-                Delete Expense
-              </Text>
+              {isDeleting ? (
+                <View style={styles.loadingContent}>
+                  <ActivityIndicator
+                    size="small"
+                    color="#FFFFFF"
+                  />
+
+                  <Text style={styles.deleteText}>
+                    Deleting...
+                  </Text>
+                </View>
+              ) : (
+                <Text style={styles.deleteText}>
+                  Delete Expense
+                </Text>
+              )}
             </Pressable>
           </View>
         </View>
@@ -71,7 +122,7 @@ const styles = StyleSheet.create({
 
   modal: {
     width: "100%",
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 24,
   },
@@ -81,6 +132,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 12,
     textAlign: "center",
+    color: "#111827",
   },
 
   description: {
@@ -101,6 +153,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
+    justifyContent: "center",
   },
 
   cancelButton: {
@@ -109,6 +162,21 @@ const styles = StyleSheet.create({
 
   deleteButton: {
     backgroundColor: "#EF4444",
+  },
+
+  disabledButton: {
+    opacity: 0.5,
+  },
+
+  disabledDeleteButton: {
+    opacity: 0.7,
+  },
+
+  loadingContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
   },
 
   cancelText: {
@@ -120,6 +188,6 @@ const styles = StyleSheet.create({
   deleteText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#fff",
+    color: "#FFFFFF",
   },
 });

@@ -7,7 +7,7 @@ export function BackHeader() {
     <View
       style={{
         height: 110,
-        backgroundColor: "#2DBE60",
+        backgroundColor: "#4A6FE3",
         paddingTop: 55,
         paddingHorizontal: 15,
       }}
@@ -19,7 +19,7 @@ export function BackHeader() {
         <Ionicons
           name="chevron-back"
           size={24}
-          color="white"
+          color="#FFFFFF"
         />
       </Pressable>
     </View>

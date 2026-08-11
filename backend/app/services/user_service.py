@@ -138,15 +138,13 @@ def update_user(
 
         for field in ALLOWED_USER_UPDATE_FIELDS:
             value = getattr(user_in, field)
-            print(field, value)
+
             if value is not None:
                 setattr(user, field, value)
-        print(user_in.model_dump(exclude_unset=True))
-        print("BEFORE COMMIT")
         db.commit()
-        print("AFTER COMMIT")
+
         db.refresh(user)
-        print("AFTER REFRESH")
+
         return user
 
     except HTTPException:
@@ -154,7 +152,6 @@ def update_user(
 
     except Exception as e:
         db.rollback()
-        print(e)
         raise
 
 def get_weekly_income(

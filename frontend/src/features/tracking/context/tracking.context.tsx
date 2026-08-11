@@ -54,6 +54,10 @@ type TrackingContextType = {
     data: StartTrackingData
   ) => Promise<void>;
 
+  startTrackingFromSiri: (
+    platform: string
+  ) => Promise<void>;
+
   stopTracking: (
     incomeAmount?: number | null
   ) => Promise<boolean | "discarded">;
@@ -125,6 +129,7 @@ export function TrackingProvider({
       return;
     }
 
+   
     const location =
       await getCurrentLocation();
 
@@ -140,6 +145,8 @@ export function TrackingProvider({
         timestamp: Date.now(),
       },
     ]);
+
+    
 
     locationSubscription.current =
       await watchLocation((location) => {
@@ -161,6 +168,8 @@ export function TrackingProvider({
         ]);
       });
 
+      
+
     setCategory(category);
     setPlatform(platform);
     setTrackingMethod(trackingMethod);
@@ -174,7 +183,22 @@ export function TrackingProvider({
     setStartTime(new Date());
 
     setIsTracking(true);
+
   };
+   const startTrackingFromSiri = async (
+  platform: string
+) => {
+
+
+  await startTracking({
+    category: "business",
+    platform,
+    trackingMethod: "automatic",
+  });
+
+
+};
+
   const cancelTracking = () => {
     locationSubscription.current?.remove();
     locationSubscription.current = null;
@@ -203,7 +227,7 @@ export function TrackingProvider({
 
     locationSubscription.current?.remove();
     locationSubscription.current = null;
-
+    
     if (
       !startTime ||
       startLatitude === null ||
@@ -237,8 +261,6 @@ export function TrackingProvider({
     )
     : null;
 
-    console.log("Start ", startAddress);
-    console.log("End", endAddress)
 
 
     const payload = buildTripPayload({
@@ -265,9 +287,7 @@ export function TrackingProvider({
     });
 
     try {
-      console.log(
-        JSON.stringify(payload, null, 2)
-      )
+
       await createTrip(payload);
 
       setIsTracking(false);
@@ -289,17 +309,7 @@ export function TrackingProvider({
 
       return true;
     } catch (error: any) {
-  console.log("========== AXIOS ERROR ==========");
-
-  console.log("Status:", error.response?.status);
-
-  console.log(
-    "Data:",
-    JSON.stringify(error.response?.data, null, 2)
-  );
-
-  console.log("================================");
-
+  
   return false;
 }
   };
@@ -326,6 +336,7 @@ export function TrackingProvider({
 
         cancelTracking,
         startTracking,
+        startTrackingFromSiri,
         stopTracking,
       }}
     >

@@ -84,7 +84,7 @@ export function usePreferences() {
                 value = false;
             }
         }
-        console.log("Updating", key, value);
+
         setPreferences((prev) => ({
             ...prev,
             [key]: value,
@@ -102,7 +102,7 @@ export function usePreferences() {
     }
 
     function savePreferences() {
-        console.log(preferences.notificationsEnabled);
+
         updateUser.mutate({
             monthly_income_goal:
                 preferences.monthlyIncomeGoal || null,

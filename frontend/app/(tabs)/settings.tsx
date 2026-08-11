@@ -5,11 +5,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/features/auth/context/auth.context";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import PremiumButton from "@/components/ui/PremiumButton";
+import { usePremium } from "@/features/subscriptions/hooks/use-premium";
 
 export default function SettingsScreen() {
     const { data: user } = useCurrentUser();
     const { signOut } = useAuth();
 
+    const { isPremium } = usePremium();
     const currentYear = new Date().getFullYear();
 
     return (
@@ -39,15 +41,17 @@ export default function SettingsScreen() {
                 />
             </Pressable>
 
-            {/* Premium */}
-            <View>
+            {!isPremium && (
+                <View>
                 <View style={{ marginTop: 16 }}>
                     <PremiumButton
                         title="Upgrade to Premium"
                         message="From smarter offer analysis to detailed reports and business insights, Deduckly Pro gives you the tools to maximize every shift."
-                    />
+                        onPress={() => router.push("/screens/paywall")}
+                        />
                 </View>
             </View>
+                    )}
 
             {/* Preferences */}
             <Text style={styles.sectionTitle}>PREFERENCES</Text>
@@ -128,6 +132,21 @@ export default function SettingsScreen() {
                     size={20}
                     color="#9CA3AF"
                 />
+            </Pressable>
+            <Text style={styles.sectionTitle}>SUPPORT</Text>
+
+            <Pressable
+                style={styles.card}
+                onPress={() => router.push("/settings/feedback")}
+            >
+                <View>
+                    <Text style={styles.rowTitle}>Feedback</Text>
+                    <Text style={styles.subtitle}>
+                        Report bugs, request features, or share feedback.
+                    </Text>
+                </View>
+
+                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
             </Pressable>
 
             {/* Legal */}

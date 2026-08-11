@@ -100,6 +100,36 @@ class UpdatePasswordRequest(BaseModel):
     old_password: str
     new_password: str
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        if len(value) < 8:
+            raise ValueError(
+                "Password must be at least 8 characters"
+            )
+
+        if value.islower() or value.isupper():
+            raise ValueError(
+                "Password must contain mixed case"
+            )
+
+        if not any(
+            char.isdigit()
+            for char in value
+        ):
+            raise ValueError(
+                "Password must include a number"
+            )
+
+        return value
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -115,6 +145,7 @@ class UserResponse(BaseModel):
     filing_status: Optional[FilingStatus]
     business_type: str
     tax_method: str
+    is_premium: bool
 
     # Goals
     monthly_income_goal: Decimal | None = None

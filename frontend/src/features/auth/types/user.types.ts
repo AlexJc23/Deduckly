@@ -7,6 +7,7 @@ export interface User {
   filing_status: string | null;
   two_fa_enabled: boolean;
   created_at: string;
+  is_premium: boolean;
 
   // Goals
   monthly_income_goal: string | null;

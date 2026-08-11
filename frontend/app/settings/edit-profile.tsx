@@ -1,52 +1,70 @@
 import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
   ActivityIndicator,
-  Modal,
   Animated,
+  Keyboard,
+  Modal,
+  Pressable,
   SafeAreaView,
   StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { router } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useUpdateUser } from "@/features/auth/hooks/use-update-user";
-import DeleteAccountModal from "@/features/settings/modals/DeleteAccountModal";
-
-import { clearTokens } from "@/features/auth/services/auth-service.service";
 import { useDeleteUser } from "@/features/auth/hooks/use-delete-account";
-
-import { useQueryClient } from "@tanstack/react-query";
+import { clearTokens } from "@/features/auth/services/auth-service.service";
+import DeleteAccountModal from "@/features/settings/modals/DeleteAccountModal";
 import { BackHeader } from "@/components/ui/BackButton";
 
 export default function UserUpdateScreen() {
   const userQuery = useCurrentUser();
   const updateUserMutation = useUpdateUser();
+  const deleteUserMutation = useDeleteUser();
   const queryClient = useQueryClient();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [filingStatus, setFilingStatus] = useState<string | null>(null);
+  const [filingStatus, setFilingStatus] =
+    useState<string | null>(null);
 
-  const [showFilingStatusModal, setShowFilingStatusModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showFilingStatusModal, setShowFilingStatusModal] =
+    useState(false);
 
-  const deleteUserMutation = useDeleteUser();
+  const [showDeleteModal, setShowDeleteModal] =
+    useState(false);
 
-  const slideAnim = useRef(new Animated.Value(300)).current;
+  const slideAnim = useRef(
+    new Animated.Value(400)
+  ).current;
 
   const filingStatuses = [
-    { label: "Single", value: "single" },
-    { label: "Married Filing Jointly", value: "married_filing_jointly" },
-    { label: "Married Filing Separately", value: "married_filing_separately" },
-    { label: "Head of Household", value: "head_of_household" },
+    {
+      label: "Single",
+      value: "single",
+    },
+    {
+      label: "Married Filing Jointly",
+      value: "married_filing_jointly",
+    },
+    {
+      label: "Married Filing Separately",
+      value: "married_filing_separately",
+    },
+    {
+      label: "Head of Household",
+      value: "head_of_household",
+    },
   ];
 
   useEffect(() => {
-    if (!userQuery.data) return;
+    if (!userQuery.data) {
+      return;
+    }
 
     setFirstName(userQuery.data.first_name);
     setLastName(userQuery.data.last_name);
@@ -54,321 +72,696 @@ export default function UserUpdateScreen() {
   }, [userQuery.data]);
 
   useEffect(() => {
-    if (showFilingStatusModal || showDeleteModal) {
-      slideAnim.setValue(300);
-
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }).start();
+    if (!showFilingStatusModal) {
+      return;
     }
-  }, [showFilingStatusModal, showDeleteModal]);
+
+    slideAnim.setValue(400);
+
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: 280,
+      useNativeDriver: true,
+    }).start();
+  }, [
+    showFilingStatusModal,
+    slideAnim,
+  ]);
+
+  const selectedFilingStatus =
+    filingStatuses.find(
+      (status) =>
+        status.value === filingStatus
+    )?.label;
+
+  const handleSave = async () => {
+    Keyboard.dismiss();
+
+    await updateUserMutation.mutateAsync({
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      filing_status: filingStatus,
+    });
+  };
+
+  const handleDelete = async () => {
+    await deleteUserMutation.mutateAsync();
+
+    await clearTokens();
+
+    queryClient.clear();
+
+    router.replace("/login");
+  };
 
   if (userQuery.isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2DBE60" />
+        <ActivityIndicator
+          size="small"
+          color="#0072B5"
+        />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <BackHeader />
+    <View style={styles.screen}>
+        <BackHeader />
+      <SafeAreaView style={styles.safeArea}>
 
-      <View style={styles.content}>
-        <Text style={styles.title}>Account</Text>
+        <View style={styles.content}>
+          {/* Header */}
 
-        <Text style={styles.subtitle}>
-          Update your personal information and filing status.
-        </Text>
-
-        <View style={styles.card}>
-          <Text style={styles.label}>First Name</Text>
-
-          <TextInput
-            style={styles.input}
-            value={firstName}
-            onChangeText={setFirstName}
-            placeholder="First Name"
-            placeholderTextColor="#9CA3AF"
-          />
-
-          <Text style={styles.label}>Last Name</Text>
-
-          <TextInput
-            style={styles.input}
-            value={lastName}
-            onChangeText={setLastName}
-            placeholder="Last Name"
-            placeholderTextColor="#9CA3AF"
-          />
-
-          <Text style={styles.label}>Filing Status</Text>
-
-          <Pressable
-            style={styles.selectButton}
-            onPress={() => setShowFilingStatusModal(true)}
-          >
-            <Text style={styles.selectText}>
-              {filingStatuses.find(
-                status => status.value === filingStatus
-              )?.label ?? "Select Filing Status"}
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={styles.saveButton}
-            onPress={async () => {
-              await updateUserMutation.mutateAsync({
-                first_name: firstName,
-                last_name: lastName,
-                filing_status: filingStatus,
-              });
-            }}
-          >
-            <Text style={styles.saveButtonText}>
-              {updateUserMutation.isPending
-                ? "Saving..."
-                : "Save Changes"}
-            </Text>
-          </Pressable>
-
-          <Pressable
-            style={styles.deleteButton}
-            onPress={() => setShowDeleteModal(true)}
-          >
-            <Text style={styles.deleteButtonText}>
-              Delete Account
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-
-      <Modal
-        transparent
-        animationType="none"
-        visible={showFilingStatusModal}
-        onRequestClose={() => setShowFilingStatusModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <Animated.View
-            style={[
-              styles.bottomSheet,
-              {
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            <View style={styles.grabber} />
-
-            <Text style={styles.sheetTitle}>
-              Choose Filing Status
+          <View style={styles.header}>
+            <Text style={styles.eyebrow}>
+              ACCOUNT
             </Text>
 
-            {filingStatuses.map(status => (
+            <Text style={styles.title}>
+              Personal information
+            </Text>
+
+            <Text style={styles.subtitle}>
+              Keep your account details and tax
+              profile up to date.
+            </Text>
+          </View>
+
+          {/* Form */}
+
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <View>
+                <Text style={styles.cardEyebrow}>
+                  PROFILE
+                </Text>
+
+                <Text style={styles.cardTitle}>
+                  Your information
+                </Text>
+              </View>
+            </View>
+
+            {/* First Name */}
+
+            <View style={styles.field}>
+              <Text style={styles.label}>
+                First Name
+              </Text>
+
+              <TextInput
+                style={styles.input}
+                value={firstName}
+                onChangeText={setFirstName}
+                placeholder="First Name"
+                placeholderTextColor="#A0AEC0"
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Last Name */}
+
+            <View style={styles.field}>
+              <Text style={styles.label}>
+                Last Name
+              </Text>
+
+              <TextInput
+                style={styles.input}
+                value={lastName}
+                onChangeText={setLastName}
+                placeholder="Last Name"
+                placeholderTextColor="#A0AEC0"
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Filing Status */}
+
+            <View style={styles.field}>
+              <Text style={styles.label}>
+                Filing Status
+              </Text>
+
               <Pressable
-                key={status.value}
-                style={styles.option}
+                style={styles.selectButton}
                 onPress={() => {
-                  setFilingStatus(status.value);
-                  setShowFilingStatusModal(false);
+                  Keyboard.dismiss();
+                  setShowFilingStatusModal(true);
                 }}
               >
-                <Text style={styles.optionText}>
-                  {status.label}
+                <Text
+                  style={[
+                    styles.selectText,
+                    !selectedFilingStatus &&
+                      styles.placeholderText,
+                  ]}
+                >
+                  {selectedFilingStatus ??
+                    "Select Filing Status"}
+                </Text>
+
+                <Text style={styles.chevron}>
+                  ›
                 </Text>
               </Pressable>
-            ))}
+            </View>
+
+            {/* Save */}
 
             <Pressable
-              onPress={() => setShowFilingStatusModal(false)}
+              style={[
+                styles.saveButton,
+                updateUserMutation.isPending &&
+                  styles.buttonDisabled,
+              ]}
+              disabled={
+                updateUserMutation.isPending
+              }
+              onPress={handleSave}
             >
-              <Text style={styles.cancel}>
-                Cancel
+              {updateUserMutation.isPending ? (
+                <>
+                  <ActivityIndicator
+                    size="small"
+                    color="#FFFFFF"
+                  />
+
+                  <Text style={styles.saveButtonText}>
+                    Saving...
+                  </Text>
+                </>
+              ) : (
+                <Text style={styles.saveButtonText}>
+                  Save Changes
+                </Text>
+              )}
+            </Pressable>
+          </View>
+
+          {/* Danger Zone */}
+
+          <View style={styles.dangerCard}>
+            <View style={styles.dangerHeader}>
+              <View style={styles.dangerIcon}>
+                <Text style={styles.dangerIconText}>
+                  !
+                </Text>
+              </View>
+
+              <View style={styles.dangerContent}>
+                <Text style={styles.dangerTitle}>
+                  Delete account
+                </Text>
+
+                <Text style={styles.dangerDescription}>
+                  Permanently remove your account
+                  and associated data.
+                </Text>
+              </View>
+            </View>
+
+            <Pressable
+              style={styles.deleteButton}
+              onPress={() =>
+                setShowDeleteModal(true)
+              }
+            >
+              <Text style={styles.deleteButtonText}>
+                Delete Account
               </Text>
             </Pressable>
-          </Animated.View>
+          </View>
         </View>
-      </Modal>
 
-      <DeleteAccountModal
-        visible={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        onDelete={async () => {
-          await deleteUserMutation.mutateAsync();
+        {/* Filing Status Modal */}
 
-          await clearTokens();
+        <Modal
+          visible={showFilingStatusModal}
+          transparent
+          animationType="none"
+          onRequestClose={() =>
+            setShowFilingStatusModal(false)
+          }
+        >
+          <View style={styles.modalOverlay}>
+            <Pressable
+              style={styles.modalBackdrop}
+              onPress={() =>
+                setShowFilingStatusModal(false)
+              }
+            />
 
-          queryClient.clear();
+            <Animated.View
+              style={[
+                styles.bottomSheet,
+                {
+                  transform: [
+                    {
+                      translateY: slideAnim,
+                    },
+                  ],
+                },
+              ]}
+            >
+              <View style={styles.grabber} />
 
-          router.replace("/login");
-        }}
-      />
+              <Text style={styles.sheetEyebrow}>
+                TAX PROFILE
+              </Text>
+
+              <Text style={styles.sheetTitle}>
+                Filing Status
+              </Text>
+
+              <Text style={styles.sheetSubtitle}>
+                Select the status that applies to
+                your tax return.
+              </Text>
+
+              <View style={styles.optionList}>
+                {filingStatuses.map(
+                  (status) => {
+                    const selected =
+                      status.value ===
+                      filingStatus;
+
+                    return (
+                      <Pressable
+                        key={status.value}
+                        style={[
+                          styles.option,
+                          selected &&
+                            styles.optionSelected,
+                        ]}
+                        onPress={() => {
+                          setFilingStatus(
+                            status.value
+                          );
+                          setShowFilingStatusModal(
+                            false
+                          );
+                        }}
+                      >
+                        <View
+                          style={[
+                            styles.optionIndicator,
+                            selected &&
+                              styles.optionIndicatorSelected,
+                          ]}
+                        >
+                          {selected && (
+                            <Text
+                              style={
+                                styles.checkmark
+                              }
+                            >
+                              ✓
+                            </Text>
+                          )}
+                        </View>
+
+                        <Text
+                          style={[
+                            styles.optionText,
+                            selected &&
+                              styles.optionTextSelected,
+                          ]}
+                        >
+                          {status.label}
+                        </Text>
+                      </Pressable>
+                    );
+                  }
+                )}
+              </View>
+
+              <Pressable
+                style={styles.cancelButton}
+                onPress={() =>
+                  setShowFilingStatusModal(
+                    false
+                  )
+                }
+              >
+                <Text style={styles.cancelText}>
+                  Cancel
+                </Text>
+              </Pressable>
+            </Animated.View>
+          </View>
+        </Modal>
+
+        {/* Delete Modal */}
+
+        <DeleteAccountModal
+          visible={showDeleteModal}
+          onClose={() =>
+            setShowDeleteModal(false)
+          }
+          onDelete={handleDelete}
+        />
+      </SafeAreaView>
     </View>
   );
 }
+
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: "#F6F8FA",
+    backgroundColor: "#F7F9FC",
+  },
+
+  safeArea: {
+    flex: 1,
   },
 
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F6F8FA",
+    backgroundColor: "#F7F9FC",
   },
 
   content: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 30,
+    paddingTop: 18,
+  },
+
+  header: {
+    marginBottom: 20,
+  },
+
+  eyebrow: {
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 1.25,
+    color: "#94A3B8",
+    marginBottom: 4,
   },
 
   title: {
-    fontSize: 30,
-    fontWeight: "700",
-    color: "#111827",
+    fontSize: 27,
+    lineHeight: 32,
+    fontWeight: "800",
+    letterSpacing: -0.6,
+    color: "#273449",
   },
 
   subtitle: {
-    fontSize: 15,
-    color: "#6B7280",
+    maxWidth: 350,
     marginTop: 6,
-    marginBottom: 24,
+    fontSize: 13,
+    lineHeight: 19,
+    color: "#64748B",
   },
 
   card: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: "#E3E8EF",
+    padding: 18,
+  },
 
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
+  cardHeader: {
+    marginBottom: 4,
+  },
+
+  cardEyebrow: {
+    fontSize: 8,
+    fontWeight: "800",
+    letterSpacing: 1.1,
+    color: "#94A3B8",
+    marginBottom: 3,
+  },
+
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#273449",
+  },
+
+  field: {
+    marginTop: 17,
+  },
+
+  label: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#475569",
+    marginBottom: 7,
+  },
+
+  input: {
+    height: 50,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: "#DDE4ED",
+    backgroundColor: "#FBFCFD",
+    paddingHorizontal: 14,
+    fontSize: 14,
+    color: "#273449",
+  },
+
+  selectButton: {
+    height: 50,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: "#DDE4ED",
+    backgroundColor: "#FBFCFD",
+    paddingHorizontal: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  selectText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#273449",
+  },
+
+  placeholderText: {
+    color: "#A0AEC0",
+    fontWeight: "400",
+  },
+
+  chevron: {
+    fontSize: 24,
+    lineHeight: 24,
+    color: "#94A3B8",
+  },
+
+  saveButton: {
+    height: 51,
+    marginTop: 22,
+    borderRadius: 14,
+    backgroundColor: "#0072B5",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+
+    shadowColor: "#0072B5",
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
     shadowOffset: {
       width: 0,
       height: 4,
     },
 
-    elevation: 3,
+    elevation: 2,
   },
 
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 8,
-    marginTop: 18,
-  },
-
-  input: {
-    height: 52,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: "#111827",
-  },
-
-  selectButton: {
-    height: 52,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    paddingHorizontal: 16,
-  },
-
-  selectText: {
-    fontSize: 16,
-    color: "#111827",
-  },
-
-  saveButton: {
-    marginTop: 30,
-    height: 54,
-    borderRadius: 16,
-    backgroundColor: "#2DBE60",
-    justifyContent: "center",
-    alignItems: "center",
+  buttonDisabled: {
+    opacity: 0.55,
   },
 
   saveButtonText: {
     color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 14,
+    fontWeight: "800",
   },
 
-  deleteButton: {
-    marginTop: 14,
-    height: 54,
-    borderRadius: 16,
+  dangerCard: {
+    marginTop: 16,
+    padding: 16,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#DC2626",
-    justifyContent: "center",
+    borderColor: "#F1D7D7",
+    backgroundColor: "#FFF9F9",
+  },
+
+  dangerHeader: {
+    flexDirection: "row",
     alignItems: "center",
   },
 
-  deleteButtonText: {
+  dangerIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    backgroundColor: "#FDECEC",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 11,
+  },
+
+  dangerIconText: {
+    fontSize: 17,
+    fontWeight: "800",
     color: "#DC2626",
-    fontSize: 16,
-    fontWeight: "600",
+  },
+
+  dangerContent: {
+    flex: 1,
+  },
+
+  dangerTitle: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#273449",
+  },
+
+  dangerDescription: {
+    marginTop: 2,
+    fontSize: 11,
+    lineHeight: 16,
+    color: "#7F8A9A",
+  },
+
+  deleteButton: {
+    height: 43,
+    marginTop: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E7BABA",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+  },
+
+  deleteButtonText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#DC2626",
   },
 
   modalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(15, 23, 42, 0.42)",
   },
 
   bottomSheet: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 34,
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
+    paddingHorizontal: 22,
+    paddingTop: 10,
+    paddingBottom: 24,
   },
 
   grabber: {
-    width: 42,
-    height: 5,
+    width: 38,
+    height: 4,
     borderRadius: 999,
-    backgroundColor: "#D1D5DB",
+    backgroundColor: "#D7DEE8",
     alignSelf: "center",
-    marginBottom: 18,
-  },
-
-  sheetTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#111827",
     marginBottom: 20,
   },
 
+  sheetEyebrow: {
+    fontSize: 8,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    color: "#94A3B8",
+    marginBottom: 3,
+  },
+
+  sheetTitle: {
+    fontSize: 23,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+    color: "#273449",
+  },
+
+  sheetSubtitle: {
+    marginTop: 6,
+    fontSize: 12,
+    lineHeight: 17,
+    color: "#64748B",
+  },
+
+  optionList: {
+    marginTop: 17,
+    gap: 8,
+  },
+
   option: {
-    paddingVertical: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    minHeight: 53,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#E3E8EF",
+    backgroundColor: "#FAFBFC",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  optionSelected: {
+    backgroundColor: "#F0F7FB",
+    borderColor: "#C9E1EF",
+  },
+
+  optionIndicator: {
+    width: 28,
+    height: 28,
+    borderRadius: 9,
+    backgroundColor: "#EEF1F5",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 11,
+  },
+
+  optionIndicatorSelected: {
+    backgroundColor: "#DCEEF7",
+  },
+
+  checkmark: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#0072B5",
   },
 
   optionText: {
-    fontSize: 16,
-    color: "#111827",
+    flex: 1,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#475569",
   },
 
-  cancel: {
-    textAlign: "center",
-    color: "#DC2626",
-    fontWeight: "600",
-    fontSize: 16,
-    marginTop: 22,
+  optionTextSelected: {
+    color: "#273449",
+    fontWeight: "700",
+  },
+
+  cancelButton: {
+    alignItems: "center",
+    paddingVertical: 14,
+    marginTop: 5,
+  },
+
+  cancelText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#64748B",
   },
 });
