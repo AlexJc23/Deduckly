@@ -28,34 +28,9 @@ export async function getReport(
     });
 
     return response.data;
-  } catch (error: any) {
-    console.log(
-      "REQUEST:",
-      {
-        year: params.year,
-        month: params.month,
-        day: params.day,
-        start_date: params.startDate
-          ?.toISOString()
-          .split("T")[0],
-        end_date: params.endDate
-          ?.toISOString()
-          .split("T")[0],
-      }
-    );
-
-    console.log(
-      "STATUS:",
-      error.response?.status
-    );
-
-    console.log(
-      "BODY:",
-      JSON.stringify(error.response?.data, null, 2)
-    );
-
-    throw error;
-  }
+    } catch (error) {
+      throw error;
+    }
 }
 
 export async function getTodayReport() {
