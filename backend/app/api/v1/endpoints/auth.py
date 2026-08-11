@@ -439,7 +439,7 @@ async def forgot_password(
     )
 
     reset_link = (
-        f"https://YOUR-FRONTEND-URL/reset-password"
+        f"https://api.karlsonworks.com/api/v1/auth/reset-password-link"
         f"?token={token}"
     )
 
@@ -484,6 +484,13 @@ async def forgot_password(
         "message": message
     }
 
+
+@router.get("/reset-password-link")
+def reset_password_link(token: str):
+    return RedirectResponse(
+        url=f"deduckly://reset-password?token={token}",
+        status_code=302,
+    )
 
 @router.post("/reset-password")
 def reset_password_endpoint(
