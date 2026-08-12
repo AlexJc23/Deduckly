@@ -9,7 +9,7 @@ import {
 import { getAccessToken } from "../services/auth-service.service";
 import { clearTokens } from "../services/auth-service.service";
 import { router } from "expo-router";
-
+import { logout } from "@/features/auth/api/auth.api";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -30,9 +30,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }
 
   async function signOut() {
-    await clearTokens();
-    setAuthenticated(false);
-    router.replace("/(auth)/login");
+    try {
+      await logout();
+    } finally {
+      await clearTokens();
+      setAuthenticated(false);
+      router.replace("/(auth)/login");
+    }
   }
 
   useEffect(() => {

@@ -6,6 +6,10 @@ import {
 import { RegisterPayload } from "../types/register.types";
 import { User } from "../types/user.types";
 import { getTemporaryToken } from "../services/twofa-storage.service";
+import {
+  getRefreshToken,
+} from "@/features/auth/services/auth-service.service";
+
 
 export async function login(
   payload: LoginPayload
@@ -147,4 +151,18 @@ export async function disable2FA() {
   );
 
   return response.data;
+}
+
+export async function logout() {
+  const refreshToken = await getRefreshToken();
+
+  if (!refreshToken) {
+    return;
+  }
+
+  await api.post("/api/v1/auth/logout", null, {
+  params: {
+    refresh_token: refreshToken,
+  },
+});
 }

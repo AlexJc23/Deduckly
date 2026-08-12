@@ -32,6 +32,7 @@ from app.services.password_reset_service import (
     create_password_reset_token,
     reset_password,
 )
+from app.services.security_event_service import create_security_event
 from app.core.security import (
     create_2fa_token,
     create_access_token,
@@ -95,7 +96,19 @@ def login(
         form_data.username,
         form_data.password,
     )
+    if status == "invalid_credentials":
+        create_security_event(
+            db,
+            event_type="login_failed",
+            metadata={
+                "email": form_data.username,
+            },
+        )
 
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect email or password",
+        )
     if status == "invalid_credentials":
         raise HTTPException(
             status_code=401,
@@ -124,6 +137,12 @@ def login(
     if two_fa and two_fa.is_enabled:
         temp_token = create_2fa_token(user.id)
 
+        create_security_event(
+            db,
+            event_type="login_2fa_required",
+            user_id=user.id,
+        )
+
         return {
             "message": "2FA required",
             "access_token": temp_token,
@@ -137,6 +156,12 @@ def login(
     refresh_token = create_session(
         db,
         user.id,
+    )
+
+    create_security_event(
+        db,
+        event_type="login_success",
+        user_id=user.id,
     )
 
     return {
@@ -201,6 +226,12 @@ async def google_callback(
         user.id,
     )
 
+    create_security_event(
+        db,
+        event_type="google_login_success",
+        user_id=user.id,
+    )
+
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -260,6 +291,13 @@ def verify_2fa(
             user,
             data.code,
         ):
+
+            create_security_event(
+                db,
+                event_type="login_2fa_failed",
+                user_id=user.id,
+            )
+
             raise HTTPException(
                 status_code=401,
                 detail="Invalid 2FA code",
@@ -272,6 +310,12 @@ def verify_2fa(
         refresh_token = create_session(
             db,
             user.id,
+        )
+
+        create_security_event(
+            db,
+            event_type="login_2fa_success",
+            user_id=user.id,
         )
 
         return {
@@ -293,6 +337,12 @@ def verify_2fa(
 
         two_fa.is_enabled = True
         db.commit()
+
+        create_security_event(
+            db,
+            event_type="2fa_enabled",
+            user_id=user.id,
+        )
 
         return {
             "message": "2FA enabled successfully"
@@ -348,6 +398,12 @@ def disable_2fa(
     two_fa.is_enabled = False
     db.commit()
 
+    create_security_event(
+        db,
+        event_type="2fa_disabled",
+        user_id=current_user.id,
+    )
+
     return {
         "message": "2FA disabled successfully"
     }
@@ -361,6 +417,12 @@ async def register(
     user = create_user(
         db,
         user_in,
+    )
+
+    create_security_event(
+        db,
+        event_type="account_created",
+        user_id=user.id,
     )
 
     token = create_email_verification_token(
@@ -440,10 +502,16 @@ def refresh_token(
         user_id,
     )
 
+
     new_access_token = create_access_token(
         data={"sub": str(user_id)}
     )
 
+    create_security_event(
+        db,
+        event_type="token_refresh",
+        user_id=user_id,
+    )
     return {
         "access_token": new_access_token,
         "refresh_token": new_refresh_token,
@@ -478,6 +546,12 @@ async def forgot_password(
     token = create_password_reset_token(
         db,
         user,
+    )
+
+    create_security_event(
+        db,
+        event_type="password_reset_requested",
+        user_id=user.id,
     )
 
     reset_link = (
@@ -698,16 +772,34 @@ def update_password(
 
 @router.post("/logout")
 def logout(
+    refresh_token: str,
     db: Session = Depends(get_db),
-    refresh_token: str = Cookie(None),
 ):
-    if not refresh_token:
+    session = (
+        db.query(DBSession)
+        .filter(
+            DBSession.refresh_token == refresh_token
+        )
+        .first()
+    )
+
+    if not session:
         raise HTTPException(
-            status_code=400,
-            detail="Missing refresh token",
+            status_code=404,
+            detail="Session not found",
         )
 
-    return logout_user(
+    user_id = session.user_id
+
+    result = logout_user(
         db,
         refresh_token,
     )
+
+    create_security_event(
+        db,
+        event_type="logout",
+        user_id=user_id,
+    )
+
+    return result

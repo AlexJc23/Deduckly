@@ -82,11 +82,8 @@ export default function RegisterScreen() {
     mutationFn: register,
 
     onSuccess: () => {
-  console.log("REGISTER SUCCESS");
-  console.log("EMAIL:", email.trim());
-
-  router.replace("/(auth)/verify-email");
-},
+      router.replace("/(auth)/verify-email");
+    },
 
     onError: (error) => {
       console.error(

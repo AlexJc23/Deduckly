@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.models import User
 from app.models.password_reset import PasswordResetToken
 from app.core.security import hash_password
-
+from app.services.security_event_service import create_security_event
 
 RESET_TOKEN_EXPIRE_MINUTES = 30
 
@@ -89,6 +89,12 @@ def reset_password(
     ).update({
         "is_revoked": True
     })
+
+    create_security_event(
+        db,
+        event_type="password_reset_success",
+        user_id=user.id,
+    )
 
     db.commit()
 
