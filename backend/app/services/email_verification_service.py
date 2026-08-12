@@ -3,6 +3,7 @@ import secrets
 
 from datetime import datetime, timedelta
 
+from app.services.security_event_service import create_security_event
 from sqlalchemy.orm import Session
 
 from app.models import User
@@ -83,6 +84,12 @@ def verify_email(
 
     user.email_verified = True
     verification_token.used = True
+
+    create_security_event(
+        db,
+        event_type="email_verified",
+        user_id=user.id,
+    )
 
     db.commit()
 
