@@ -46,6 +46,33 @@ export async function forgotPassword(
   return response.data;
 }
 
+
+export async function verifyEmail(
+  token: string
+) {
+  const response = await api.post(
+    "/api/v1/auth/verify-email",
+    {
+      token,
+    }
+  );
+
+  return response.data;
+}
+
+export async function resendVerification(
+  email: string
+) {
+  const response = await api.post(
+    "/api/v1/auth/resend-verification",
+    {
+      email,
+    }
+  );
+
+  return response.data;
+}
+
 export async function resetPassword(
   data: {
     token: string;

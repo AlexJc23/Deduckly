@@ -12,6 +12,8 @@ from app.schemas.v1.user import (
     UserCreate,
     UserLogin,
     ForgotPasswordRequest,
+    VerifyEmailRequest,
+    ResendVerificationRequest,
     ResetPasswordRequest,
 )
 from app.schemas.v1.auth import Enable2FAResponse, Verify2FARequest
@@ -35,6 +37,10 @@ from app.core.security import (
     create_access_token,
     decode_access_token,
     hash_password,
+)
+from app.services.email_verification_service import (
+    create_email_verification_token,
+    verify_email,
 )
 from app.core.config import settings
 from app.api.dependencies.auth import get_current_user
@@ -348,7 +354,7 @@ def disable_2fa(
 
 
 @router.post("/register")
-def register(
+async def register(
     user_in: UserCreate,
     db: Session = Depends(get_db),
 ):
@@ -357,19 +363,55 @@ def register(
         user_in,
     )
 
-    access_token = create_access_token(
-        data={"sub": str(user.id)}
+    token = create_email_verification_token(
+        db,
+        user,
     )
 
-    refresh_token = create_session(
-        db,
-        user.id,
+    verification_link = (
+        f"https://api.karlsonworks.com/api/v1/auth/verify-email-link"
+        f"?token={token}&email={user.email}"
+    )
+
+    await send_email(
+        to_email=user.email,
+        subject="Verify your Deduckly email",
+        html=f"""
+        <h2>Verify your Deduckly email</h2>
+
+        <p>
+            Thanks for creating your Deduckly account.
+        </p>
+
+        <p>
+            Please verify your email address to finish
+            setting up your account.
+        </p>
+
+        <p>
+            <a
+                href="{verification_link}"
+                style="
+                    display: inline-block;
+                    padding: 12px 20px;
+                    background-color: #0072B5;
+                    color: #ffffff;
+                    text-decoration: none;
+                    border-radius: 8px;
+                "
+            >
+                Verify Email
+            </a>
+        </p>
+
+        <p>
+            This link will expire in 30 minutes.
+        </p>
+        """,
     )
 
     return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
+        "message": "Account created. Please verify your email address."
     }
 
 
@@ -485,12 +527,108 @@ async def forgot_password(
     }
 
 
+@router.post("/verify-email")
+def verify_email_endpoint(
+    data: VerifyEmailRequest,
+    db: Session = Depends(get_db),
+):
+    success = verify_email(
+        db,
+        data.token,
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid or expired email verification token",
+        )
+
+    return {
+        "message": "Email verified successfully"
+    }
+
+
+@router.get("/verify-email-link")
+def verify_email_link(
+    token: str,
+    email: str,
+):
+    return RedirectResponse(
+        url=f"deduckly://verify-email?token={token}&email={email}",
+        status_code=302,
+    )
+
+
+@router.post("/resend-verification")
+async def resend_verification(
+    data: ResendVerificationRequest,
+    db: Session = Depends(get_db),
+):
+    user = get_user_by_email(
+        db,
+        data.email,
+    )
+
+    if not user or user.email_verified:
+        return {
+            "message": "If verification is needed, a new email has been sent."
+        }
+
+    token = create_email_verification_token(
+        db,
+        user,
+    )
+
+    verification_link = (
+        f"https://api.karlsonworks.com/api/v1/auth/verify-email-link"
+        f"?token={token}&email={user.email}"
+    )
+
+    await send_email(
+        to_email=user.email,
+        subject="Verify your Deduckly email",
+        html=f"""
+        <h2>Verify your Deduckly email</h2>
+
+        <p>
+            Please verify your email address to finish
+            setting up your Deduckly account.
+        </p>
+
+        <p>
+            <a
+                href="{verification_link}"
+                style="
+                    display: inline-block;
+                    padding: 12px 20px;
+                    background-color: #0072B5;
+                    color: #ffffff;
+                    text-decoration: none;
+                    border-radius: 8px;
+                "
+            >
+                Verify Email
+            </a>
+        </p>
+
+        <p>
+            This link will expire in 30 minutes.
+        </p>
+        """,
+    )
+
+    return {
+        "message": "If verification is needed, a new email has been sent."
+    }
+
+
 @router.get("/reset-password-link")
 def reset_password_link(token: str):
     return RedirectResponse(
         url=f"deduckly://reset-password?token={token}",
         status_code=302,
     )
+
 
 @router.post("/reset-password")
 def reset_password_endpoint(
@@ -527,8 +665,8 @@ def update_password(
 
     if not user:
         raise HTTPException(
-        status_code=404,
-        detail="User not found",
+            status_code=404,
+            detail="User not found",
         )
 
     if not authenticate_user(
