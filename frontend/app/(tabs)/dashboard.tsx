@@ -20,7 +20,6 @@ import { useTracking } from "@/features/tracking/context/tracking.context";
 import { useMonthlyGoal } from "@/features/users/hooks/use-monthly-goal";
 import {
   getPendingTrip,
-  getPendingStop,
 } from "@/services/siri.service";
 
 const subtitles = [
@@ -40,20 +39,26 @@ const subtitles = [
 export default function DashboardScreen() {
   const userQuery = useCurrentUser();
   const { saved } = useLocalSearchParams();
+
   const {
     isTracking,
     startTrackingFromSiri,
-    stopTracking,
   } = useTracking();
 
   const [showStartTripModal, setShowStartTripModal] =
     useState(false);
-  const [showBanner, setShowBanner] = useState(false);
+
+  const [showBanner, setShowBanner] =
+    useState(false);
+
   const bannerTimeoutRef =
     useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { data: monthlyGoal } = useMonthlyGoal();
-  const { year, month } = getCurrentMonthAndYear();
+  const { data: monthlyGoal } =
+    useMonthlyGoal();
+
+  const { year, month } =
+    getCurrentMonthAndYear();
 
   const {
     data: todayReport,
@@ -93,7 +98,9 @@ export default function DashboardScreen() {
   const [subtitle] = useState(
     () =>
       subtitles[
-        Math.floor(Math.random() * subtitles.length)
+        Math.floor(
+          Math.random() * subtitles.length
+        )
       ]
   );
 
@@ -136,21 +143,8 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     const interval = setInterval(async () => {
-      const shouldStop = await getPendingStop();
-
-      if (shouldStop) {
-        clearInterval(interval);
-
-        const result = await stopTracking(null);
-
-        if (result === true) {
-          router.replace("/(tabs)/dashboard");
-        }
-
-        return;
-      }
-
-      const pendingTrip = await getPendingTrip();
+      const pendingTrip =
+        await getPendingTrip();
 
       if (!pendingTrip) return;
 
@@ -160,7 +154,9 @@ export default function DashboardScreen() {
         pendingTrip.platform
       );
 
-      router.replace("/tracking/active");
+      router.replace(
+        "/tracking/active"
+      );
     }, 500);
 
     return () => clearInterval(interval);
@@ -168,7 +164,9 @@ export default function DashboardScreen() {
 
   if (monthlyLoading || todayLoading) {
     return (
-      <SafeAreaView style={styles.loadingScreen}>
+      <SafeAreaView
+        style={styles.loadingScreen}
+      >
         <ActivityIndicator
           size="small"
           color="#4A6FE3"

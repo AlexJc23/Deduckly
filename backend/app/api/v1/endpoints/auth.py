@@ -33,6 +33,7 @@ from app.services.password_reset_service import (
     reset_password,
 )
 from app.services.security_event_service import create_security_event
+from app.services.analytics_service import create_analytics_event
 from app.core.security import (
     create_2fa_token,
     create_access_token,
@@ -96,6 +97,7 @@ def login(
         form_data.username,
         form_data.password,
     )
+
     if status == "invalid_credentials":
         create_security_event(
             db,
@@ -105,11 +107,6 @@ def login(
             },
         )
 
-        raise HTTPException(
-            status_code=401,
-            detail="Incorrect email or password",
-        )
-    if status == "invalid_credentials":
         raise HTTPException(
             status_code=401,
             detail="Incorrect email or password",
@@ -159,6 +156,12 @@ def login(
     )
 
     create_security_event(
+        db,
+        event_type="login_success",
+        user_id=user.id,
+    )
+
+    create_analytics_event(
         db,
         event_type="login_success",
         user_id=user.id,
@@ -227,6 +230,12 @@ async def google_callback(
     )
 
     create_security_event(
+        db,
+        event_type="google_login_success",
+        user_id=user.id,
+    )
+
+    create_analytics_event(
         db,
         event_type="google_login_success",
         user_id=user.id,
@@ -425,6 +434,12 @@ async def register(
         user_id=user.id,
     )
 
+    create_analytics_event(
+        db,
+        event_type="account_created",
+        user_id=user.id,
+    )
+
     token = create_email_verification_token(
         db,
         user,
@@ -502,16 +517,11 @@ def refresh_token(
         user_id,
     )
 
-
     new_access_token = create_access_token(
         data={"sub": str(user_id)}
     )
 
-    create_security_event(
-        db,
-        event_type="token_refresh",
-        user_id=user_id,
-    )
+
     return {
         "access_token": new_access_token,
         "refresh_token": new_refresh_token,

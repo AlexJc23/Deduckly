@@ -1,5 +1,4 @@
-import { TripCreate } from "@features/trips/types/trips.types"
-import { platform } from "process";
+import { TripCreate } from "@features/trips/types/trips.types";
 
 type BuildTripPayloadParams = {
   startTime: Date;
@@ -19,6 +18,8 @@ type BuildTripPayloadParams = {
   category: string;
 
   platform: string | " ";
+
+  incomeAmount?: number | null;
 };
 
 export function buildTripPayload({
@@ -33,6 +34,7 @@ export function buildTripPayload({
   end_address: endAddress,
   category,
   platform,
+  incomeAmount,
 }: BuildTripPayloadParams): TripCreate {
   const payloadPlatform = category === "personal" ? "PERSONAL" : platform;
 
@@ -54,6 +56,6 @@ export function buildTripPayload({
     category,
     platform,
 
-    income_amount: null,
+    income_amount: incomeAmount ?? null,
   };
 }

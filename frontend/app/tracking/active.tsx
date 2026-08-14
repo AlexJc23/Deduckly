@@ -82,70 +82,46 @@ export default function ActiveTripScreen() {
     return () => clearInterval(interval);
   }, [startTime]);
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const shouldStop =
-        await getPendingStop();
-
-      if (!shouldStop) return;
-
-      clearInterval(interval);
-
-      const result =
-        await stopTracking(null);
-
-      if (
-        result === true ||
-        result === "discarded"
-      ) {
-        router.replace(
-          "/(tabs)/dashboard"
-        );
-      }
-    }, 500);
-
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
-    const interval = setInterval(async () => {
-      const shouldCancel =
-        await getPendingCancel();
+  const interval = setInterval(async () => {
+    const shouldCancel =
+      await getPendingCancel();
 
-      if (shouldCancel) {
-        clearInterval(interval);
-
-        cancelTracking();
-
-        router.replace(
-          "/(tabs)/dashboard"
-        );
-
-        return;
-      }
-
-      const shouldStop =
-        await getPendingStop();
-
-      if (!shouldStop) return;
-
+    if (shouldCancel) {
       clearInterval(interval);
 
-      const result =
-        await stopTracking(null);
+      cancelTracking();
 
-      if (
-        result === true ||
-        result === "discarded"
-      ) {
-        router.replace(
-          "/(tabs)/dashboard"
-        );
-      }
-    }, 500);
+      router.replace(
+        "/(tabs)/dashboard"
+      );
 
-    return () => clearInterval(interval);
-  }, []);
+      return;
+    }
+
+    const shouldStop =
+      await getPendingStop();
+
+    if (!shouldStop) return;
+
+    clearInterval(interval);
+
+    const result =
+      await stopTracking(null);
+
+    if (
+      result === true ||
+      result === "discarded"
+    ) {
+      router.replace(
+        "/(tabs)/dashboard"
+      );
+    }
+  }, 500);
+
+  return () => clearInterval(interval);
+}, [stopTracking, cancelTracking]);
 
   return (
     <View style={styles.container}>
