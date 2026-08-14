@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from typing import List, Optional
 from decimal import Decimal
 from sqlalchemy.exc import SQLAlchemyError
-
+from app.services.analytics_service import create_analytics_event
 
 def _to_utc(dt: Optional[datetime]) -> datetime:
     if dt is None:
@@ -103,6 +103,12 @@ def create_expense(db: Session, expense_in: ExpenseCreate, user_id: int) -> Expe
         db.add(db_expense)
         db.commit()
         db.refresh(db_expense)
+
+        create_analytics_event(
+            db,
+            event_type="expense_created",
+            user_id=user_id,
+        )
         return db_expense
 
     except SQLAlchemyError as error:

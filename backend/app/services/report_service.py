@@ -9,6 +9,8 @@ from datetime import datetime, timezone, date, timedelta
 
 from app.models import TaxBracket, User, Expense, Income, Trip
 from app.models.enums import TaxMethod, ExpenseCategory
+from app.services.analytics_service import create_analytics_event
+
 
 CATEGORY_RULES = {
     # Vehicle

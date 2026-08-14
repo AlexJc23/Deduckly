@@ -12,7 +12,7 @@ import {
   LocationPoint,
   requestLocationPermission,
   watchLocation,
-  reverseGeocode
+  reverseGeocode,
 } from "../services/location.service";
 
 import { calculateDistanceMiles } from "../services/distance.service";
@@ -129,7 +129,6 @@ export function TrackingProvider({
       return;
     }
 
-   
     const location =
       await getCurrentLocation();
 
@@ -145,8 +144,6 @@ export function TrackingProvider({
         timestamp: Date.now(),
       },
     ]);
-
-    
 
     locationSubscription.current =
       await watchLocation((location) => {
@@ -168,8 +165,6 @@ export function TrackingProvider({
         ]);
       });
 
-      
-
     setCategory(category);
     setPlatform(platform);
     setTrackingMethod(trackingMethod);
@@ -183,21 +178,17 @@ export function TrackingProvider({
     setStartTime(new Date());
 
     setIsTracking(true);
-
   };
-   const startTrackingFromSiri = async (
-  platform: string
-) => {
 
-
-  await startTracking({
-    category: "business",
-    platform,
-    trackingMethod: "automatic",
-  });
-
-
-};
+  const startTrackingFromSiri = async (
+    platform: string
+  ) => {
+    await startTracking({
+      category: "business",
+      platform,
+      trackingMethod: "automatic",
+    });
+  };
 
   const cancelTracking = () => {
     locationSubscription.current?.remove();
@@ -220,14 +211,23 @@ export function TrackingProvider({
     setRoute([]);
     setDistanceMiles(0);
   };
+
   const stopTracking = async (
     incomeAmount?: number | null
   ) => {
-
-
     locationSubscription.current?.remove();
     locationSubscription.current = null;
-    
+
+    console.log("STOP TRACKING STATE", {
+      startTime,
+      startLatitude,
+      startLongitude,
+      currentLatitude,
+      currentLongitude,
+      category,
+      distanceMiles,
+    });
+
     if (
       !startTime ||
       startLatitude === null ||
@@ -239,54 +239,50 @@ export function TrackingProvider({
       return false;
     }
 
-    const MIN_DISTANCE_MILES = 0.01;
+    const MIN_DISTANCE_MILES = 0.02;
 
     if (distanceMiles < MIN_DISTANCE_MILES) {
       cancelTracking();
       return "discarded";
     }
 
-    const startAddress = startLatitude && startLongitude
-    ? await reverseGeocode(
-      startLatitude,
-      startLongitude
-    )
-    : null;
-
-    const endAddress =
-    currentLatitude && currentLongitude
-    ? await reverseGeocode(
-      currentLatitude,
-      currentLongitude
-    )
-    : null;
-
-
-
-    const payload = buildTripPayload({
-      startTime,
-      endTime: new Date(),
-
-      distanceMiles,
-
-      startLatitude,
-      startLongitude,
-
-      endLatitude: currentLatitude,
-      endLongitude: currentLongitude,
-
-      start_address: startAddress,
-      end_address: endAddress,
-
-      category,
-      platform:
-        category === "personal"
-          ? "personal"
-          : platform ?? "",
-
-    });
+    let startAddress: string | null = null;
+    let endAddress: string | null = null;
 
     try {
+      startAddress = await reverseGeocode(
+        startLatitude,
+        startLongitude
+      );
+
+      endAddress = await reverseGeocode(
+        currentLatitude,
+        currentLongitude
+      );
+
+      const payload = buildTripPayload({
+        startTime,
+        endTime: new Date(),
+
+        distanceMiles,
+
+        startLatitude,
+        startLongitude,
+
+        endLatitude: currentLatitude,
+        endLongitude: currentLongitude,
+
+        start_address: startAddress,
+        end_address: endAddress,
+
+        category,
+        platform:
+          category === "personal"
+            ? "personal"
+            : platform ?? "",
+
+        incomeAmount,
+      });
 
       await createTrip(payload);
 
@@ -309,9 +305,13 @@ export function TrackingProvider({
 
       return true;
     } catch (error: any) {
-  
-  return false;
-}
+      console.log(
+        "STOP TRACKING ERROR",
+        error?.response?.data ?? error
+      );
+
+      return false;
+    }
   };
 
   return (

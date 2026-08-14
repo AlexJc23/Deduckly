@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from decimal import Decimal
 
 from app.services.mileage_rate_service import get_business_rate_for_date
-
+from app.services.analytics_service import create_analytics_event
 
 
 def create_trip(db: Session, trip_in: TripCreate, user_id: int) -> Trip:
@@ -48,7 +48,11 @@ def create_trip(db: Session, trip_in: TripCreate, user_id: int) -> Trip:
     db.add(db_trip)
     db.commit()
     db.refresh(db_trip)
-
+    create_analytics_event(
+        db,
+        event_type="trip_created",
+        user_id=user_id,
+    )
     upsert_income_for_trip(
         db,
         trip_id=db_trip.id,

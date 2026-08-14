@@ -7,7 +7,7 @@ from decimal import Decimal
 from datetime import datetime, time, timezone
 from app.models.enums import IncomeType
 from typing import Optional, List
-
+from app.services.analytics_service import create_analytics_event
 
 def _to_utc(dt: Optional[datetime]) -> datetime:
     if dt is None:
@@ -117,6 +117,13 @@ def create_income(
         db.add(db_income)
         db.commit()
         db.refresh(db_income)
+
+        create_analytics_event(
+            db,
+            event_type="income_created",
+            user_id=user_id,
+        )
+
         return db_income
 
     except SQLAlchemyError:
