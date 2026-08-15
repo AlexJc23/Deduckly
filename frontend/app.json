@@ -11,7 +11,6 @@
     "ios": {
       "infoPlist": {
         "UIBackgroundModes": [
-          "location",
           "location"
         ],
         "ITSAppUsesNonExemptEncryption": false
@@ -75,6 +74,12 @@
         "projectId": "42cbf561-0bd5-43a9-9f7f-70faa7d45fe5"
       }
     },
-    "owner": "karlsonworks"
+    "owner": "karlsonworks",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/42cbf561-0bd5-43a9-9f7f-70faa7d45fe5"
+    }
   }
 }
