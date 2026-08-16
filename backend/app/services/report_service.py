@@ -9,8 +9,8 @@ from datetime import datetime, timezone, date, timedelta
 
 from app.models import TaxBracket, User, Expense, Income, Trip
 from app.models.enums import TaxMethod, ExpenseCategory
-from app.services.analytics_service import create_analytics_event
 
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 CATEGORY_RULES = {
     # Vehicle
@@ -236,22 +236,58 @@ def build_date_filters(
     day: Optional[int] = None,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
+    timezone_name: Optional[str] = None,
 ):
     filters = []
 
     if start_date and end_date:
         filters.append(column >= start_date)
-        filters.append(column < (end_date + timedelta(days=1)))
+        filters.append(
+            column < (end_date + timedelta(days=1))
+        )
         return filters
 
-    if year is not None:
-        filters.append(func.extract("year", column) == year)
+    if year is None:
+        return filters
+
+    # Daily reports need to respect the user's local timezone.
+    if day is not None:
+        try:
+            tz = ZoneInfo(
+                timezone_name or "America/New_York"
+            )
+        except (ZoneInfoNotFoundError, ValueError):
+            tz = ZoneInfo("America/New_York")
+
+        local_start = datetime(
+            year,
+            month,
+            day,
+            0,
+            0,
+            0,
+            tzinfo=tz,
+        )
+
+        local_end = local_start + timedelta(days=1)
+
+        utc_start = local_start.astimezone(timezone.utc)
+        utc_end = local_end.astimezone(timezone.utc)
+
+        filters.append(column >= utc_start)
+        filters.append(column < utc_end)
+
+        return filters
+
+    # Monthly/yearly reports keep the existing behavior.
+    filters.append(
+        func.extract("year", column) == year
+    )
 
     if month is not None:
-        filters.append(func.extract("month", column) == month)
-
-    if day is not None:
-        filters.append(func.extract("day", column) == day)
+        filters.append(
+            func.extract("month", column) == month
+        )
 
     return filters
 
