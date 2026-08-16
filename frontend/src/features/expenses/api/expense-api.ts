@@ -79,12 +79,6 @@ export async function uploadExpenseReceipt(
   const response = await api.post<Expense>(
     `/api/v1/expenses/${expenseId}/receipt`,
     formData,
-    {
-      headers: {
-        "Content-Type":
-          "multipart/form-data",
-      },
-    },
   );
 
   return response.data;

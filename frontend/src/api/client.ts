@@ -12,9 +12,6 @@ import { refreshAccessToken } from "@/features/auth/services/token.services";
 export const api = axios.create({
     baseURL: ENV.API_URL,
     timeout: 10000,
-    headers: {
-        "Content-Type": "application/json",
-    },
 });
 
 api.interceptors.request.use(async (config) => {
