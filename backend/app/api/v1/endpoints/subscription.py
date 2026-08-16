@@ -72,7 +72,6 @@ def revenuecat_webhook(
         .first()
     )
 
-
     if not user:
         raise HTTPException(
             status_code=404,
@@ -81,8 +80,28 @@ def revenuecat_webhook(
 
     purchased_at_ms = event.get("purchased_at_ms")
     expiration_at_ms = event.get("expiration_at_ms")
+    event_type = event.get("type")
+
+    if event_type in {
+        "INITIAL_PURCHASE",
+        "RENEWAL",
+        "UNCANCELLATION",
+        "PRODUCT_CHANGE",
+        "BILLING_ISSUE",
+    }:
+        status = "active"
+    elif event_type == "CANCELLATION":
+        status = "canceled"
+    elif event_type == "EXPIRATION":
+        status = "expired"
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported RevenueCat event type: {event_type}"
+        )
 
     subscription_data = {
+        "status": status,
         "product_id": event.get("product_id"),
         "original_transaction_id": event.get(
             "original_transaction_id"
@@ -99,15 +118,11 @@ def revenuecat_webhook(
             if purchased_at_ms
             else datetime.now(UTC)
         ),
-        "expiration_date": (
-            datetime.fromtimestamp(
-                expiration_at_ms / 1000,
-                tz=UTC
-            )
-            if expiration_at_ms
-            else None
+        "expiration_date": datetime.fromtimestamp(
+            expiration_at_ms / 1000,
+            tz=UTC
         ),
-        "auto_renew": event.get("type") != "CANCELLATION",
+        "auto_renew": event_type != "CANCELLATION",
         "apple_response": event,
     }
 

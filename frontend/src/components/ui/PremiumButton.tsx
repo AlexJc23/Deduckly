@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { router } from "expo-router";
 
 type PremiumButtonProps = {
   title: string;
@@ -17,7 +18,7 @@ export default function PremiumButton({
 }: PremiumButtonProps) {
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => router.push("/screens/paywall")}
       style={({ pressed }) => [
         styles.button,
         pressed && styles.buttonPressed,

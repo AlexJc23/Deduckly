@@ -8,6 +8,9 @@ import {
 import Purchases from "react-native-purchases";
 import { useQueryClient } from "@tanstack/react-query";
 
+import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { revenueCatService } from "../services/revenuecat.service";
+
 type SubscriptionContextType = {};
 
 const SubscriptionContext =
@@ -17,6 +20,15 @@ export function SubscriptionProvider({
   children,
 }: PropsWithChildren) {
   const queryClient = useQueryClient();
+  const { data: user } = useCurrentUser();
+
+  useEffect(() => {
+    if (!user?.id) {
+      return;
+    }
+
+    revenueCatService.configure(String(user.id));
+  }, [user?.id]);
 
   useEffect(() => {
     const listener = async () => {

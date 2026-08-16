@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { router } from "expo-router";
 
 export type ActivityDateOption =
   | "current"
@@ -21,7 +22,6 @@ type Props = {
   visible: boolean;
   isPremium: boolean;
   onClose: () => void;
-  onUpgrade: () => void;
   onSelectPreset: (
     option: Exclude<ActivityDateOption, "custom">,
   ) => void;
@@ -35,7 +35,6 @@ export function ActivityDateModal({
   visible,
   isPremium,
   onClose,
-  onUpgrade,
   onSelectPreset,
   onApplyCustom,
 }: Props) {
@@ -71,7 +70,9 @@ export function ActivityDateModal({
   ) {
     if (!isPremium) {
       closeModal();
-      onUpgrade();
+
+      router.push("/screens/paywall");
+
       return;
     }
 
@@ -199,10 +200,13 @@ export function ActivityDateModal({
                 </Pressable>
               </View>
 
+              {/* Current Month - FREE */}
+
               <Pressable
                 style={({ pressed }) => [
                   styles.option,
-                  pressed && styles.optionPressed,
+                  pressed &&
+                    styles.optionPressed,
                 ]}
                 onPress={() =>
                   selectPreset("current")
@@ -227,10 +231,13 @@ export function ActivityDateModal({
                 />
               </Pressable>
 
+              {/* Last Month - PREMIUM */}
+
               <Pressable
                 style={({ pressed }) => [
                   styles.option,
-                  pressed && styles.optionPressed,
+                  pressed &&
+                    styles.optionPressed,
                 ]}
                 onPress={() =>
                   requirePremium(() =>
@@ -257,10 +264,13 @@ export function ActivityDateModal({
                 )}
               </Pressable>
 
+              {/* This Year - PREMIUM */}
+
               <Pressable
                 style={({ pressed }) => [
                   styles.option,
-                  pressed && styles.optionPressed,
+                  pressed &&
+                    styles.optionPressed,
                 ]}
                 onPress={() =>
                   requirePremium(() =>
@@ -287,10 +297,13 @@ export function ActivityDateModal({
                 )}
               </Pressable>
 
+              {/* Custom Range - PREMIUM */}
+
               <Pressable
                 style={({ pressed }) => [
                   styles.option,
-                  pressed && styles.optionPressed,
+                  pressed &&
+                    styles.optionPressed,
                 ]}
                 onPress={() =>
                   requirePremium(() =>
@@ -334,7 +347,6 @@ export function ActivityDateModal({
             <>
               <View style={styles.header}>
                 <View>
-
                   <Text style={styles.title}>
                     Custom Date Range
                   </Text>
@@ -461,14 +473,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
     marginBottom: 8,
-  },
-
-  eyebrow: {
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 1.2,
-    color: "#64748B",
-    marginBottom: 4,
   },
 
   title: {

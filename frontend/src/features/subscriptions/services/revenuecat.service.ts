@@ -3,18 +3,30 @@ import Purchases, {
   PurchasesPackage,
 } from "react-native-purchases";
 
+import Constants, {
+  ExecutionEnvironment,
+} from "expo-constants";
+
 import { ENV } from "@/config/env";
 
 class RevenueCatService {
   async configure(userId: string) {
+    const apiKey =
+      Constants.executionEnvironment ===
+      ExecutionEnvironment.StoreClient
+        ? ENV.REVENUECAT_TEST_API_KEY
+        : ENV.REVENUECAT_IOS_API_KEY;
+
     await Purchases.configure({
-      apiKey: ENV.REVENUECAT_IOS_API_KEY,
+      apiKey,
       appUserID: userId,
     });
   }
 
   async getOfferings() {
-    return null;
+    const offerings = await Purchases.getOfferings();
+
+    return offerings;
   }
 
   async purchasePackage(
