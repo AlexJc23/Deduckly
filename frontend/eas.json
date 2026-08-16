@@ -13,7 +13,7 @@
       "channel": "production",
       "autoIncrement": true,
       "ios": {
-        "cocoapods": "1.17.0"
+        "image": "macos-sequoia-15.6-xcode-16.4"
       }
     }
   },
