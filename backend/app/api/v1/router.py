@@ -2,7 +2,7 @@
 
 
 from fastapi import APIRouter
-from app.api.v1.endpoints import health, user, auth, trip, income, expense, taxbracket, mileage_rate, subscription, report, notification, feedback
+from app.api.v1.endpoints import legal, health, user, auth, trip, income, expense, taxbracket, mileage_rate, subscription, report, notification, feedback
 
 
 
@@ -20,3 +20,4 @@ api_router.include_router(subscription.router)
 api_router.include_router(mileage_rate.router)
 api_router.include_router(notification.router)
 api_router.include_router(feedback.router)
+api_router.include_router(legal.router)
