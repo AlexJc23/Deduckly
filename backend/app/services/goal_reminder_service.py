@@ -1,6 +1,7 @@
 from calendar import monthrange
 from datetime import datetime
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
 
@@ -25,7 +26,9 @@ async def check_goal_reminder(
     db: Session,
     user: User,
 ) -> None:
-    today = datetime.now()
+    today = datetime.now(
+        ZoneInfo("America/New_York")
+    )
     today_date = today.date()
 
     if not user.notifications_enabled:

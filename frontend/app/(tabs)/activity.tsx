@@ -499,9 +499,9 @@ export default function ActivityScreen() {
         onClose={() =>
           setShowDateModal(false)
         }
-        onUpgrade={() => {
-          // router.push("/premium")
-        }}
+        // onUpgrade={() => {
+        //   // router.push("/premium")
+        // }}
         onSelectPreset={
           handlePresetDate
         }
