@@ -27,7 +27,33 @@ export function SubscriptionProvider({
       return;
     }
 
-    revenueCatService.configure(String(user.id));
+    const setupRevenueCat = async () => {
+      try {
+        await revenueCatService.configure();
+
+        const customerInfo =
+          await revenueCatService.logIn(
+            String(user.id),
+          );
+
+        console.log(
+          "RevenueCat logged in as:",
+          user.id,
+        );
+
+        console.log(
+          "RevenueCat customer:",
+          customerInfo.originalAppUserId,
+        );
+      } catch (error) {
+        console.error(
+          "RevenueCat setup failed:",
+          error,
+        );
+      }
+    };
+
+    setupRevenueCat();
   }, [user?.id]);
 
   useEffect(() => {

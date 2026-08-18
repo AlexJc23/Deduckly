@@ -15,7 +15,7 @@
         ],
         "ITSAppUsesNonExemptEncryption": false
       },
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.karlsonworks.deduckly"
     },
     "android": {

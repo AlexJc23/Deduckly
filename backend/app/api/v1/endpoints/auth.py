@@ -77,7 +77,7 @@ def create_session(db: Session, user_id: int):
         refresh_token=refresh_token,
         is_revoked=False,
         created_at=datetime.utcnow(),
-        expires_at=datetime.utcnow() + timedelta(days=7),
+        expires_at=datetime.utcnow() + timedelta(days=30),
     )
 
     db.add(session)
@@ -125,7 +125,6 @@ def login(
             detail="Unexpected authentication error",
         )
 
-    # 2FA check
     two_fa = db.query(TwoFactorAuth).filter(
         TwoFactorAuth.user_id == user.id,
         TwoFactorAuth.is_enabled == True,
@@ -507,9 +506,20 @@ def refresh_token(
             detail="Invalid session",
         )
 
+    if (
+        session.expires_at
+        and datetime.utcnow() >= session.expires_at
+    ):
+        session.is_revoked = True
+        db.commit()
+
+        raise HTTPException(
+            status_code=401,
+            detail="Session expired",
+        )
+
     user_id = session.user_id
 
-    # rotate session
     session.is_revoked = True
 
     new_refresh_token = create_session(
@@ -521,17 +531,12 @@ def refresh_token(
         data={"sub": str(user_id)}
     )
 
-
     return {
         "access_token": new_access_token,
         "refresh_token": new_refresh_token,
         "token_type": "bearer",
     }
 
-
-# -------------------------------------------------
-# FORGOT PASSWORD
-# -------------------------------------------------
 
 @router.post("/forgot-password")
 async def forgot_password(
