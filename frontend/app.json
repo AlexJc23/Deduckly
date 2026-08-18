@@ -15,7 +15,7 @@
         ],
         "ITSAppUsesNonExemptEncryption": false
       },
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.karlsonworks.deduckly"
     },
     "android": {
@@ -75,9 +75,7 @@
       }
     },
     "owner": "karlsonworks",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/42cbf561-0bd5-43a9-9f7f-70faa7d45fe5"
     }

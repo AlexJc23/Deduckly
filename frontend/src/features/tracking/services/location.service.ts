@@ -24,7 +24,7 @@ export async function watchLocation(
         {
             accuracy: Location.Accuracy.BestForNavigation,
             distanceInterval: 1,
-            timeInterval: 3000,
+            timeInterval: 1000,
         },
         callback
     );

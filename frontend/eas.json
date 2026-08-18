@@ -10,7 +10,14 @@
       "channel": "preview"
     },
     "production": {
-      "channel": "production"
+      "channel": "production",
+      "autoIncrement": true,
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-16.4"
+      }
     }
+  },
+  "cli": {
+    "appVersionSource": "remote"
   }
 }

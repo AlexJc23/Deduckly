@@ -303,10 +303,25 @@ export default function PaywallScreen() {
                   "RevenueCat customer info:",
                   customerInfo,
                 );
-              } catch (error) {
+              } catch (error: any) {
                 console.error(
                   "RevenueCat purchase failed:",
                   error,
+                );
+
+                console.error(
+                  "RevenueCat purchase error code:",
+                  error?.code,
+                );
+
+                console.error(
+                  "RevenueCat purchase error message:",
+                  error?.message,
+                );
+
+                console.error(
+                  "RevenueCat purchase error userCancelled:",
+                  error?.userCancelled,
                 );
               }
             }}
