@@ -18,8 +18,12 @@ import { ExpenseBreakdownCard } from "@/features/reports/components/ExpenseBreak
 import PremiumButton from "@/components/ui/PremiumButton";
 import { useMonthlyGoal } from "@/features/users/hooks/use-monthly-goal";
 import { MonthlyIncomeGoalCard } from "@/features/reports/components/MonthlyIncomeGoal";
+import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function FreeTierReportScreen() {
+  const isTablet = useIsTablet();
+  const styles = getStyles(isTablet);
+
   const { year, month } =
     getCurrentMonthAndYear();
 
@@ -67,17 +71,19 @@ export default function FreeTierReportScreen() {
       {/* Fixed Header */}
 
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>
-          MONTHLY REPORT
-        </Text>
+        <View style={styles.headerInner}>
+          <Text style={styles.eyebrow}>
+            MONTHLY REPORT
+          </Text>
 
-        <Text style={styles.title}>
-          {date}
-        </Text>
+          <Text style={styles.title}>
+            {date}
+          </Text>
 
-        <Text style={styles.subtitle}>
-          Here's how you're doing this month.
-        </Text>
+          <Text style={styles.subtitle}>
+            Here's how you're doing this month.
+          </Text>
+        </View>
       </View>
 
       {/* Scrollable Report */}
@@ -89,160 +95,175 @@ export default function FreeTierReportScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        {/* Monthly Goal */}
+        <View style={styles.contentInner}>
+          {/* Monthly Goal */}
 
-        {monthlyGoal && (
+          {monthlyGoal && (
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>
+                MONTHLY GOAL
+              </Text>
+
+              <MonthlyIncomeGoalCard
+                monthlyGoal={monthlyGoal}
+              />
+            </View>
+          )}
+
+          {/* Summary */}
+
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>
-              MONTHLY GOAL
+              SUMMARY
             </Text>
 
-            <MonthlyIncomeGoalCard
-              monthlyGoal={monthlyGoal}
+            <ReportSummaryCard
+              report={data}
             />
           </View>
-        )}
 
-        {/* Summary */}
+          {/* Taxes */}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>
-            SUMMARY
-          </Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>
+              TAXES
+            </Text>
 
-          <ReportSummaryCard
-            report={data}
-          />
-        </View>
+            <TaxCard report={data} />
+          </View>
 
-        {/* Taxes */}
+          {/* Expense Breakdown */}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>
-            TAXES
-          </Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>
+              EXPENSES
+            </Text>
 
-          <TaxCard report={data} />
-        </View>
+            <ExpenseBreakdownCard
+              report={data}
+            />
+          </View>
 
-        {/* Expense Breakdown */}
+          {/* Pro */}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>
-            EXPENSES
-          </Text>
-
-          <ExpenseBreakdownCard
-            report={data}
-          />
-        </View>
-
-        {/* Pro */}
-
-        <View style={styles.proSection}>
-          <PremiumButton
-            title="Unlock Deduckly Pro"
-            message="You're only seeing the basics. Upgrade to unlock powerful insights into your business performance."
-          />
+          <View style={styles.proSection}>
+            <PremiumButton
+              title="Unlock Deduckly Pro"
+              message="You're only seeing the basics. Upgrade to unlock powerful insights into your business performance."
+            />
+          </View>
         </View>
       </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#F6F8FB",
-  },
+const getStyles = (isTablet: boolean) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: "#F6F8FB",
+    },
 
-  header: {
-    backgroundColor: "#F6F8FB",
-    paddingHorizontal: 20,
-    paddingTop: 66,
-    paddingBottom: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E8ECF2",
-    zIndex: 10,
-  },
+    header: {
+      backgroundColor: "#F6F8FB",
+      paddingHorizontal: isTablet ? 34 : 20,
+      paddingTop: isTablet ? 30 : 66,
+      paddingBottom: isTablet ? 24 : 18,
+      borderBottomWidth: 1,
+      borderBottomColor: "#E8ECF2",
+      zIndex: 10,
+    },
 
-  eyebrow: {
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 1.25,
-    color: "#94A3B8",
-    marginBottom: 4,
-  },
+    headerInner: {
+      width: "100%",
+      maxWidth: isTablet ? 1050 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
+    },
 
-  title: {
-    fontSize: 27,
-    lineHeight: 33,
-    fontWeight: "800",
-    letterSpacing: -0.7,
-    color: "#273449",
-  },
+    eyebrow: {
+      fontSize: isTablet ? 11 : 9,
+      fontWeight: "800",
+      letterSpacing: 1.25,
+      color: "#94A3B8",
+      marginBottom: isTablet ? 6 : 4,
+    },
 
-  subtitle: {
-    marginTop: 5,
-    fontSize: 13,
-    lineHeight: 19,
-    color: "#64748B",
-  },
+    title: {
+      fontSize: isTablet ? 36 : 27,
+      lineHeight: isTablet ? 43 : 33,
+      fontWeight: "800",
+      letterSpacing: -0.7,
+      color: "#273449",
+    },
 
-  scroll: {
-    flex: 1,
-  },
+    subtitle: {
+      marginTop: isTablet ? 7 : 5,
+      fontSize: isTablet ? 15 : 13,
+      lineHeight: isTablet ? 22 : 19,
+      color: "#64748B",
+    },
 
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 50,
-  },
+    scroll: {
+      flex: 1,
+    },
 
-  section: {
-    marginBottom: 22,
-  },
+    content: {
+      paddingHorizontal: isTablet ? 34 : 20,
+      paddingTop: isTablet ? 28 : 20,
+      paddingBottom: isTablet ? 60 : 50,
+    },
 
-  sectionLabel: {
-    marginLeft: 2,
-    marginBottom: 9,
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 1.2,
-    color: "#94A3B8",
-  },
+    contentInner: {
+      width: "100%",
+      maxWidth: isTablet ? 1050 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
+    },
 
-  proSection: {
-    marginTop: 2,
-    marginBottom: 10,
-  },
+    section: {
+      marginBottom: isTablet ? 30 : 22,
+    },
 
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#F6F8FB",
-  },
+    sectionLabel: {
+      marginLeft: 2,
+      marginBottom: isTablet ? 12 : 9,
+      fontSize: isTablet ? 11 : 9,
+      fontWeight: "800",
+      letterSpacing: 1.2,
+      color: "#94A3B8",
+    },
 
-  errorContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 30,
-    backgroundColor: "#F6F8FB",
-  },
+    proSection: {
+      marginTop: isTablet ? 6 : 2,
+      marginBottom: isTablet ? 16 : 10,
+    },
 
-  errorTitle: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: "#273449",
-  },
+    loadingContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#F6F8FB",
+    },
 
-  errorText: {
-    marginTop: 6,
-    fontSize: 13,
-    lineHeight: 19,
-    color: "#64748B",
-    textAlign: "center",
-  },
-});
+    errorContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: isTablet ? 60 : 30,
+      backgroundColor: "#F6F8FB",
+    },
+
+    errorTitle: {
+      fontSize: isTablet ? 22 : 17,
+      fontWeight: "800",
+      color: "#273449",
+    },
+
+    errorText: {
+      marginTop: 8,
+      fontSize: isTablet ? 15 : 13,
+      lineHeight: isTablet ? 22 : 19,
+      color: "#64748B",
+      textAlign: "center",
+    },
+  });

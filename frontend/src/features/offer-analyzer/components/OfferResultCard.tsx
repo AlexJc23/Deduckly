@@ -8,6 +8,7 @@ import {
   OfferResult,
   PremiumOfferResult,
 } from "../types/offer.types";
+import { useIsTablet } from "@/hooks/use-is-tablet";
 
 type OfferResultCardProps = {
   result: OfferResult | PremiumOfferResult;
@@ -16,6 +17,9 @@ type OfferResultCardProps = {
 export function OfferResultCard({
   result,
 }: OfferResultCardProps) {
+  const isTablet = useIsTablet();
+  const styles = getStyles(isTablet);
+
   const isPremium = "score" in result;
 
   const recommendationColor = isPremium
@@ -216,7 +220,7 @@ export function OfferResultCard({
                         ? "checkmark"
                         : "close"
                     }
-                    size={13}
+                    size={isTablet ? 15 : 13}
                     color={
                       check.passed
                         ? "#16A34A"
@@ -276,7 +280,7 @@ export function OfferResultCard({
                           ? "checkmark"
                           : "close"
                       }
-                      size={13}
+                      size={isTablet ? 15 : 13}
                       color={
                         passed
                           ? "#16A34A"
@@ -296,140 +300,147 @@ export function OfferResultCard({
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: 18,
-    padding: 18,
-    marginBottom: 50,
-    borderWidth: 1,
+const getStyles = (isTablet: boolean) =>
+  StyleSheet.create({
+    card: {
+      width: "100%",
+      maxWidth: isTablet ? 900 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
 
-    shadowColor: "#111827",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: {
-      width: 0,
-      height: 3,
+      borderRadius: isTablet ? 24 : 18,
+      padding: isTablet ? 28 : 18,
+      marginBottom: isTablet ? 60 : 50,
+      borderWidth: 1,
+
+      shadowColor: "#111827",
+      shadowOpacity: isTablet ? 0.07 : 0.05,
+      shadowRadius: isTablet ? 16 : 10,
+      shadowOffset: {
+        width: 0,
+        height: isTablet ? 5 : 3,
+      },
+
+      elevation: isTablet ? 3 : 2,
+      gap: isTablet ? 20 : 16,
     },
 
-    elevation: 2,
-    gap: 16,
-  },
+    hero: {
+      alignItems: "center",
+      justifyContent: "center",
+      gap: isTablet ? 8 : 5,
+      paddingVertical: isTablet ? 18 : 8,
+    },
 
-  hero: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 5,
-    paddingVertical: 8,
-  },
+    scoreContainer: {
+      width: isTablet ? 118 : 82,
+      height: isTablet ? 118 : 82,
+      borderRadius: isTablet ? 59 : 41,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: isTablet ? 8 : 4,
+    },
 
-  scoreContainer: {
-    width: 82,
-    height: 82,
-    borderRadius: 41,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-  },
+    score: {
+      fontSize: isTablet ? 56 : 42,
+      fontWeight: "800",
+      color: "#111827",
+      lineHeight: isTablet ? 64 : 48,
+      letterSpacing: -1,
+    },
 
-  score: {
-    fontSize: 42,
-    fontWeight: "800",
-    color: "#111827",
-    lineHeight: 48,
-    letterSpacing: -1,
-  },
+    recommendation: {
+      fontSize: isTablet ? 20 : 16,
+      fontWeight: "800",
+      letterSpacing: 1,
+    },
 
-  recommendation: {
-    fontSize: 16,
-    fontWeight: "800",
-    letterSpacing: 1,
-  },
+    dpm: {
+      fontSize: isTablet ? 52 : 40,
+      lineHeight: isTablet ? 60 : 46,
+      fontWeight: "800",
+      color: "#111827",
+      letterSpacing: -1,
+    },
 
-  dpm: {
-    fontSize: 40,
-    fontWeight: "800",
-    color: "#111827",
-    letterSpacing: -1,
-  },
+    subtitle: {
+      textAlign: "center",
+      color: "#64748B",
+      fontSize: isTablet ? 15 : 13,
+      lineHeight: isTablet ? 22 : 19,
+      maxWidth: isTablet ? 520 : 280,
+    },
 
-  subtitle: {
-    textAlign: "center",
-    color: "#64748B",
-    fontSize: 13,
-    lineHeight: 19,
-    maxWidth: 280,
-  },
+    divider: {
+      height: 1,
+      backgroundColor: "#E5E7EB",
+    },
 
-  divider: {
-    height: 1,
-    backgroundColor: "#E5E7EB",
-  },
+    sectionTitle: {
+      fontSize: isTablet ? 17 : 14,
+      fontWeight: "800",
+      color: "#111827",
+      marginBottom: isTablet ? 0 : -3,
+    },
 
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#111827",
-    marginBottom: -3,
-  },
+    statRow: {
+      minHeight: isTablet ? 40 : 28,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: isTablet ? 3 : 0,
+    },
 
-  statRow: {
-    minHeight: 28,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
+    label: {
+      fontSize: isTablet ? 15 : 13,
+      color: "#64748B",
+      fontWeight: "600",
+    },
 
-  label: {
-    fontSize: 13,
-    color: "#64748B",
-    fontWeight: "600",
-  },
+    value: {
+      fontSize: isTablet ? 16 : 14,
+      color: "#111827",
+      fontWeight: "700",
+    },
 
-  value: {
-    fontSize: 14,
-    color: "#111827",
-    fontWeight: "700",
-  },
+    reasonRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: isTablet ? 13 : 10,
+    },
 
-  reasonRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
-  },
+    icon: {
+      width: isTablet ? 28 : 22,
+      height: isTablet ? 28 : 22,
+      borderRadius: isTablet ? 9 : 7,
+      justifyContent: "center",
+      alignItems: "center",
+      marginTop: 1,
+    },
 
-  icon: {
-    width: 22,
-    height: 22,
-    borderRadius: 7,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 1,
-  },
+    positiveIcon: {
+      backgroundColor: "#DCFCE7",
+    },
 
-  positiveIcon: {
-    backgroundColor: "#DCFCE7",
-  },
+    negativeIcon: {
+      backgroundColor: "#FEE2E2",
+    },
 
-  negativeIcon: {
-    backgroundColor: "#FEE2E2",
-  },
+    reasonContent: {
+      flex: 1,
+    },
 
-  reasonContent: {
-    flex: 1,
-  },
+    reason: {
+      flex: 1,
+      fontSize: isTablet ? 15 : 13,
+      lineHeight: isTablet ? 22 : 19,
+      color: "#334155",
+      fontWeight: "600",
+    },
 
-  reason: {
-    flex: 1,
-    fontSize: 13,
-    lineHeight: 19,
-    color: "#334155",
-    fontWeight: "600",
-  },
-
-  checkDetails: {
-    fontSize: 11,
-    color: "#64748B",
-    marginTop: 3,
-    lineHeight: 16,
-  },
-});
+    checkDetails: {
+      fontSize: isTablet ? 12 : 11,
+      color: "#64748B",
+      marginTop: isTablet ? 4 : 3,
+      lineHeight: isTablet ? 18 : 16,
+    },
+  });

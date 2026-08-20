@@ -311,6 +311,7 @@ def generate_tax_report(
                 day,
                 start_date,
                 end_date,
+                timezone_name=user.timezone,
             ),
         ]
 
@@ -357,6 +358,7 @@ def generate_tax_report(
                 day,
                 start_date,
                 end_date,
+                timezone_name=user.timezone,
             ),
         ]
 
@@ -390,6 +392,7 @@ def generate_tax_report(
                 day,
                 start_date,
                 end_date,
+                timezone_name=user.timezone,
             ),
         ]
 

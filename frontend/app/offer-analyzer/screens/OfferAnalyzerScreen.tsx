@@ -26,8 +26,12 @@ import { analyzePremiumOffer } from "@/features/offer-analyzer/utils/premium";
 
 import { usePreferences } from "@/features/settings/hooks/usePreferences";
 import { usePremium } from "@/features/subscriptions/hooks/use-premium";
+import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function OfferAnalyzerScreen() {
+  const isTablet = useIsTablet();
+  const styles = getStyles(isTablet);
+
   const [result, setResult] = useState<
     OfferResult | PremiumOfferResult | null
   >(null);
@@ -36,7 +40,6 @@ export default function OfferAnalyzerScreen() {
 
   // TODO: Replace with RevenueCat
   const { isPremium } = usePremium();
-
   function handleAnalyze(
     offer: OfferInput,
   ) {
@@ -94,11 +97,14 @@ export default function OfferAnalyzerScreen() {
     >
       <BackHeader />
 
-      <ScrollView>
+      <ScrollView
+        contentContainerStyle={
+          styles.scrollContent
+        }
+        showsVerticalScrollIndicator={false}
+      >
         <TouchableWithoutFeedback
-          onPress={
-            Keyboard.dismiss
-          }
+          onPress={Keyboard.dismiss}
         >
           <View
             style={styles.content}
@@ -116,18 +122,20 @@ export default function OfferAnalyzerScreen() {
             )}
 
             {!isPremium && (
-            <PremiumButton
-              title="Unlock Deduckly Pro"
-              message="See personalized profit estimates, hourly earnings, vehicle costs, and smart recommendations tailored to your preferences."
-              features={[
-                "Personalized Offer Analysis",
-                "Profit After Vehicle Costs",
-                "Hourly Earnings",
-                "Custom Acceptance Rules",
-                "Smart Recommendations",
-              ]}
-            />
-          )}
+              <View style={styles.premiumContainer}>
+                <PremiumButton
+                  title="Unlock Deduckly Pro"
+                  message="See personalized profit estimates, hourly earnings, vehicle costs, and smart recommendations tailored to your preferences."
+                  features={[
+                    "Personalized Offer Analysis",
+                    "Profit After Vehicle Costs",
+                    "Hourly Earnings",
+                    "Custom Acceptance Rules",
+                    "Smart Recommendations",
+                  ]}
+                />
+              </View>
+            )}
           </View>
         </TouchableWithoutFeedback>
       </ScrollView>
@@ -135,18 +143,34 @@ export default function OfferAnalyzerScreen() {
   );
 }
 
-const styles =
+const getStyles = (isTablet: boolean) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor:
-        "#FFFFFF",
+      backgroundColor: "#FFFFFF",
+    },
+
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: isTablet ? 50 : 30,
     },
 
     content: {
       flex: 1,
-      paddingHorizontal: 16,
-      paddingTop: 8,
-      gap: 10,
+      width: "100%",
+      maxWidth: isTablet ? 1000 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
+
+      paddingHorizontal: isTablet ? 34 : 16,
+      paddingTop: isTablet ? 18 : 8,
+      gap: isTablet ? 18 : 10,
+    },
+
+    premiumContainer: {
+      width: "100%",
+      maxWidth: isTablet ? 900 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
+      marginTop: isTablet ? 2 : 0,
+      marginBottom: isTablet ? 20 : 10,
     },
   });
