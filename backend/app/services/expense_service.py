@@ -7,12 +7,24 @@ from typing import List, Optional
 from decimal import Decimal
 from sqlalchemy.exc import SQLAlchemyError
 from app.services.analytics_service import create_analytics_event
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-def _to_utc(dt: Optional[datetime]) -> datetime:
+
+def _to_utc(
+    dt: Optional[datetime],
+    timezone_name: str,
+) -> datetime:
     if dt is None:
         return datetime.now(timezone.utc)
+
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
+        try:
+            tz = ZoneInfo(timezone_name)
+        except (ZoneInfoNotFoundError, ValueError):
+            tz = ZoneInfo("America/New_York")
+
+        dt = dt.replace(tzinfo=tz)
+
     return dt.astimezone(timezone.utc)
 
 
@@ -20,14 +32,23 @@ def get_expense(db: Session, expense_id: int, user_id: int) -> Expense:
     try:
         expense = (
             db.query(Expense)
-            .filter(Expense.id == expense_id, Expense.user_id == user_id)
+            .filter(
+                Expense.id == expense_id,
+                Expense.user_id == user_id,
+            )
             .first()
         )
     except SQLAlchemyError:
-        raise HTTPException(status_code=500, detail="Database error")
+        raise HTTPException(
+            status_code=500,
+            detail="Database error",
+        )
 
     if not expense:
-        raise HTTPException(status_code=404, detail="Expense not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Expense not found",
+        )
 
     return expense
 
@@ -41,42 +62,82 @@ def get_expenses_for_user(
 ) -> List[Expense]:
 
     try:
-        query = db.query(Expense).filter(Expense.user_id == user_id)
+        query = db.query(Expense).filter(
+            Expense.user_id == user_id
+        )
 
         if start_date:
-            start_dt = _to_utc(datetime.combine(start_date, time.min))
-            query = query.filter(Expense.incurred_at >= start_dt)
+            start_dt = _to_utc(
+                datetime.combine(start_date, time.min),
+                "America/New_York",
+            )
+
+            query = query.filter(
+                Expense.incurred_at >= start_dt
+            )
 
         if end_date:
-            end_dt = _to_utc(datetime.combine(end_date, time.max))
-            query = query.filter(Expense.incurred_at <= end_dt)
+            end_dt = _to_utc(
+                datetime.combine(end_date, time.max),
+                "America/New_York",
+            )
+
+            query = query.filter(
+                Expense.incurred_at <= end_dt
+            )
 
         if sort == "asc":
-            query = query.order_by(Expense.incurred_at.asc())
+            query = query.order_by(
+                Expense.incurred_at.asc()
+            )
         else:
-            query = query.order_by(Expense.incurred_at.desc())
+            query = query.order_by(
+                Expense.incurred_at.desc()
+            )
 
         return query.all()
 
     except SQLAlchemyError:
-        raise HTTPException(status_code=500, detail="Failed to fetch expenses")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch expenses",
+        )
 
 
-def create_expense(db: Session, expense_in: ExpenseCreate, user_id: int) -> Expense:
+def create_expense(
+    db: Session,
+    expense_in: ExpenseCreate,
+    user_id: int,
+    timezone_name: str,
+) -> Expense:
 
     if expense_in.amount is None or expense_in.amount <= 0:
-        raise HTTPException(status_code=400, detail="Amount must be greater than zero")
+        raise HTTPException(
+            status_code=400,
+            detail="Amount must be greater than zero",
+        )
 
     if expense_in.amount > Decimal("1000000"):
-        raise HTTPException(status_code=400, detail="Amount too large")
+        raise HTTPException(
+            status_code=400,
+            detail="Amount too large",
+        )
 
-    if not (Decimal("0") <= expense_in.business_percentage <= Decimal("100")):
+    if not (
+        Decimal("0")
+        <= expense_in.business_percentage
+        <= Decimal("100")
+    ):
         raise HTTPException(
             status_code=400,
             detail="Business percentage must be between 0 and 100",
         )
 
-    incurred_at = _to_utc(expense_in.incurred_at)
+    incurred_at = _to_utc(
+        expense_in.incurred_at,
+        timezone_name,
+    )
+
     now = datetime.now(timezone.utc)
 
     if incurred_at > now:
@@ -93,11 +154,12 @@ def create_expense(db: Session, expense_in: ExpenseCreate, user_id: int) -> Expe
         description=expense_in.description,
         merchant=expense_in.merchant,
         business_percentage=expense_in.business_percentage,
-        receipt_url=str(expense_in.receipt_url)
-        if expense_in.receipt_url
-        else None,
+        receipt_url=(
+            str(expense_in.receipt_url)
+            if expense_in.receipt_url
+            else None
+        ),
     )
-
 
     try:
         db.add(db_expense)
@@ -109,12 +171,16 @@ def create_expense(db: Session, expense_in: ExpenseCreate, user_id: int) -> Expe
             event_type="expense_created",
             user_id=user_id,
         )
+
         return db_expense
 
-    except SQLAlchemyError as error:
+    except SQLAlchemyError:
         db.rollback()
-  
-        raise HTTPException(status_code=500, detail="Failed to create expense")
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to create expense",
+        )
 
 
 def update_expense(
@@ -122,9 +188,15 @@ def update_expense(
     expense_id: int,
     expense_in: ExpenseUpdate,
     user_id: int,
+    timezone_name: str,
 ) -> Expense:
 
-    expense = get_expense(db, expense_id, user_id)
+    expense = get_expense(
+        db,
+        expense_id,
+        user_id,
+    )
+
     now = datetime.now(timezone.utc)
 
     try:
@@ -147,7 +219,10 @@ def update_expense(
             expense.category = expense_in.category
 
         if expense_in.incurred_at is not None:
-            incurred_at = _to_utc(expense_in.incurred_at)
+            incurred_at = _to_utc(
+                expense_in.incurred_at,
+                timezone_name,
+            )
 
             if incurred_at > now:
                 raise HTTPException(
@@ -174,7 +249,9 @@ def update_expense(
                     detail="Business percentage must be between 0 and 100",
                 )
 
-            expense.business_percentage = expense_in.business_percentage
+            expense.business_percentage = (
+                expense_in.business_percentage
+            )
 
         if expense_in.receipt_url is not None:
             expense.receipt_url = (
@@ -185,10 +262,12 @@ def update_expense(
 
         db.commit()
         db.refresh(expense)
+
         return expense
 
     except SQLAlchemyError:
         db.rollback()
+
         raise HTTPException(
             status_code=500,
             detail="Failed to update expense",
@@ -200,7 +279,11 @@ def delete_expense(
     expense_id: int,
     user_id: int,
 ):
-    expense = get_expense(db, expense_id, user_id)
+    expense = get_expense(
+        db,
+        expense_id,
+        user_id,
+    )
 
     try:
         db.delete(expense)
@@ -208,6 +291,7 @@ def delete_expense(
 
     except SQLAlchemyError:
         db.rollback()
+
         raise HTTPException(
             status_code=500,
             detail="Failed to delete expense",
