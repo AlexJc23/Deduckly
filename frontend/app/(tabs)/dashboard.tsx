@@ -18,9 +18,8 @@ import { getCurrentMonthAndYear } from "@/features/reports/utils/date";
 import { StartTripModal } from "@/features/tracking/components/StartTripModal";
 import { useTracking } from "@/features/tracking/context/tracking.context";
 import { useMonthlyGoal } from "@/features/users/hooks/use-monthly-goal";
-import {
-  getPendingTrip,
-} from "@/services/siri.service";
+import { getPendingTrip } from "@/services/siri.service";
+import { useIsTablet } from "@/hooks/use-is-tablet";
 
 const subtitles = [
   "Making taxes slightly less terrible.",
@@ -39,6 +38,8 @@ const subtitles = [
 export default function DashboardScreen() {
   const userQuery = useCurrentUser();
   const { saved } = useLocalSearchParams();
+  const isTablet = useIsTablet();
+  const styles = getStyles(isTablet);
 
   const {
     isTracking,
@@ -212,9 +213,11 @@ export default function DashboardScreen() {
       )}
 
       {monthlyGoal && (
-        <MonthlyIncomeGoalCard
-          monthlyGoal={monthlyGoal}
-        />
+        <View style={styles.goalContainer}>
+          <MonthlyIncomeGoalCard
+            monthlyGoal={monthlyGoal}
+          />
+        </View>
       )}
 
       <View style={styles.taxCard}>
@@ -222,7 +225,7 @@ export default function DashboardScreen() {
           <View style={styles.taxIcon}>
             <Ionicons
               name="calculator-outline"
-              size={18}
+              size={isTablet ? 22 : 18}
               color="#4A6FE3"
             />
           </View>
@@ -244,7 +247,7 @@ export default function DashboardScreen() {
           <View style={styles.savingsIcon}>
             <Ionicons
               name="trending-down-outline"
-              size={15}
+              size={isTablet ? 17 : 15}
               color="#22C55E"
             />
           </View>
@@ -270,7 +273,7 @@ export default function DashboardScreen() {
         <View style={styles.offerIcon}>
           <Ionicons
             name="analytics-outline"
-            size={20}
+            size={isTablet ? 24 : 20}
             color="#4A6FE3"
           />
         </View>
@@ -287,7 +290,7 @@ export default function DashboardScreen() {
 
         <Ionicons
           name="chevron-forward"
-          size={19}
+          size={isTablet ? 22 : 19}
           color="#64748B"
         />
       </Pressable>
@@ -297,7 +300,7 @@ export default function DashboardScreen() {
           <View style={styles.metricIcon}>
             <Ionicons
               name="speedometer-outline"
-              size={17}
+              size={isTablet ? 21 : 17}
               color="#4A6FE3"
             />
           </View>
@@ -315,7 +318,7 @@ export default function DashboardScreen() {
           <View style={styles.metricIcon}>
             <Ionicons
               name="receipt-outline"
-              size={17}
+              size={isTablet ? 21 : 17}
               color="#F4B942"
             />
           </View>
@@ -344,7 +347,7 @@ export default function DashboardScreen() {
           >
             <Ionicons
               name="add-circle-outline"
-              size={18}
+              size={isTablet ? 21 : 18}
               color="#4A6FE3"
             />
 
@@ -365,7 +368,7 @@ export default function DashboardScreen() {
           >
             <Ionicons
               name="receipt-outline"
-              size={18}
+              size={isTablet ? 21 : 18}
               color="#64748B"
             />
 
@@ -399,7 +402,7 @@ export default function DashboardScreen() {
                 ? "navigate"
                 : "play"
             }
-            size={19}
+            size={isTablet ? 22 : 19}
             color={
               isTracking
                 ? "#64748B"
@@ -422,7 +425,7 @@ export default function DashboardScreen() {
           {!isTracking && (
             <Ionicons
               name="chevron-forward"
-              size={18}
+              size={isTablet ? 21 : 18}
               color="#FFFFFF"
             />
           )}
@@ -437,341 +440,364 @@ export default function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: 20,
-    backgroundColor: "#F8FAFC",
-  },
-
-  loadingScreen: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#F8FAFC",
-  },
-
-  banner: {
-    position: "absolute",
-    top: 12,
-    left: 16,
-    right: 16,
-    zIndex: 1000,
-    minHeight: 48,
-    paddingHorizontal: 16,
-    borderRadius: 14,
-    backgroundColor: "#111827",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-
-    shadowColor: "#111827",
-    shadowOpacity: 0.16,
-    shadowRadius: 12,
-    shadowOffset: {
-      width: 0,
-      height: 5,
+const getStyles = (isTablet: boolean) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      paddingHorizontal: isTablet ? 28 : 20,
+      backgroundColor: "#F8FAFC",
     },
 
-    elevation: 5,
-  },
-
-  bannerText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "700",
-  },
-
-  welcomeContainer: {
-    marginTop: 8,
-    marginBottom: 20,
-  },
-
-  welcomeText: {
-    fontSize: 28,
-    letterSpacing: -0.8,
-  },
-
-  welcomeLight: {
-    color: "#64748B",
-    fontWeight: "500",
-  },
-
-  welcomeName: {
-    color: "#111827",
-    fontWeight: "800",
-  },
-
-  welcomeSubtitle: {
-    marginTop: 5,
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#64748B",
-    fontWeight: "500",
-  },
-
-  taxCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    padding: 18,
-    marginTop: 16,
-
-    shadowColor: "#111827",
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    shadowOffset: {
-      width: 0,
-      height: 3,
+    loadingScreen: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#F8FAFC",
     },
 
-    elevation: 2,
-  },
+    banner: {
+      position: "absolute",
+      top: isTablet ? 18 : 12,
+      left: isTablet ? 28 : 16,
+      right: isTablet ? 28 : 16,
+      zIndex: 1000,
+      minHeight: isTablet ? 56 : 48,
+      paddingHorizontal: isTablet ? 20 : 16,
+      borderRadius: isTablet ? 16 : 14,
+      backgroundColor: "#111827",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
 
-  taxHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
+      shadowColor: "#111827",
+      shadowOpacity: 0.16,
+      shadowRadius: 12,
+      shadowOffset: {
+        width: 0,
+        height: 5,
+      },
 
-  taxIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: "#DCE6FF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  taxLabel: {
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 1.1,
-    color: "#64748B",
-  },
-
-  taxAmount: {
-    marginTop: 12,
-    fontSize: 30,
-    lineHeight: 36,
-    fontWeight: "800",
-    letterSpacing: -0.7,
-    color: "#111827",
-  },
-
-  taxHint: {
-    marginTop: 2,
-    fontSize: 12,
-    color: "#64748B",
-  },
-
-  taxSavingsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 16,
-    paddingTop: 13,
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-  },
-
-  savingsIcon: {
-    width: 26,
-    height: 26,
-    borderRadius: 8,
-    backgroundColor: "#DCFCE7",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-
-  taxSavingsText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#22C55E",
-  },
-
-  offerAnalyzerButton: {
-    minHeight: 68,
-    marginTop: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 16,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    flexDirection: "row",
-    alignItems: "center",
-
-    shadowColor: "#111827",
-    shadowOpacity: 0.035,
-    shadowRadius: 8,
-    shadowOffset: {
-      width: 0,
-      height: 2,
+      elevation: 5,
     },
 
-    elevation: 1,
-  },
-
-  offerAnalyzerButtonPressed: {
-    backgroundColor: "#F1F5F9",
-    transform: [{ scale: 0.985 }],
-  },
-
-  offerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "#DCE6FF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  offerTextContainer: {
-    flex: 1,
-    marginLeft: 12,
-  },
-
-  offerTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#111827",
-  },
-
-  offerSubtitle: {
-    marginTop: 2,
-    fontSize: 12,
-    color: "#64748B",
-  },
-
-  metricRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginTop: 12,
-  },
-
-  metricCard: {
-    flex: 1,
-    minHeight: 92,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    padding: 14,
-
-    shadowColor: "#111827",
-    shadowOpacity: 0.03,
-    shadowRadius: 7,
-    shadowOffset: {
-      width: 0,
-      height: 2,
+    bannerText: {
+      color: "#FFFFFF",
+      fontSize: isTablet ? 15 : 14,
+      fontWeight: "700",
     },
 
-    elevation: 1,
-  },
-
-  metricIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 9,
-    backgroundColor: "#F1F5F9",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  metricValue: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: "800",
-    letterSpacing: -0.3,
-    color: "#111827",
-  },
-
-  metricLabel: {
-    marginTop: 1,
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#64748B",
-  },
-
-  actionsContainer: {
-    marginTop: "auto",
-    marginBottom: 18,
-    paddingTop: 14,
-  },
-
-  actionButtonsRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-
-  actionButton: {
-    flex: 1,
-    minHeight: 46,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    gap: 7,
-  },
-
-  actionButtonPressed: {
-    backgroundColor: "#F8FAFC",
-    transform: [{ scale: 0.98 }],
-  },
-
-  actionButtonText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#334155",
-  },
-
-  startTripButton: {
-    marginTop: 12,
-    minHeight: 56,
-    borderRadius: 16,
-    backgroundColor: "#4A6FE3",
-    paddingHorizontal: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 9,
-
-    shadowColor: "#4A6FE3",
-    shadowOpacity: 0.22,
-    shadowRadius: 12,
-    shadowOffset: {
-      width: 0,
-      height: 5,
+    welcomeContainer: {
+      marginTop: isTablet ? 24 : 8,
+      marginBottom: isTablet ? 24 : 20,
+      maxWidth: isTablet ? 1000 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
+      width: isTablet ? "100%" : undefined,
     },
 
-    elevation: 4,
-  },
+    welcomeText: {
+      fontSize: isTablet ? 34 : 28,
+      letterSpacing: -0.8,
+    },
 
-  startTripButtonPressed: {
-    backgroundColor: "#3559C7",
-    transform: [{ scale: 0.985 }],
-  },
+    welcomeLight: {
+      color: "#64748B",
+      fontWeight: "500",
+    },
 
-  startTripButtonTracking: {
-    backgroundColor: "#E2E8F0",
-    shadowOpacity: 0,
-    elevation: 0,
-  },
+    welcomeName: {
+      color: "#111827",
+      fontWeight: "800",
+    },
 
-  startTripButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "700",
-  },
+    welcomeSubtitle: {
+      marginTop: 6,
+      fontSize: isTablet ? 15 : 14,
+      lineHeight: isTablet ? 22 : 20,
+      color: "#64748B",
+      fontWeight: "500",
+    },
 
-  startTripButtonTextTracking: {
-    color: "#475569",
-  },
-});
+    goalContainer: {
+      maxWidth: isTablet ? 1000 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
+      width: isTablet ? "100%" : undefined,
+      marginBottom: isTablet ? 4 : 0,
+    },
+
+    taxCard: {
+      backgroundColor: "#FFFFFF",
+      borderRadius: isTablet ? 20 : 18,
+      borderWidth: 1,
+      borderColor: "#E5E7EB",
+      padding: isTablet ? 22 : 18,
+      marginTop: isTablet ? 18 : 16,
+      maxWidth: isTablet ? 1000 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
+      width: isTablet ? "100%" : undefined,
+
+      shadowColor: "#111827",
+      shadowOpacity: 0.04,
+      shadowRadius: 10,
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
+
+      elevation: 2,
+    },
+
+    taxHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 9,
+    },
+
+    taxIcon: {
+      width: isTablet ? 38 : 32,
+      height: isTablet ? 38 : 32,
+      borderRadius: isTablet ? 11 : 10,
+      backgroundColor: "#DCE6FF",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    taxLabel: {
+      fontSize: isTablet ? 11 : 10,
+      fontWeight: "800",
+      letterSpacing: 1.1,
+      color: "#64748B",
+    },
+
+    taxAmount: {
+      marginTop: isTablet ? 14 : 12,
+      fontSize: isTablet ? 34 : 30,
+      lineHeight: isTablet ? 41 : 36,
+      fontWeight: "800",
+      letterSpacing: -0.7,
+      color: "#111827",
+    },
+
+    taxHint: {
+      marginTop: 3,
+      fontSize: isTablet ? 13 : 12,
+      color: "#64748B",
+    },
+
+    taxSavingsRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: isTablet ? 18 : 16,
+      paddingTop: isTablet ? 14 : 13,
+      borderTopWidth: 1,
+      borderTopColor: "#E5E7EB",
+    },
+
+    savingsIcon: {
+      width: isTablet ? 28 : 26,
+      height: isTablet ? 28 : 26,
+      borderRadius: isTablet ? 9 : 8,
+      backgroundColor: "#DCFCE7",
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 8,
+    },
+
+    taxSavingsText: {
+      fontSize: isTablet ? 14 : 13,
+      fontWeight: "700",
+      color: "#22C55E",
+    },
+
+    offerAnalyzerButton: {
+      minHeight: isTablet ? 76 : 68,
+      marginTop: isTablet ? 16 : 14,
+      paddingHorizontal: isTablet ? 18 : 14,
+      paddingVertical: isTablet ? 14 : 12,
+      borderRadius: isTablet ? 18 : 16,
+      backgroundColor: "#FFFFFF",
+      borderWidth: 1,
+      borderColor: "#E5E7EB",
+      flexDirection: "row",
+      alignItems: "center",
+      maxWidth: isTablet ? 1000 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
+      width: isTablet ? "100%" : undefined,
+
+      shadowColor: "#111827",
+      shadowOpacity: 0.035,
+      shadowRadius: 8,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+
+      elevation: 1,
+    },
+
+    offerAnalyzerButtonPressed: {
+      backgroundColor: "#F1F5F9",
+      transform: [{ scale: 0.985 }],
+    },
+
+    offerIcon: {
+      width: isTablet ? 46 : 40,
+      height: isTablet ? 46 : 40,
+      borderRadius: isTablet ? 14 : 12,
+      backgroundColor: "#DCE6FF",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    offerTextContainer: {
+      flex: 1,
+      marginLeft: isTablet ? 14 : 12,
+    },
+
+    offerTitle: {
+      fontSize: isTablet ? 17 : 15,
+      fontWeight: "700",
+      color: "#111827",
+    },
+
+    offerSubtitle: {
+      marginTop: 2,
+      fontSize: isTablet ? 13 : 12,
+      color: "#64748B",
+    },
+
+    metricRow: {
+      flexDirection: "row",
+      gap: isTablet ? 14 : 12,
+      marginTop: isTablet ? 14 : 12,
+      maxWidth: isTablet ? 1000 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
+      width: isTablet ? "100%" : undefined,
+    },
+
+    metricCard: {
+      flex: 1,
+      minHeight: isTablet ? 112 : 92,
+      backgroundColor: "#FFFFFF",
+      borderRadius: isTablet ? 18 : 16,
+      borderWidth: 1,
+      borderColor: "#E5E7EB",
+      padding: isTablet ? 18 : 14,
+
+      shadowColor: "#111827",
+      shadowOpacity: 0.03,
+      shadowRadius: 7,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+
+      elevation: 1,
+    },
+
+    metricIcon: {
+      width: isTablet ? 34 : 30,
+      height: isTablet ? 34 : 30,
+      borderRadius: isTablet ? 10 : 9,
+      backgroundColor: "#F1F5F9",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    metricValue: {
+      marginTop: isTablet ? 10 : 8,
+      fontSize: isTablet ? 21 : 18,
+      fontWeight: "800",
+      letterSpacing: -0.3,
+      color: "#111827",
+    },
+
+    metricLabel: {
+      marginTop: 2,
+      fontSize: isTablet ? 12 : 11,
+      fontWeight: "600",
+      color: "#64748B",
+    },
+
+    actionsContainer: {
+      marginTop: "auto",
+      marginBottom: isTablet ? 28 : 18,
+      paddingTop: isTablet ? 24 : 14,
+      maxWidth: isTablet ? 1000 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
+      width: isTablet ? "100%" : undefined,
+    },
+
+    actionButtonsRow: {
+      flexDirection: "row",
+      gap: isTablet ? 14 : 10,
+    },
+
+    actionButton: {
+      flex: 1,
+      minHeight: isTablet ? 58 : 46,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#FFFFFF",
+      borderRadius: isTablet ? 15 : 12,
+      paddingHorizontal: isTablet ? 16 : 12,
+      borderWidth: 1,
+      borderColor: "#E5E7EB",
+      gap: 7,
+    },
+
+    actionButtonPressed: {
+      backgroundColor: "#F8FAFC",
+      transform: [{ scale: 0.98 }],
+    },
+
+    actionButtonText: {
+      fontSize: isTablet ? 14 : 13,
+      fontWeight: "700",
+      color: "#334155",
+    },
+
+    startTripButton: {
+      marginTop: isTablet ? 14 : 12,
+      minHeight: isTablet ? 66 : 56,
+      borderRadius: isTablet ? 18 : 16,
+      backgroundColor: "#4A6FE3",
+      paddingHorizontal: isTablet ? 20 : 18,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 9,
+
+      shadowColor: "#4A6FE3",
+      shadowOpacity: 0.22,
+      shadowRadius: 12,
+      shadowOffset: {
+        width: 0,
+        height: 5,
+      },
+
+      elevation: 4,
+    },
+
+    startTripButtonPressed: {
+      backgroundColor: "#3559C7",
+      transform: [{ scale: 0.985 }],
+    },
+
+    startTripButtonTracking: {
+      backgroundColor: "#E2E8F0",
+      shadowOpacity: 0,
+      elevation: 0,
+    },
+
+    startTripButtonText: {
+      color: "#FFFFFF",
+      fontSize: isTablet ? 18 : 16,
+      fontWeight: "700",
+    },
+
+    startTripButtonTextTracking: {
+      color: "#475569",
+    },
+  });

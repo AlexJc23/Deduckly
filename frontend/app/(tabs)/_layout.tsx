@@ -1,8 +1,11 @@
 import { Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { StyleSheet } from "react-native";
+import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function TabsLayout() {
+  const isTablet = useIsTablet();
+
   return (
     <Tabs
       screenOptions={{
@@ -11,13 +14,29 @@ export default function TabsLayout() {
         tabBarActiveTintColor: "#4A6FE3",
         tabBarInactiveTintColor: "#64748B",
 
-        tabBarStyle: styles.tabBar,
+        tabBarActiveBackgroundColor: isTablet
+          ? "#E8EEFF"
+          : undefined,
 
-        tabBarItemStyle: styles.tabBarItem,
+        // iPhone: bottom navigation
+        // iPad: left-side navigation
+        tabBarPosition: isTablet
+          ? "left"
+          : "bottom",
 
-        tabBarLabelStyle: styles.tabBarLabel,
+        tabBarStyle: isTablet
+          ? styles.tabletTabBar
+          : styles.tabBar,
 
-        tabBarIconStyle: styles.tabBarIcon,
+        tabBarItemStyle: isTablet
+          ? styles.tabletTabBarItem
+          : styles.tabBarItem,
+
+        tabBarLabelStyle:
+          styles.tabBarLabel,
+
+        tabBarIconStyle:
+          styles.tabBarIcon,
 
         tabBarHideOnKeyboard: true,
       }}
@@ -26,7 +45,11 @@ export default function TabsLayout() {
         name="dashboard"
         options={{
           title: "Dashboard",
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({
+            color,
+            size,
+            focused,
+          }) => (
             <Ionicons
               name={
                 focused
@@ -44,7 +67,11 @@ export default function TabsLayout() {
         name="activity"
         options={{
           title: "Activity",
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({
+            color,
+            size,
+            focused,
+          }) => (
             <Ionicons
               name={
                 focused
@@ -62,7 +89,11 @@ export default function TabsLayout() {
         name="reports"
         options={{
           title: "Reports",
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({
+            color,
+            size,
+            focused,
+          }) => (
             <Ionicons
               name={
                 focused
@@ -80,7 +111,11 @@ export default function TabsLayout() {
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color, size, focused }) => (
+          tabBarIcon: ({
+            color,
+            size,
+            focused,
+          }) => (
             <Ionicons
               name={
                 focused
@@ -115,8 +150,39 @@ const styles = StyleSheet.create({
     },
   },
 
+  tabletTabBar: {
+    width: 250,
+    paddingTop: 50,
+    paddingHorizontal: 16,
+    backgroundColor: "#FFFFFF",
+    borderRightWidth: 1,
+    borderRightColor: "#E5E7EB",
+    borderTopWidth: 0,
+    elevation: 0,
+
+    shadowColor: "#111827",
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    shadowOffset: {
+      width: 5,
+      height: 0,
+    },
+  },
+
   tabBarItem: {
     paddingVertical: 2,
+  },
+
+  tabletTabBarItem: {
+    width: "100%",
+    height: 56,
+    minHeight: 56,
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    paddingHorizontal: 18,
+    marginVertical: 5,
+    borderRadius: 14,
   },
 
   tabBarIcon: {

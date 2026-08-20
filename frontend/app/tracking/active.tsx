@@ -18,6 +18,7 @@ import {
   getPendingCancel,
 } from "@/services/siri.service";
 import { BackHeader } from "@/components/ui/BackButton";
+import { useIsTablet } from "@/hooks/use-is-tablet";
 
 function formatTime(seconds: number) {
   const hours = Math.floor(seconds / 3600);
@@ -47,6 +48,9 @@ function formatStartTime(date: Date | null) {
 }
 
 export default function ActiveTripScreen() {
+  const isTablet = useIsTablet();
+  const styles = getStyles(isTablet);
+
   const [showEndModal, setShowEndModal] =
     useState(false);
 
@@ -82,216 +86,242 @@ export default function ActiveTripScreen() {
     return () => clearInterval(interval);
   }, [startTime]);
 
-
   useEffect(() => {
-  const interval = setInterval(async () => {
-    const shouldCancel =
-      await getPendingCancel();
+    const interval = setInterval(async () => {
+      const shouldCancel =
+        await getPendingCancel();
 
-    if (shouldCancel) {
+      if (shouldCancel) {
+        clearInterval(interval);
+
+        cancelTracking();
+
+        router.replace(
+          "/(tabs)/dashboard"
+        );
+
+        return;
+      }
+
+      const shouldStop =
+        await getPendingStop();
+
+      if (!shouldStop) return;
+
       clearInterval(interval);
 
-      cancelTracking();
+      const result =
+        await stopTracking(null);
 
-      router.replace(
-        "/(tabs)/dashboard"
-      );
+      if (
+        result === true ||
+        result === "discarded"
+      ) {
+        router.replace(
+          "/(tabs)/dashboard"
+        );
+      }
+    }, 500);
 
-      return;
-    }
-
-    const shouldStop =
-      await getPendingStop();
-
-    if (!shouldStop) return;
-
-    clearInterval(interval);
-
-    const result =
-      await stopTracking(null);
-
-    if (
-      result === true ||
-      result === "discarded"
-    ) {
-      router.replace(
-        "/(tabs)/dashboard"
-      );
-    }
-  }, 500);
-
-  return () => clearInterval(interval);
-}, [stopTracking, cancelTracking]);
+    return () => clearInterval(interval);
+  }, [stopTracking, cancelTracking]);
 
   return (
     <View style={styles.container}>
       <BackHeader />
+
       <View style={styles.content}>
-        {/* Duration */}
-        <View style={styles.durationSection}>
-          <Text style={styles.sectionLabel}>
-            DURATION
-          </Text>
+        <View style={styles.contentInner}>
+          {/* Duration */}
 
-          <Text style={styles.timer}>
-            {formatTime(elapsedSeconds)}
-          </Text>
+          <View style={styles.durationSection}>
+            <View style={styles.liveBadge}>
+              <View style={styles.liveDot} />
 
-          <Text style={styles.timeFormat}>
-            hh:mm:ss
-          </Text>
-        </View>
+              <Text style={styles.liveText}>
+                TRIP IN PROGRESS
+              </Text>
+            </View>
 
-        {/* Distance */}
-        <View style={styles.distanceSection}>
-          <Text style={styles.sectionLabel}>
-            DISTANCE
-          </Text>
-
-          <View style={styles.distanceRow}>
-            <Text style={styles.distanceValue}>
-              {distanceMiles.toFixed(2)}
+            <Text style={styles.sectionLabel}>
+              DURATION
             </Text>
 
-            <Text style={styles.distanceUnit}>
-              mi
+            <Text style={styles.timer}>
+              {formatTime(elapsedSeconds)}
+            </Text>
+
+            <Text style={styles.timeFormat}>
+              hh:mm:ss
             </Text>
           </View>
 
-          <Text style={styles.distanceHint}>
-            miles tracked
-          </Text>
-        </View>
+          {/* Distance */}
 
-        {/* Trip Details */}
-        <View style={styles.detailsCard}>
-          <View style={styles.detailItem}>
+          <View style={styles.distanceSection}>
+            <View style={styles.distanceContent}>
+              <Text style={styles.sectionLabel}>
+                DISTANCE
+              </Text>
+
+              <View style={styles.distanceRow}>
+                <Text style={styles.distanceValue}>
+                  {distanceMiles.toFixed(2)}
+                </Text>
+
+                <Text style={styles.distanceUnit}>
+                  mi
+                </Text>
+              </View>
+
+              <Text style={styles.distanceHint}>
+                miles tracked
+              </Text>
+            </View>
+          </View>
+
+          {/* Trip Details */}
+
+          <View style={styles.detailsCard}>
+            <View style={styles.detailItem}>
+              <View style={styles.detailIcon}>
+                <Ionicons
+                  name="flag-outline"
+                  size={isTablet ? 23 : 18}
+                  color="#4A6FE3"
+                />
+              </View>
+
+              <Text style={styles.detailLabel}>
+                START TIME
+              </Text>
+
+              <Text style={styles.detailValue}>
+                {formatStartTime(startTime)}
+              </Text>
+            </View>
+
+            <View style={styles.detailDivider} />
+
+            <View style={styles.detailItem}>
+              <View style={styles.detailIcon}>
+                <Ionicons
+                  name="speedometer-outline"
+                  size={isTablet ? 23 : 18}
+                  color="#4A6FE3"
+                />
+              </View>
+
+              <Text style={styles.detailLabel}>
+                DISTANCE
+              </Text>
+
+              <Text style={styles.detailValue}>
+                {distanceMiles.toFixed(2)} mi
+              </Text>
+            </View>
+
+            <View style={styles.detailDivider} />
+
+            <View style={styles.detailItem}>
+              <View style={styles.detailIcon}>
+                <Ionicons
+                  name="briefcase-outline"
+                  size={isTablet ? 23 : 18}
+                  color="#4A6FE3"
+                />
+              </View>
+
+              <Text style={styles.detailLabel}>
+                PLATFORM
+              </Text>
+
+              <Text
+                style={styles.detailValue}
+                numberOfLines={1}
+              >
+                {platform
+                  ? platform.replace(
+                      "_",
+                      " "
+                    )
+                  : category === "personal"
+                  ? "Personal"
+                  : "Other"}
+              </Text>
+            </View>
+          </View>
+
+          {/* End Trip */}
+
+          <Pressable
+            onPress={() =>
+              setShowEndModal(true)
+            }
+            style={({ pressed }) => [
+              styles.endTripButton,
+              pressed &&
+                styles.endTripButtonPressed,
+            ]}
+          >
+            <View style={styles.stopIcon}>
+              <View style={styles.stopSquare} />
+            </View>
+
+            <View style={styles.endTripText}>
+              <Text style={styles.endTripTitle}>
+                Stop Trip
+              </Text>
+
+              <Text style={styles.endTripSubtitle}>
+                End and save trip
+              </Text>
+            </View>
+
             <Ionicons
-              name="flag-outline"
-              size={18}
-              color="#111827"
+              name="chevron-forward"
+              size={isTablet ? 25 : 20}
+              color="#94A3B8"
             />
+          </Pressable>
 
-            <Text style={styles.detailLabel}>
-              START TIME
+          {/* Cancel */}
+
+          <Pressable
+            onPress={() =>
+              setShowCancelModal(true)
+            }
+            style={({ pressed }) => [
+              styles.cancelButton,
+              pressed &&
+                styles.cancelButtonPressed,
+            ]}
+          >
+            <Text style={styles.cancelText}>
+              Cancel Trip
             </Text>
+          </Pressable>
 
-            <Text style={styles.detailValue}>
-              {formatStartTime(startTime)}
-            </Text>
-          </View>
+          {/* Security */}
 
-          <View style={styles.detailDivider} />
+          <View style={styles.securityContainer}>
+            <View style={styles.securityIcon}>
+              <Ionicons
+                name="lock-closed"
+                size={isTablet ? 18 : 18}
+                color="#94A3B8"
+              />
+            </View>
 
-          <View style={styles.detailItem}>
-            <Ionicons
-              name="speedometer-outline"
-              size={18}
-              color="#111827"
-            />
+            <View style={styles.securityText}>
+              <Text style={styles.securityTitle}>
+                Your trip data is securely transmitted.
+              </Text>
 
-            <Text style={styles.detailLabel}>
-              DISTANCE
-            </Text>
-
-            <Text style={styles.detailValue}>
-              {distanceMiles.toFixed(2)} mi
-            </Text>
-          </View>
-
-          <View style={styles.detailDivider} />
-
-          <View style={styles.detailItem}>
-            <Ionicons
-              name="briefcase-outline"
-              size={18}
-              color="#111827"
-            />
-
-            <Text style={styles.detailLabel}>
-              PLATFORM
-            </Text>
-
-            <Text
-              style={styles.detailValue}
-              numberOfLines={1}
-            >
-              {platform
-                ? platform.replace(
-                    "_",
-                    " "
-                  )
-                : category === "personal"
-                ? "Personal"
-                : "Other"}
-            </Text>
-          </View>
-        </View>
-
-        {/* End Trip */}
-        <Pressable
-          onPress={() =>
-            setShowEndModal(true)
-          }
-          style={({ pressed }) => [
-            styles.endTripButton,
-            pressed &&
-              styles.endTripButtonPressed,
-          ]}
-        >
-          <View style={styles.stopIcon}>
-            <View style={styles.stopSquare} />
-          </View>
-
-          <View style={styles.endTripText}>
-            <Text style={styles.endTripTitle}>
-              Stop Trip
-            </Text>
-
-            <Text style={styles.endTripSubtitle}>
-              End and save trip
-            </Text>
-          </View>
-
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color="#94A3B8"
-          />
-        </Pressable>
-
-        {/* Cancel */}
-        <Pressable
-          onPress={() =>
-            setShowCancelModal(true)
-          }
-          style={({ pressed }) => [
-            styles.cancelButton,
-            pressed &&
-              styles.cancelButtonPressed,
-          ]}
-        >
-          <Text style={styles.cancelText}>
-            Cancel Trip
-          </Text>
-        </Pressable>
-
-        {/* Security */}
-        <View style={styles.securityContainer}>
-          <Ionicons
-            name="lock-closed"
-            size={18}
-            color="#CBD5E1"
-          />
-
-          <View style={styles.securityText}>
-            <Text style={styles.securityTitle}>
-              Your trip data is securely transmitted.
-            </Text>
-
-            <Text style={styles.securitySubtitle}>
-              You can stop tracking anytime.
-            </Text>
+              <Text style={styles.securitySubtitle}>
+                You can stop tracking anytime.
+              </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -389,224 +419,307 @@ export default function ActiveTripScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
+const getStyles = (isTablet: boolean) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: "#F8FAFC",
+    },
 
-  content: {
-    flex: 1,
-    paddingHorizontal: 12,
-    paddingTop: 28,
-    paddingBottom: 24,
-  },
+    content: {
+      flex: 1,
+      paddingHorizontal: isTablet ? 34 : 12,
+      paddingTop: isTablet ? 18 : 28,
+      paddingBottom: isTablet ? 30 : 24,
+    },
 
-  /* Duration */
+    contentInner: {
+      flex: 1,
+      width: "100%",
+      maxWidth: isTablet ? 900 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
+    },
 
-  durationSection: {
-    alignItems: "center",
-    paddingTop: 10,
-    paddingBottom: 26,
-  },
+    /* Duration */
 
-  sectionLabel: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#64748B",
-    letterSpacing: 0.5,
-  },
+    durationSection: {
+      alignItems: "center",
+      paddingTop: isTablet ? 8 : 10,
+      paddingBottom: isTablet ? 24 : 26,
+    },
 
-  timer: {
-    marginTop: 10,
-    fontSize: 38,
-    lineHeight: 44,
-    fontWeight: "800",
-    color: "#111827",
-    letterSpacing: -1.2,
-    fontVariant: ["tabular-nums"],
-  },
+    liveBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: isTablet ? 14 : 11,
+      height: isTablet ? 32 : 26,
+      borderRadius: isTablet ? 16 : 13,
+      backgroundColor: "#ECFDF3",
+      borderWidth: 1,
+      borderColor: "#BBF7D0",
+      marginBottom: isTablet ? 18 : 13,
+    },
 
-  timeFormat: {
-    marginTop: 5,
-    fontSize: 10,
-    color: "#64748B",
-  },
+    liveDot: {
+      width: isTablet ? 8 : 6,
+      height: isTablet ? 8 : 6,
+      borderRadius: 10,
+      backgroundColor: "#22C55E",
+      marginRight: 7,
+    },
 
-  /* Distance */
+    liveText: {
+      fontSize: isTablet ? 11 : 9,
+      fontWeight: "800",
+      letterSpacing: 0.8,
+      color: "#16A34A",
+    },
 
-  distanceSection: {
-    alignItems: "center",
-    paddingVertical: 26,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: "#CBD5E1",
-  },
+    sectionLabel: {
+      fontSize: isTablet ? 12 : 10,
+      fontWeight: "700",
+      color: "#64748B",
+      letterSpacing: isTablet ? 0.8 : 0.5,
+    },
 
-  distanceRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    marginTop: 8,
-  },
+    timer: {
+      marginTop: isTablet ? 12 : 10,
+      fontSize: isTablet ? 64 : 38,
+      lineHeight: isTablet ? 72 : 44,
+      fontWeight: "800",
+      color: "#111827",
+      letterSpacing: isTablet ? -2 : -1.2,
+      fontVariant: ["tabular-nums"],
+    },
 
-  distanceValue: {
-    fontSize: 34,
-    lineHeight: 38,
-    fontWeight: "800",
-    color: "#111827",
-    letterSpacing: -0.8,
-  },
+    timeFormat: {
+      marginTop: isTablet ? 8 : 5,
+      fontSize: isTablet ? 12 : 10,
+      color: "#64748B",
+    },
 
-  distanceUnit: {
-    marginLeft: 5,
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#475569",
-  },
+    /* Distance */
 
-  distanceHint: {
-    marginTop: 5,
-    fontSize: 10,
-    color: "#64748B",
-  },
+    distanceSection: {
+      alignItems: "center",
+      paddingVertical: isTablet ? 26 : 26,
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderColor: "#CBD5E1",
+    },
 
-  /* Details */
+    distanceContent: {
+      alignItems: "center",
+    },
 
-  detailsCard: {
-    flexDirection: "row",
-    alignItems: "stretch",
-    minHeight: 88,
-    marginTop: 24,
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
-  },
+    distanceRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      marginTop: isTablet ? 10 : 8,
+    },
 
-  detailItem: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 4,
-  },
+    distanceValue: {
+      fontSize: isTablet ? 54 : 34,
+      lineHeight: isTablet ? 62 : 38,
+      fontWeight: "800",
+      color: "#111827",
+      letterSpacing: isTablet ? -1.2 : -0.8,
+      fontVariant: ["tabular-nums"],
+    },
 
-  detailDivider: {
-    width: 1,
-    backgroundColor: "#CBD5E1",
-    marginVertical: 10,
-  },
+    distanceUnit: {
+      marginLeft: isTablet ? 8 : 5,
+      fontSize: isTablet ? 22 : 16,
+      fontWeight: "700",
+      color: "#475569",
+    },
 
-  detailLabel: {
-    marginTop: 7,
-    fontSize: 8,
-    fontWeight: "600",
-    color: "#475569",
-    letterSpacing: 0.2,
-  },
+    distanceHint: {
+      marginTop: isTablet ? 7 : 5,
+      fontSize: isTablet ? 12 : 10,
+      color: "#64748B",
+    },
 
-  detailValue: {
-    marginTop: 5,
-    fontSize: 10,
-    fontWeight: "800",
-    color: "#111827",
-    textTransform: "capitalize",
-    textAlign: "center",
-  },
+    /* Details */
 
-  /* End Trip */
+    detailsCard: {
+      flexDirection: "row",
+      alignItems: "stretch",
+      minHeight: isTablet ? 132 : 88,
+      marginTop: isTablet ? 24 : 24,
+      borderWidth: 1,
+      borderColor: "#CBD5E1",
+      borderRadius: isTablet ? 18 : 10,
+      backgroundColor: "#FFFFFF",
 
-  endTripButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    minHeight: 70,
-    marginTop: 26,
-    paddingHorizontal: 20,
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-    borderRadius: 14,
-    backgroundColor: "#FFFFFF",
-  },
+      shadowColor: "#111827",
+      shadowOpacity: isTablet ? 0.04 : 0,
+      shadowRadius: 10,
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
 
-  endTripButtonPressed: {
-    backgroundColor: "#F8FAFC",
-    transform: [{ scale: 0.985 }],
-  },
+      elevation: isTablet ? 1 : 0,
+    },
 
-  stopIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    borderWidth: 2,
-    borderColor: "#111827",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    detailItem: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: isTablet ? 10 : 4,
+    },
 
-  stopSquare: {
-    width: 12,
-    height: 12,
-    borderRadius: 1,
-    backgroundColor: "#111827",
-  },
+    detailIcon: {
+      width: isTablet ? 42 : 0,
+      height: isTablet ? 42 : 0,
+      borderRadius: isTablet ? 13 : 0,
+      backgroundColor: isTablet
+        ? "#EEF2FF"
+        : "transparent",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: isTablet ? 7 : 0,
+    },
 
-  endTripText: {
-    flex: 1,
-    marginLeft: 12,
-  },
+    detailDivider: {
+      width: 1,
+      backgroundColor: "#CBD5E1",
+      marginVertical: isTablet ? 16 : 10,
+    },
 
-  endTripTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#111827",
-  },
+    detailLabel: {
+      marginTop: isTablet ? 0 : 7,
+      fontSize: isTablet ? 10 : 8,
+      fontWeight: "600",
+      color: "#475569",
+      letterSpacing: isTablet ? 0.4 : 0.2,
+    },
 
-  endTripSubtitle: {
-    marginTop: 3,
-    fontSize: 10,
-    color: "#64748B",
-  },
+    detailValue: {
+      marginTop: isTablet ? 6 : 5,
+      fontSize: isTablet ? 14 : 10,
+      fontWeight: "800",
+      color: "#111827",
+      textTransform: "capitalize",
+      textAlign: "center",
+    },
 
-  /* Cancel */
+    /* End Trip */
 
-  cancelButton: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-  },
+    endTripButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      minHeight: isTablet ? 84 : 70,
+      marginTop: isTablet ? 26 : 26,
+      paddingHorizontal: isTablet ? 24 : 20,
+      borderWidth: 1,
+      borderColor: "#CBD5E1",
+      borderRadius: isTablet ? 18 : 14,
+      backgroundColor: "#FFFFFF",
 
-  cancelButtonPressed: {
-    opacity: 0.5,
-  },
+      shadowColor: "#111827",
+      shadowOpacity: isTablet ? 0.04 : 0,
+      shadowRadius: 10,
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
 
-  cancelText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#DC2626",
-  },
+      elevation: isTablet ? 1 : 0,
+    },
 
-  /* Security */
+    endTripButtonPressed: {
+      backgroundColor: "#F8FAFC",
+      transform: [{ scale: 0.985 }],
+    },
 
-securityContainer: {
-    marginTop: "auto",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 18,
-  },
+    stopIcon: {
+      width: isTablet ? 50 : 38,
+      height: isTablet ? 50 : 38,
+      borderRadius: isTablet ? 25 : 19,
+      borderWidth: isTablet ? 2.5 : 2,
+      borderColor: "#111827",
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  securityText: {
-    marginLeft: 9,
-  },
+    stopSquare: {
+      width: isTablet ? 16 : 12,
+      height: isTablet ? 16 : 12,
+      borderRadius: 2,
+      backgroundColor: "#111827",
+    },
 
-  securityTitle: {
-    fontSize: 10,
-    fontWeight: "600",
-    color: "#64748B",
-  },
+    endTripText: {
+      flex: 1,
+      marginLeft: isTablet ? 16 : 12,
+    },
 
-  securitySubtitle: {
-    marginTop: 2,
-    fontSize: 10,
-    color: "#94A3B8",
-  },
-});
+    endTripTitle: {
+      fontSize: isTablet ? 18 : 15,
+      fontWeight: "700",
+      color: "#111827",
+    },
+
+    endTripSubtitle: {
+      marginTop: isTablet ? 4 : 3,
+      fontSize: isTablet ? 12 : 10,
+      color: "#64748B",
+    },
+
+    /* Cancel */
+
+    cancelButton: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: isTablet ? 18 : 16,
+    },
+
+    cancelButtonPressed: {
+      opacity: 0.5,
+    },
+
+    cancelText: {
+      fontSize: isTablet ? 15 : 14,
+      fontWeight: "700",
+      color: "#DC2626",
+    },
+
+    /* Security */
+
+    securityContainer: {
+      marginTop: "auto",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: isTablet ? 18 : 18,
+    },
+
+    securityIcon: {
+      width: isTablet ? 38 : 0,
+      height: isTablet ? 38 : 0,
+      borderRadius: isTablet ? 12 : 0,
+      backgroundColor: isTablet
+        ? "#F1F5F9"
+        : "transparent",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    securityText: {
+      marginLeft: isTablet ? 10 : 9,
+    },
+
+    securityTitle: {
+      fontSize: isTablet ? 11 : 10,
+      fontWeight: "600",
+      color: "#64748B",
+    },
+
+    securitySubtitle: {
+      marginTop: 3,
+      fontSize: isTablet ? 11 : 10,
+      color: "#94A3B8",
+    },
+  });

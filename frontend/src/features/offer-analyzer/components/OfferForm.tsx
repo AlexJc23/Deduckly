@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { OfferInput } from "../types/offer.types";
+import { useIsTablet } from "@/hooks/use-is-tablet";
 
 type OfferFormProps = {
   onAnalyze: (offer: OfferInput) => void;
@@ -16,6 +17,9 @@ type OfferFormProps = {
 export function OfferForm({
   onAnalyze,
 }: OfferFormProps) {
+  const isTablet = useIsTablet();
+  const styles = getStyles(isTablet);
+
   const [payout, setPayout] = useState("");
   const [distance, setDistance] = useState("");
   const [estimatedTime, setEstimatedTime] =
@@ -40,7 +44,7 @@ export function OfferForm({
         <View style={styles.iconContainer}>
           <Ionicons
             name="analytics-outline"
-            size={20}
+            size={isTablet ? 25 : 20}
             color="#4A6FE3"
           />
         </View>
@@ -132,7 +136,7 @@ export function OfferForm({
         {!isAnalyzeDisabled && (
           <Ionicons
             name="arrow-forward"
-            size={18}
+            size={isTablet ? 21 : 18}
             color="#FFFFFF"
           />
         )}
@@ -141,125 +145,130 @@ export function OfferForm({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    gap: 14,
+const getStyles = (isTablet: boolean) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: "#FFFFFF",
+      borderRadius: isTablet ? 22 : 18,
+      padding: isTablet ? 26 : 18,
+      gap: isTablet ? 18 : 14,
+      borderWidth: 1,
+      borderColor: "#E5E7EB",
 
-    shadowColor: "#111827",
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    shadowOffset: {
-      width: 0,
-      height: 3,
+      shadowColor: "#111827",
+      shadowOpacity: 0.04,
+      shadowRadius: 10,
+      shadowOffset: {
+        width: 0,
+        height: 3,
+      },
+
+      elevation: 2,
+      marginTop: isTablet ? 16 : 10,
+
+      width: "100%",
+      maxWidth: isTablet ? 900 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
     },
 
-    elevation: 2,
-    marginTop: 10,
-  },
-
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-
-  iconContainer: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: "#DCE6FF",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-
-  headerText: {
-    flex: 1,
-  },
-
-  title: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#111827",
-    letterSpacing: -0.4,
-  },
-
-  subtitle: {
-    marginTop: 2,
-    fontSize: 12,
-    color: "#64748B",
-  },
-
-  inputGroup: {
-    gap: 6,
-  },
-
-  label: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#334155",
-  },
-
-  inputWrapper: {
-    height: 48,
-    backgroundColor: "#F8FAFC",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
-
-  input: {
-    flex: 1,
-    paddingHorizontal: 14,
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#111827",
-  },
-
-  button: {
-    height: 50,
-    borderRadius: 13,
-    backgroundColor: "#4A6FE3",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    marginTop: 4,
-
-    shadowColor: "#4A6FE3",
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    shadowOffset: {
-      width: 0,
-      height: 4,
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: isTablet ? 6 : 4,
     },
 
-    elevation: 3,
-  },
+    iconContainer: {
+      width: isTablet ? 52 : 42,
+      height: isTablet ? 52 : 42,
+      borderRadius: isTablet ? 15 : 12,
+      backgroundColor: "#DCE6FF",
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: isTablet ? 15 : 12,
+    },
 
-  buttonPressed: {
-    backgroundColor: "#3559C7",
-    transform: [{ scale: 0.985 }],
-  },
+    headerText: {
+      flex: 1,
+    },
 
-  buttonDisabled: {
-    backgroundColor: "#E2E8F0",
-    shadowOpacity: 0,
-    elevation: 0,
-  },
+    title: {
+      fontSize: isTablet ? 24 : 20,
+      fontWeight: "800",
+      color: "#111827",
+      letterSpacing: -0.4,
+    },
 
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "700",
-  },
+    subtitle: {
+      marginTop: isTablet ? 4 : 2,
+      fontSize: isTablet ? 14 : 12,
+      color: "#64748B",
+    },
 
-  buttonTextDisabled: {
-    color: "#94A3B8",
-  },
-});
+    inputGroup: {
+      gap: isTablet ? 8 : 6,
+    },
+
+    label: {
+      fontSize: isTablet ? 14 : 12,
+      fontWeight: "700",
+      color: "#334155",
+    },
+
+    inputWrapper: {
+      height: isTablet ? 58 : 48,
+      backgroundColor: "#F8FAFC",
+      borderRadius: isTablet ? 14 : 12,
+      borderWidth: 1,
+      borderColor: "#E5E7EB",
+    },
+
+    input: {
+      flex: 1,
+      paddingHorizontal: isTablet ? 17 : 14,
+      fontSize: isTablet ? 17 : 15,
+      fontWeight: "600",
+      color: "#111827",
+    },
+
+    button: {
+      height: isTablet ? 62 : 50,
+      borderRadius: isTablet ? 16 : 13,
+      backgroundColor: "#4A6FE3",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: isTablet ? 9 : 8,
+      marginTop: isTablet ? 6 : 4,
+
+      shadowColor: "#4A6FE3",
+      shadowOpacity: 0.18,
+      shadowRadius: 8,
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+
+      elevation: 3,
+    },
+
+    buttonPressed: {
+      backgroundColor: "#3559C7",
+      transform: [{ scale: 0.985 }],
+    },
+
+    buttonDisabled: {
+      backgroundColor: "#E2E8F0",
+      shadowOpacity: 0,
+      elevation: 0,
+    },
+
+    buttonText: {
+      color: "#FFFFFF",
+      fontSize: isTablet ? 17 : 15,
+      fontWeight: "700",
+    },
+
+    buttonTextDisabled: {
+      color: "#94A3B8",
+    },
+  });

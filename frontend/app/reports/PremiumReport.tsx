@@ -20,8 +20,12 @@ import { CustomReportModal } from "@/features/reports/modals/CustomReportModal";
 import { ExportReportModal } from "@/features/reports/modals/ExportReportModal";
 import { useCurrentReport } from "@/features/reports/hooks/use-current-report";
 import { buildReportParams } from "@/features/reports/utils/build-report-params";
+import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function PremiumReportScreen() {
+  const isTablet = useIsTablet();
+  const styles = getStyles(isTablet);
+
   const [selectedPeriod, setSelectedPeriod] =
     useState<ReportPeriod>("month");
 
@@ -91,17 +95,19 @@ export default function PremiumReportScreen() {
     <View style={styles.screen}>
       {/* Fixed Header */}
       <View style={styles.fixedHeader}>
-        <PremiumHeader
-          onExport={() =>
-            setExportVisible(true)
-          }
-        />
-
-        <View style={styles.periodContainer}>
-          <ReportPeriodSelector
-            selected={selectedPeriod}
-            onSelect={handlePeriodChange}
+        <View style={styles.headerInner}>
+          <PremiumHeader
+            onExport={() =>
+              setExportVisible(true)
+            }
           />
+
+          <View style={styles.periodContainer}>
+            <ReportPeriodSelector
+              selected={selectedPeriod}
+              onSelect={handlePeriodChange}
+            />
+          </View>
         </View>
       </View>
 
@@ -111,45 +117,47 @@ export default function PremiumReportScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>
-            OVERVIEW
-          </Text>
+        <View style={styles.contentInner}>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>
+              OVERVIEW
+            </Text>
 
-          <OverviewCard report={data} />
-        </View>
+            <OverviewCard report={data} />
+          </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>
-            PROFIT & TAX
-          </Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>
+              PROFIT & TAX
+            </Text>
 
-          <ProfitSummaryCard
-            report={data}
-          />
-        </View>
+            <ProfitSummaryCard
+              report={data}
+            />
+          </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>
-            EXPENSES
-          </Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>
+              EXPENSES
+            </Text>
 
-          <ExpenseBreakdownCard
-            report={data}
-          />
-        </View>
+            <ExpenseBreakdownCard
+              report={data}
+            />
+          </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>
-            REPORT TOOLS
-          </Text>
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>
+              REPORT TOOLS
+            </Text>
 
-          <QuickActionsCard
-            report={data}
-            onExport={() =>
-              setExportVisible(true)
-            }
-          />
+            <QuickActionsCard
+              report={data}
+              onExport={() =>
+                setExportVisible(true)
+              }
+            />
+          </View>
         </View>
       </ScrollView>
 
@@ -183,94 +191,107 @@ export default function PremiumReportScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#F6F8FB",
-  },
+const getStyles = (isTablet: boolean) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: "#F6F8FB",
+    },
 
-  fixedHeader: {
-    backgroundColor: "#F6F8FB",
-    paddingHorizontal: 20,
-    paddingTop: 86,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E8ECF2",
-    zIndex: 10,
-  },
+    fixedHeader: {
+      backgroundColor: "#F6F8FB",
+      paddingHorizontal: isTablet ? 34 : 20,
+      paddingTop: isTablet ? 28 : 86,
+      paddingBottom: isTablet ? 20 : 12,
+      borderBottomWidth: 1,
+      borderBottomColor: "#E8ECF2",
+      zIndex: 10,
+    },
 
-  periodContainer: {
-    marginTop: 2,
-  },
+    headerInner: {
+      width: "100%",
+      maxWidth: isTablet ? 1050 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
+    },
 
-  scroll: {
-    flex: 1,
-  },
+    periodContainer: {
+      marginTop: isTablet ? 8 : 2,
+    },
 
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 50,
-  },
+    scroll: {
+      flex: 1,
+    },
 
-  section: {
-    marginBottom: 22,
-  },
+    content: {
+      paddingHorizontal: isTablet ? 34 : 20,
+      paddingTop: isTablet ? 28 : 20,
+      paddingBottom: isTablet ? 60 : 50,
+    },
 
-  sectionLabel: {
-    marginLeft: 2,
-    marginBottom: 9,
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 1.25,
-    color: "#94A3B8",
-  },
+    contentInner: {
+      width: "100%",
+      maxWidth: isTablet ? 1050 : undefined,
+      alignSelf: isTablet ? "center" : undefined,
+    },
 
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#F6F8FB",
-  },
+    section: {
+      marginBottom: isTablet ? 30 : 22,
+    },
 
-  emptyContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 30,
-    backgroundColor: "#F6F8FB",
-  },
+    sectionLabel: {
+      marginLeft: 2,
+      marginBottom: isTablet ? 12 : 9,
+      fontSize: isTablet ? 11 : 9,
+      fontWeight: "800",
+      letterSpacing: 1.25,
+      color: "#94A3B8",
+    },
 
-  emptyIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#EEF2FF",
-    borderWidth: 1,
-    borderColor: "#DDE5FF",
-    marginBottom: 14,
-  },
+    loadingContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#F6F8FB",
+    },
 
-  emptyIconText: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#4A6FE3",
-  },
+    emptyContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: isTablet ? 60 : 30,
+      backgroundColor: "#F6F8FB",
+    },
 
-  emptyTitle: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: "#273449",
-  },
+    emptyIcon: {
+      width: isTablet ? 60 : 46,
+      height: isTablet ? 60 : 46,
+      borderRadius: isTablet ? 18 : 14,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#EEF2FF",
+      borderWidth: 1,
+      borderColor: "#DDE5FF",
+      marginBottom: isTablet ? 18 : 14,
+    },
 
-  emptyText: {
-    maxWidth: 280,
-    marginTop: 6,
-    fontSize: 13,
-    lineHeight: 19,
-    color: "#64748B",
-    textAlign: "center",
-  },
-});
+    emptyIconText: {
+      fontSize: isTablet ? 26 : 20,
+      fontWeight: "700",
+      color: "#4A6FE3",
+    },
+
+    emptyTitle: {
+      fontSize: isTablet ? 22 : 17,
+      fontWeight: "800",
+      color: "#273449",
+    },
+
+    emptyText: {
+      maxWidth: isTablet ? 360 : 280,
+      marginTop: isTablet ? 8 : 6,
+      fontSize: isTablet ? 15 : 13,
+      lineHeight: isTablet ? 22 : 19,
+      color: "#64748B",
+      textAlign: "center",
+    },
+  });
