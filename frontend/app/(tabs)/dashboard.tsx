@@ -457,20 +457,22 @@ const getStyles = (isTablet: boolean) =>
 
     banner: {
       position: "absolute",
-      top: isTablet ? 18 : 12,
-      left: isTablet ? 28 : 16,
-      right: isTablet ? 28 : 16,
+      top: isTablet ? 18 : 50,
+      left: isTablet ? 28 : 8,
+      right: isTablet ? 28 : 8,
       zIndex: 1000,
-      minHeight: isTablet ? 56 : 48,
-      paddingHorizontal: isTablet ? 20 : 16,
-      borderRadius: isTablet ? 16 : 14,
-      backgroundColor: "#111827",
+
+      minHeight: isTablet ? 56 : 52,
+      paddingHorizontal: isTablet ? 20 : 18,
+      borderRadius: isTablet ? 16 : 16,
+
+      backgroundColor: "#3559C7",
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       gap: 8,
 
-      shadowColor: "#111827",
+      shadowColor: "#244181",
       shadowOpacity: 0.16,
       shadowRadius: 12,
       shadowOffset: {

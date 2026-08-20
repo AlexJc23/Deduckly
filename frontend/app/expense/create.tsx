@@ -32,7 +32,9 @@ export default function CreateExpenseScreen() {
             values.businessPercentage,
           ),
           incurred_at:
-            values.incurredAt.toISOString(),
+            values.incurredAt
+              .toLocaleString("sv-SE")
+              .replace(" ", "T"),
         });
 
       if (receiptUri) {
@@ -44,15 +46,19 @@ export default function CreateExpenseScreen() {
 
       router.back();
     } catch (error: any) {
-  console.log(
-    JSON.stringify(error.response?.data, null, 2)
-  );
+      console.log(
+        JSON.stringify(
+          error.response?.data,
+          null,
+          2,
+        ),
+      );
 
-  Alert.alert(
-    "Error",
-    "Unable to create expense."
-  );
-}
+      Alert.alert(
+        "Error",
+        "Unable to create expense.",
+      );
+    }
   }
 
   return (
@@ -76,10 +82,8 @@ export default function CreateExpenseScreen() {
           category: "fuel",
           merchant: "",
           description: "",
-          businessPercentage:
-            "100",
-          incurredAt:
-            new Date(),
+          businessPercentage: "100",
+          incurredAt: new Date(),
         }}
         onSubmit={handleSubmit}
       />

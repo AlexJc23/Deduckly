@@ -1,10 +1,7 @@
 import {
   ActivityIndicator,
-  Animated,
-  Easing,
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   SafeAreaView,
@@ -15,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { router, Link } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
@@ -24,51 +21,22 @@ import Logo from "../../assets/images/logo.svg";
 import { register } from "@/features/auth/api/auth.api";
 
 export default function RegisterScreen() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] =
+    useState("");
+  const [lastName, setLastName] =
+    useState("");
+  const [email, setEmail] =
+    useState("");
+  const [password, setPassword] =
+    useState("");
   const [confirmPassword, setConfirmPassword] =
     useState("");
 
-  const [filingStatus, setFilingStatus] =
-    useState("");
+  const [showPassword, setShowPassword] =
+    useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
 
-  const [
-    showFilingStatusModal,
-    setShowFilingStatusModal,
-  ] = useState(false);
-
-  const modalTranslateY = useRef(
-    new Animated.Value(500)
-  ).current;
-
-  const filingStatuses = [
-    {
-      label: "Single",
-      value: "single",
-    },
-    {
-      label: "Married Filing Jointly",
-      value: "married_filing_jointly",
-    },
-    {
-      label: "Married Filing Separately",
-      value: "married_filing_separately",
-    },
-    {
-      label: "Head of Household",
-      value: "head_of_household",
-    },
-  ];
-
-  /*
-   * Keep the comparison simple.
-   *
-   * Passwords should match exactly.
-   * We do NOT trim passwords because whitespace can
-   * technically be part of a password.
-   */
   const passwordsMatch =
     password.length > 0 &&
     confirmPassword.length > 0 &&
@@ -93,29 +61,6 @@ export default function RegisterScreen() {
     },
   });
 
-  useEffect(() => {
-    if (!showFilingStatusModal) {
-      return;
-    }
-
-    modalTranslateY.setValue(500);
-
-    Animated.timing(
-      modalTranslateY,
-      {
-        toValue: 0,
-        duration: 280,
-        easing: Easing.out(
-          Easing.cubic
-        ),
-        useNativeDriver: true,
-      }
-    ).start();
-  }, [
-    showFilingStatusModal,
-    modalTranslateY,
-  ]);
-
   const handleRegister = () => {
     Keyboard.dismiss();
 
@@ -125,7 +70,6 @@ export default function RegisterScreen() {
       !email.trim() ||
       !password ||
       !confirmPassword ||
-      !filingStatus ||
       !passwordsMatch
     ) {
       return;
@@ -135,8 +79,8 @@ export default function RegisterScreen() {
       first_name: firstName.trim(),
       last_name: lastName.trim(),
       email: email.trim(),
+      filing_status: "single",
       password,
-      filing_status: filingStatus,
     });
   };
 
@@ -146,7 +90,6 @@ export default function RegisterScreen() {
     !email.trim() ||
     !password ||
     !confirmPassword ||
-    !filingStatus ||
     !passwordsMatch ||
     registerMutation.isPending;
 
@@ -324,7 +267,9 @@ export default function RegisterScreen() {
                         onChangeText={setPassword}
                         placeholder="Create a password"
                         placeholderTextColor="#A0AEC0"
-                        secureTextEntry
+                        secureTextEntry={
+                          !showPassword
+                        }
                         autoCapitalize="none"
                         autoCorrect={false}
                         textContentType="newPassword"
@@ -336,6 +281,34 @@ export default function RegisterScreen() {
                           styles.inputWithIcon
                         }
                       />
+
+                      <Pressable
+                        onPress={() =>
+                          setShowPassword(
+                            (current) => !current
+                          )
+                        }
+                        hitSlop={10}
+                        disabled={
+                          registerMutation.isPending
+                        }
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                          showPassword
+                            ? "Hide password"
+                            : "Show password"
+                        }
+                      >
+                        <Ionicons
+                          name={
+                            showPassword
+                              ? "eye-off-outline"
+                              : "eye-outline"
+                          }
+                          size={20}
+                          color="#94A3B8"
+                        />
+                      </Pressable>
                     </View>
                   </View>
 
@@ -372,7 +345,9 @@ export default function RegisterScreen() {
                         }
                         placeholder="Confirm password"
                         placeholderTextColor="#A0AEC0"
-                        secureTextEntry
+                        secureTextEntry={
+                          !showConfirmPassword
+                        }
                         autoCapitalize="none"
                         autoCorrect={false}
                         textContentType="newPassword"
@@ -387,6 +362,34 @@ export default function RegisterScreen() {
                           styles.inputWithIcon
                         }
                       />
+
+                      <Pressable
+                        onPress={() =>
+                          setShowConfirmPassword(
+                            (current) => !current
+                          )
+                        }
+                        hitSlop={10}
+                        disabled={
+                          registerMutation.isPending
+                        }
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                          showConfirmPassword
+                            ? "Hide password"
+                            : "Show password"
+                        }
+                      >
+                        <Ionicons
+                          name={
+                            showConfirmPassword
+                              ? "eye-off-outline"
+                              : "eye-outline"
+                          }
+                          size={20}
+                          color="#94A3B8"
+                        />
+                      </Pressable>
 
                       {passwordsMatch && (
                         <Ionicons
@@ -416,56 +419,6 @@ export default function RegisterScreen() {
                         Passwords match.
                       </Text>
                     )}
-                  </View>
-
-                  {/* Filing Status */}
-
-                  <View style={styles.field}>
-                    <Text style={styles.label}>
-                      Filing status
-                    </Text>
-
-                    <Pressable
-                      disabled={
-                        registerMutation.isPending
-                      }
-                      style={
-                        styles.inputContainer
-                      }
-                      onPress={() =>
-                        setShowFilingStatusModal(
-                          true
-                        )
-                      }
-                    >
-                      <Ionicons
-                        name="document-text-outline"
-                        size={18}
-                        color="#94A3B8"
-                      />
-
-                      <Text
-                        style={[
-                          styles.filingStatusText,
-                          !filingStatus &&
-                            styles.placeholder,
-                        ]}
-                      >
-                        {filingStatus
-                          ? filingStatuses.find(
-                              (item) =>
-                                item.value ===
-                                filingStatus
-                            )?.label
-                          : "Select filing status"}
-                      </Text>
-
-                      <Ionicons
-                        name="chevron-down"
-                        size={18}
-                        color="#94A3B8"
-                      />
-                    </Pressable>
                   </View>
 
                   {/* Error */}
@@ -580,137 +533,6 @@ export default function RegisterScreen() {
                 encrypted.
               </Text>
             </View>
-
-            {/* Filing Status Modal */}
-
-            <Modal
-              visible={showFilingStatusModal}
-              transparent
-              animationType="none"
-              onRequestClose={() =>
-                setShowFilingStatusModal(false)
-              }
-            >
-              <Pressable
-                style={styles.modalOverlay}
-                onPress={() =>
-                  setShowFilingStatusModal(
-                    false
-                  )
-                }
-              >
-                <Animated.View
-                  style={[
-                    styles.modalContent,
-                    {
-                      transform: [
-                        {
-                          translateY:
-                            modalTranslateY,
-                        },
-                      ],
-                    },
-                  ]}
-                >
-                  <Pressable
-                    onPress={(event) =>
-                      event.stopPropagation()
-                    }
-                  >
-                    <View
-                      style={
-                        styles.modalHeader
-                      }
-                    >
-                      <View>
-                        <Text
-                          style={
-                            styles.modalTitle
-                          }
-                        >
-                          Filing status
-                        </Text>
-
-                        <Text
-                          style={
-                            styles.modalSubtitle
-                          }
-                        >
-                          Choose the status you
-                          expect to use.
-                        </Text>
-                      </View>
-
-                      <Pressable
-                        onPress={() =>
-                          setShowFilingStatusModal(
-                            false
-                          )
-                        }
-                        style={
-                          styles.modalClose
-                        }
-                      >
-                        <Ionicons
-                          name="close"
-                          size={20}
-                          color="#475569"
-                        />
-                      </Pressable>
-                    </View>
-
-                    <View
-                      style={
-                        styles.modalOptions
-                      }
-                    >
-                      {filingStatuses.map(
-                        (item) => (
-                          <Pressable
-                            key={item.value}
-                            style={[
-                              styles.modalOption,
-                              filingStatus ===
-                                item.value &&
-                                styles.modalOptionSelected,
-                            ]}
-                            onPress={() => {
-                              setFilingStatus(
-                                item.value
-                              );
-
-                              setShowFilingStatusModal(
-                                false
-                              );
-                            }}
-                          >
-                            <Text
-                              style={[
-                                styles.modalOptionText,
-                                filingStatus ===
-                                  item.value &&
-                                  styles.modalOptionTextSelected,
-                              ]}
-                            >
-                              {item.label}
-                            </Text>
-
-                            {filingStatus ===
-                              item.value && (
-                              <Ionicons
-                                name="checkmark"
-                                size={19}
-                                color="#0072B5"
-                              />
-                            )}
-                          </Pressable>
-                        )
-                      )}
-                    </View>
-                  </Pressable>
-                </Animated.View>
-              </Pressable>
-            </Modal>
           </View>
         </Pressable>
       </KeyboardAvoidingView>
@@ -859,18 +681,6 @@ const styles = StyleSheet.create({
     textAlignVertical: "center",
   },
 
-  filingStatusText: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 15,
-    color: "#273449",
-    textAlign: "center",
-  },
-
-  placeholder: {
-    color: "#A0AEC0",
-  },
-
   inputError: {
     borderColor: "#FCA5A5",
     backgroundColor: "#FFF8F8",
@@ -963,81 +773,5 @@ const styles = StyleSheet.create({
   securityText: {
     fontSize: 10,
     color: "#94A3B8",
-  },
-
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor:
-      "rgba(15, 23, 42, 0.35)",
-  },
-
-  modalContent: {
-    backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingTop: 22,
-    paddingBottom: 34,
-  },
-
-  modalHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    marginBottom: 18,
-  },
-
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#273449",
-  },
-
-  modalSubtitle: {
-    marginTop: 4,
-    fontSize: 13,
-    color: "#64748B",
-  },
-
-  modalClose: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#F1F5F9",
-  },
-
-  modalOptions: {
-    gap: 8,
-  },
-
-  modalOption: {
-    minHeight: 52,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 15,
-    borderRadius: 13,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    backgroundColor: "#FFFFFF",
-  },
-
-  modalOptionSelected: {
-    borderColor: "#0072B5",
-    backgroundColor: "#F0F8FD",
-  },
-
-  modalOptionText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#475569",
-  },
-
-  modalOptionTextSelected: {
-    fontWeight: "800",
-    color: "#0072B5",
   },
 });

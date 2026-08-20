@@ -124,7 +124,13 @@ def login(
             status_code=500,
             detail="Unexpected authentication error",
         )
-
+    
+    if not user.email_verified:
+        raise HTTPException(
+            status_code=403,
+            detail="Please verify your email before logging in.",
+        )
+    
     two_fa = db.query(TwoFactorAuth).filter(
         TwoFactorAuth.user_id == user.id,
         TwoFactorAuth.is_enabled == True,

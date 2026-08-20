@@ -23,6 +23,8 @@ import { setTemporaryToken } from "@/features/auth/services/twofa-storage.servic
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] =
+    useState(false);
 
   const { signIn } = useAuth();
 
@@ -149,7 +151,9 @@ export default function Login() {
 
                   <Pressable
                     onPress={() =>
-                      router.push("/(auth)/forgot-password")
+                      router.push(
+                        "/(auth)/forgot-password",
+                      )
                     }
                   >
                     <Text style={styles.forgotText}>
@@ -168,7 +172,7 @@ export default function Login() {
                   <TextInput
                     value={password}
                     onChangeText={setPassword}
-                    secureTextEntry
+                    secureTextEntry={!showPassword}
                     textContentType="password"
                     placeholder="Enter your password"
                     placeholderTextColor="#A0AEC0"
@@ -179,6 +183,34 @@ export default function Login() {
                     onSubmitEditing={handleLogin}
                     style={styles.input}
                   />
+
+                  <Pressable
+                    onPress={() =>
+                      setShowPassword(
+                        (current) => !current,
+                      )
+                    }
+                    hitSlop={10}
+                    disabled={
+                      loginMutation.isPending
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      showPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                  >
+                    <Ionicons
+                      name={
+                        showPassword
+                          ? "eye-off-outline"
+                          : "eye-outline"
+                      }
+                      size={20}
+                      color="#94A3B8"
+                    />
+                  </Pressable>
                 </View>
               </View>
 
