@@ -53,6 +53,7 @@ async def create_expense_endpoint(
         db=db,
         expense_in=expense_in,
         user_id=current_user.id,
+        timezone_name=current_user.timezone,
     )
 
     expense.receipt_url = generate_presigned_url(
@@ -181,6 +182,7 @@ async def update_expense_endpoint(
         expense_id=expense_id,
         expense_in=expense_in,
         user_id=current_user.id,
+        timezone_name=current_user.timezone,
     )
 
     expense.receipt_url = (
