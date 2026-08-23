@@ -151,6 +151,7 @@ class UserResponse(BaseModel):
     business_type: str
     tax_method: str
     is_premium: bool
+    two_fa_enabled: bool
 
     # Goals
     monthly_income_goal: Decimal | None = None

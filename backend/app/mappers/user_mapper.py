@@ -13,6 +13,11 @@ def to_user_response(user: User) -> UserResponse:
 
         is_active=user.is_active,
         is_premium=is_user_premium(user),
+        two_fa_enabled=(
+            user.two_factor.is_enabled
+            if user.two_factor
+            else False
+        ),
 
         filing_status=user.filing_status,
         business_type=user.business_type,

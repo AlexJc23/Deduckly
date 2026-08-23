@@ -53,20 +53,24 @@ export default function VerifyEmail() {
       <View style={styles.container}>
         <View style={styles.content}>
           <View style={styles.brand}>
-            <Logo
-              width={58}
-              height={58}
-              color="#0072B5"
-            />
+            <View style={styles.logoContainer}>
+              <Logo
+                width={58}
+                height={58}
+                color="#0072B5"
+              />
+            </View>
           </View>
 
           {!token && (
-            <>
-              <Ionicons
-                name="mail-outline"
-                size={42}
-                color="#0072B5"
-              />
+            <View style={styles.stateContainer}>
+              <View style={styles.iconCircle}>
+                <Ionicons
+                  name="mail-outline"
+                  size={28}
+                  color="#0072B5"
+                />
+              </View>
 
               <Text style={styles.eyebrow}>
                 VERIFY YOUR EMAIL
@@ -77,13 +81,28 @@ export default function VerifyEmail() {
               </Text>
 
               <Text style={styles.subtitle}>
-                We sent a verification link to{" "}
-                {email || "your email address"}.
+                We sent a verification link to
               </Text>
 
-              <Text style={styles.subtitle}>
+              <View style={styles.emailPill}>
+                <Ionicons
+                  name="mail-outline"
+                  size={15}
+                  color="#0072B5"
+                />
+
+                <Text
+                  style={styles.emailText}
+                  numberOfLines={1}
+                >
+                  {email || "your email address"}
+                </Text>
+              </View>
+
+              <Text style={styles.helperText}>
                 Tap the link in the email to verify
-                your account.
+                your account and finish setting
+                things up.
               </Text>
 
               {email && (
@@ -91,7 +110,13 @@ export default function VerifyEmail() {
                   disabled={
                     resendVerificationMutation.isPending
                   }
-                  style={styles.button}
+                  style={({ pressed }) => [
+                    styles.button,
+                    pressed &&
+                      styles.buttonPressed,
+                    resendVerificationMutation.isPending &&
+                      styles.buttonDisabled,
+                  ]}
                   onPress={() =>
                     resendVerificationMutation.mutate(
                       email
@@ -104,33 +129,55 @@ export default function VerifyEmail() {
                       color="#FFFFFF"
                     />
                   ) : (
-                    <Text style={styles.buttonText}>
-                      Resend Verification Email
-                    </Text>
+                    <>
+                      <Ionicons
+                        name="refresh-outline"
+                        size={18}
+                        color="#FFFFFF"
+                      />
+
+                      <Text style={styles.buttonText}>
+                        Resend Verification Email
+                      </Text>
+                    </>
                   )}
                 </Pressable>
               )}
 
               <Pressable
-                style={styles.secondaryButton}
+                style={({ pressed }) => [
+                  styles.secondaryButton,
+                  pressed &&
+                    styles.secondaryButtonPressed,
+                ]}
                 onPress={() =>
                   router.replace("/(auth)/login")
                 }
               >
-                <Text style={styles.secondaryButtonText}>
+                <Ionicons
+                  name="arrow-back"
+                  size={16}
+                  color="#64748B"
+                />
+
+                <Text
+                  style={styles.secondaryButtonText}
+                >
                   Back to Login
                 </Text>
               </Pressable>
-            </>
+            </View>
           )}
 
           {isLoading && (
-            <>
-              <Ionicons
-                name="mail-outline"
-                size={42}
-                color="#0072B5"
-              />
+            <View style={styles.stateContainer}>
+              <View style={styles.iconCircle}>
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={29}
+                  color="#0072B5"
+                />
+              </View>
 
               <Text style={styles.eyebrow}>
                 EMAIL VERIFICATION
@@ -141,25 +188,37 @@ export default function VerifyEmail() {
               </Text>
 
               <Text style={styles.subtitle}>
-                Please wait while we verify your
-                email address.
+                Please wait while we securely verify
+                your email address.
               </Text>
 
-              <ActivityIndicator
-                size="small"
-                color="#0072B5"
-                style={styles.loader}
-              />
-            </>
+              <View style={styles.loadingCard}>
+                <ActivityIndicator
+                  size="small"
+                  color="#0072B5"
+                />
+
+                <Text style={styles.loadingText}>
+                  Verifying account...
+                </Text>
+              </View>
+            </View>
           )}
 
           {isSuccess && (
-            <>
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={48}
-                color="#16A34A"
-              />
+            <View style={styles.stateContainer}>
+              <View
+                style={[
+                  styles.iconCircle,
+                  styles.successCircle,
+                ]}
+              >
+                <Ionicons
+                  name="checkmark"
+                  size={30}
+                  color="#16A34A"
+                />
+              </View>
 
               <Text style={styles.eyebrow}>
                 EMAIL VERIFIED
@@ -171,18 +230,37 @@ export default function VerifyEmail() {
 
               <Text style={styles.subtitle}>
                 Your email has been successfully
-                verified. Taking you to login...
+                verified.
               </Text>
-            </>
+
+              <View style={styles.successCard}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color="#16A34A"
+                />
+
+                <Text style={styles.successText}>
+                  Taking you to login...
+                </Text>
+              </View>
+            </View>
           )}
 
           {isError && (
-            <>
-              <Ionicons
-                name="alert-circle-outline"
-                size={48}
-                color="#DC2626"
-              />
+            <View style={styles.stateContainer}>
+              <View
+                style={[
+                  styles.iconCircle,
+                  styles.errorCircle,
+                ]}
+              >
+                <Ionicons
+                  name="alert-outline"
+                  size={30}
+                  color="#DC2626"
+                />
+              </View>
 
               <Text style={styles.eyebrow}>
                 VERIFICATION FAILED
@@ -202,7 +280,13 @@ export default function VerifyEmail() {
                   disabled={
                     resendVerificationMutation.isPending
                   }
-                  style={styles.button}
+                  style={({ pressed }) => [
+                    styles.button,
+                    pressed &&
+                      styles.buttonPressed,
+                    resendVerificationMutation.isPending &&
+                      styles.buttonDisabled,
+                  ]}
                   onPress={() =>
                     resendVerificationMutation.mutate(
                       email
@@ -215,33 +299,55 @@ export default function VerifyEmail() {
                       color="#FFFFFF"
                     />
                   ) : (
-                    <Text style={styles.buttonText}>
-                      Resend Verification Email
-                    </Text>
+                    <>
+                      <Ionicons
+                        name="refresh-outline"
+                        size={18}
+                        color="#FFFFFF"
+                      />
+
+                      <Text style={styles.buttonText}>
+                        Resend Verification Email
+                      </Text>
+                    </>
                   )}
                 </Pressable>
               )}
 
               <Pressable
-                style={styles.secondaryButton}
+                style={({ pressed }) => [
+                  styles.secondaryButton,
+                  pressed &&
+                    styles.secondaryButtonPressed,
+                ]}
                 onPress={() =>
                   router.replace("/(auth)/login")
                 }
               >
-                <Text style={styles.secondaryButtonText}>
+                <Ionicons
+                  name="arrow-back"
+                  size={16}
+                  color="#64748B"
+                />
+
+                <Text
+                  style={styles.secondaryButtonText}
+                >
                   Back to Login
                 </Text>
               </Pressable>
-            </>
+            </View>
           )}
         </View>
 
         <View style={styles.security}>
-          <Ionicons
-            name="shield-checkmark-outline"
-            size={15}
-            color="#94A3B8"
-          />
+          <View style={styles.securityIcon}>
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={14}
+              color="#64748B"
+            />
+          </View>
 
           <Text style={styles.securityText}>
             Your information is securely encrypted.
@@ -272,20 +378,79 @@ const styles = StyleSheet.create({
   },
 
   brand: {
-    marginBottom: 30,
+    marginBottom: 34,
+  },
+
+  logoContainer: {
+    width: 76,
+    height: 76,
+    alignItems: "center",
+    justifyContent: "center",
+
+
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+
+    elevation: 3,
+  },
+
+  stateContainer: {
+    width: "100%",
+    maxWidth: 430,
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    paddingHorizontal: 26,
+    paddingTop: 28,
+    paddingBottom: 26,
+
+    borderWidth: 1,
+    borderColor: "#E5EAF0",
+
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.05,
+    shadowRadius: 18,
+    shadowOffset: {
+      width: 0,
+      height: 7,
+    },
+
+    elevation: 3,
+  },
+
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: "#EAF4FB",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 17,
+  },
+
+  successCircle: {
+    backgroundColor: "#DCFCE7",
+  },
+
+  errorCircle: {
+    backgroundColor: "#FEE2E2",
   },
 
   eyebrow: {
-    marginTop: 20,
     fontSize: 9,
     fontWeight: "800",
-    letterSpacing: 1.3,
+    letterSpacing: 1.35,
     color: "#64748B",
+    marginBottom: 7,
   },
 
   title: {
-    marginTop: 7,
-    fontSize: 30,
+    fontSize: 29,
     lineHeight: 35,
     fontWeight: "800",
     letterSpacing: -0.8,
@@ -302,51 +467,155 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  loader: {
-    marginTop: 24,
+  emailPill: {
+    maxWidth: "100%",
+    minHeight: 38,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    marginTop: 16,
+    paddingHorizontal: 13,
+    borderRadius: 11,
+    backgroundColor: "#F0F7FC",
+    borderWidth: 1,
+    borderColor: "#D7EAF6",
+  },
+
+  emailText: {
+    flexShrink: 1,
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0072B5",
+  },
+
+  helperText: {
+    maxWidth: 330,
+    marginTop: 14,
+    fontSize: 12,
+    lineHeight: 18,
+    color: "#94A3B8",
+    textAlign: "center",
   },
 
   button: {
+    width: "100%",
     height: 54,
-    minWidth: 180,
-    marginTop: 28,
-    paddingHorizontal: 24,
+    marginTop: 25,
     borderRadius: 15,
     backgroundColor: "#0072B5",
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: 9,
+
+    shadowColor: "#0072B5",
+    shadowOpacity: 0.18,
+    shadowRadius: 9,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+
+    elevation: 3,
+  },
+
+  buttonPressed: {
+    backgroundColor: "#005F96",
+    transform: [{ scale: 0.985 }],
+  },
+
+  buttonDisabled: {
+    opacity: 0.65,
   },
 
   buttonText: {
     color: "#FFFFFF",
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "800",
+  },
+
+  secondaryButton: {
+    minHeight: 46,
+    marginTop: 8,
+    paddingHorizontal: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    borderRadius: 12,
+  },
+
+  secondaryButtonPressed: {
+    backgroundColor: "#F1F5F9",
+  },
+
+  secondaryButtonText: {
+    color: "#64748B",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
+  loadingCard: {
+    width: "100%",
+    minHeight: 52,
+    marginTop: 24,
+    borderRadius: 13,
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 9,
+  },
+
+  loadingText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#64748B",
+  },
+
+  successCard: {
+    width: "100%",
+    minHeight: 52,
+    marginTop: 24,
+    paddingHorizontal: 16,
+    borderRadius: 13,
+    backgroundColor: "#F0FDF4",
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+
+  successText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#15803D",
   },
 
   security: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 7,
     paddingTop: 20,
+  },
+
+  securityIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    backgroundColor: "#E9EEF4",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   securityText: {
     fontSize: 10,
     color: "#94A3B8",
-  },
-
-  secondaryButton: {
-    height: 48,
-    marginTop: 12,
-    paddingHorizontal: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  secondaryButtonText: {
-    color: "#64748B",
-    fontSize: 14,
-    fontWeight: "700",
+    fontWeight: "600",
   },
 });

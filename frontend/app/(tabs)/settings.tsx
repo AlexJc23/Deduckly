@@ -149,6 +149,30 @@ export default function SettingsScreen() {
                     />
                 </Pressable>
 
+                    {/* app icon change */}
+                <Pressable
+                    style={styles.card}
+                    onPress={() =>
+                        router.push("/settings/app-icons")
+                    }
+                >
+                    <View style={styles.rowContent}>
+                        <Text style={styles.rowTitle}>
+                            App Icon
+                        </Text>
+
+                        <Text style={styles.subtitle}>
+                            Choose your Deduckly app icon
+                        </Text>
+                    </View>
+
+                    <Ionicons
+                        name="chevron-forward"
+                        size={isTablet ? 24 : 20}
+                        color="#9CA3AF"
+                    />
+                </Pressable>
+
                 <Pressable
                     style={styles.card}
                     onPress={() =>

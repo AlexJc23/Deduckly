@@ -1,689 +1,640 @@
 import {
   ActivityIndicator,
-  Keyboard,
   Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { useState } from "react";
+import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import Logo from "../../assets/images/logo.svg";
 
-import { forgotPassword } from "@/features/auth/api/auth.api";
+import {
+  resendVerification,
+  verifyEmail,
+} from "@/features/auth/api/auth.api";
 
-export default function ForgotPassword() {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+import { useIsTablet } from "@/hooks/use-is-tablet";
 
-  const forgotPasswordMutation = useMutation({
-    mutationFn: forgotPassword,
+export default function VerifyEmail() {
+  const { token, email } = useLocalSearchParams<{
+    token?: string;
+    email?: string;
+  }>();
+
+  const isTablet = useIsTablet();
+  const styles = getStyles(isTablet);
+
+  const verifyEmailMutation = useMutation({
+    mutationFn: verifyEmail,
 
     onSuccess: () => {
-      setSubmitted(true);
+      setTimeout(() => {
+        router.replace("/(auth)/login");
+      }, 1500);
     },
   });
 
-  const handleSubmit = () => {
-    Keyboard.dismiss();
+  const resendVerificationMutation = useMutation({
+    mutationFn: resendVerification,
+  });
 
-    if (!email.trim()) {
-      return;
+  useEffect(() => {
+    if (token) {
+      verifyEmailMutation.mutate(token);
     }
+  }, [token]);
 
-    forgotPasswordMutation.mutate({
-      email: email.trim(),
-    });
-  };
-
-  const isDisabled =
-    !email.trim() ||
-    forgotPasswordMutation.isPending;
+  const isLoading = verifyEmailMutation.isPending;
+  const isSuccess = verifyEmailMutation.isSuccess;
+  const isError = verifyEmailMutation.isError;
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.screen}>
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.container}>
-            <Pressable
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <View style={styles.backIcon}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <View style={styles.brand}>
+            <View
+  style={[
+    styles.logoContainer,
+    {
+      width: isTablet ? 92 : 76,
+      height: isTablet ? 92 : 76,
+    },
+  ]}
+>
+  <Logo
+    width="100%"
+    height="100%"
+    color="#377ca4"
+  />
+</View>
+          </View>
+
+          {!token && (
+            <View style={styles.stateContainer}>
+              <View style={styles.iconCircle}>
                 <Ionicons
-                  name="arrow-back"
-                  size={17}
-                  color="#475569"
-                />
-              </View>
-
-              <Text style={styles.backText}>
-                Back to Sign In
-              </Text>
-            </Pressable>
-
-            <View style={styles.content}>
-              {!submitted ? (
-                <>
-                  <View style={styles.brand}>
-                    <Logo
-                      width={48}
-                      height={48}
-                      color="#0072B5"
-                    />
-                  </View>
-
-                  <View style={styles.header}>
-                    <Text style={styles.eyebrow}>
-                      ACCOUNT RECOVERY
-                    </Text>
-
-                    <Text style={styles.title}>
-                      Reset your password
-                    </Text>
-
-                    <Text style={styles.subtitle}>
-                      Enter the email associated with your
-                      account and we'll send you a secure
-                      reset link.
-                    </Text>
-                  </View>
-
-                  <View style={styles.formCard}>
-                    <View style={styles.field}>
-                      <Text style={styles.label}>
-                        EMAIL ADDRESS
-                      </Text>
-
-                      <View
-                        style={[
-                          styles.inputContainer,
-                          email.length > 0 &&
-                            styles.inputContainerActive,
-                        ]}
-                      >
-                        <View style={styles.inputIcon}>
-                          <Ionicons
-                            name="mail-outline"
-                            size={17}
-                            color="#0072B5"
-                          />
-                        </View>
-
-                        <TextInput
-                          value={email}
-                          onChangeText={setEmail}
-                          autoCapitalize="none"
-                          autoCorrect={false}
-                          keyboardType="email-address"
-                          textContentType="emailAddress"
-                          placeholder="you@example.com"
-                          placeholderTextColor="#A0AEC0"
-                          editable={
-                            !forgotPasswordMutation.isPending
-                          }
-                          style={styles.input}
-                          returnKeyType="send"
-                          onSubmitEditing={handleSubmit}
-                        />
-                      </View>
-                    </View>
-
-                    {forgotPasswordMutation.isError && (
-                      <View style={styles.errorContainer}>
-                        <View style={styles.errorIcon}>
-                          <Ionicons
-                            name="alert-outline"
-                            size={14}
-                            color="#DC2626"
-                          />
-                        </View>
-
-                        <Text style={styles.errorText}>
-                          Something went wrong. Please try
-                          again.
-                        </Text>
-                      </View>
-                    )}
-
-                    <Pressable
-                      disabled={isDisabled}
-                      style={[
-                        styles.button,
-                        isDisabled &&
-                          styles.buttonDisabled,
-                      ]}
-                      onPress={handleSubmit}
-                    >
-                      {forgotPasswordMutation.isPending ? (
-                        <>
-                          <ActivityIndicator
-                            size="small"
-                            color="#FFFFFF"
-                          />
-
-                          <Text style={styles.buttonText}>
-                            Sending reset link...
-                          </Text>
-                        </>
-                      ) : (
-                        <>
-                          <Text style={styles.buttonText}>
-                            Send Reset Link
-                          </Text>
-
-                          <Ionicons
-                            name="arrow-forward"
-                            size={17}
-                            color="#FFFFFF"
-                          />
-                        </>
-                      )}
-                    </Pressable>
-
-                    <View style={styles.formHint}>
-                      <Ionicons
-                        name="lock-closed-outline"
-                        size={13}
-                        color="#94A3B8"
-                      />
-
-                      <Text style={styles.formHintText}>
-                        Your reset link will be securely
-                        encrypted.
-                      </Text>
-                    </View>
-                  </View>
-                </>
-              ) : (
-                <View style={styles.success}>
-                  <View style={styles.successLogo}>
-                    <Logo
-                      width={42}
-                      height={42}
-                      color="#0072B5"
-                    />
-                  </View>
-
-                  <Text style={styles.successEyebrow}>
-                    REQUEST RECEIVED
-                  </Text>
-
-                  <Text style={styles.successTitle}>
-                    Check your email
-                  </Text>
-
-                  <Text style={styles.successSubtitle}>
-                    If an account exists for{" "}
-                    <Text style={styles.emailHighlight}>
-                      {email.trim()}
-                    </Text>
-                    , we've sent a secure link to reset
-                    your password.
-                  </Text>
-
-                  <View style={styles.successCard}>
-                    <View style={styles.successRow}>
-                      <View style={styles.successCheck}>
-                        <Ionicons
-                          name="checkmark"
-                          size={15}
-                          color="#0072B5"
-                        />
-                      </View>
-
-                      <View style={styles.successTextContainer}>
-                        <Text style={styles.successCardTitle}>
-                          Check your inbox
-                        </Text>
-
-                        <Text style={styles.successCardText}>
-                          The reset link may take a few
-                          moments to arrive.
-                        </Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.successDivider} />
-
-                    <View style={styles.successRow}>
-                      <View style={styles.successCheck}>
-                        <Ionicons
-                          name="shield-checkmark-outline"
-                          size={15}
-                          color="#0072B5"
-                        />
-                      </View>
-
-                      <View style={styles.successTextContainer}>
-                        <Text style={styles.successCardTitle}>
-                          Link expires for security
-                        </Text>
-
-                        <Text style={styles.successCardText}>
-                          Use the link promptly to reset
-                          your password.
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View style={styles.successActions}>
-                    <Pressable
-                      style={styles.returnButton}
-                      onPress={() => router.back()}
-                    >
-                      <Ionicons
-                        name="arrow-back"
-                        size={16}
-                        color="#0072B5"
-                      />
-
-                      <Text style={styles.returnButtonText}>
-                        Return to Sign In
-                      </Text>
-                    </Pressable>
-
-                    <Pressable
-                      style={styles.tryAgainButton}
-                      onPress={() => {
-                        setSubmitted(false);
-                        forgotPasswordMutation.reset();
-                      }}
-                    >
-                      <Text style={styles.tryAgainText}>
-                        Use a different email
-                      </Text>
-                    </Pressable>
-                  </View>
-                </View>
-              )}
-            </View>
-
-            <View style={styles.security}>
-              <View style={styles.securityIcon}>
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={14}
+                  name="mail-outline"
+                  size={isTablet ? 32 : 28}
                   color="#0072B5"
                 />
               </View>
 
-              <Text style={styles.securityText}>
-                Your information is securely encrypted.
+              <Text style={styles.eyebrow}>
+                VERIFY YOUR EMAIL
               </Text>
+
+              <Text style={styles.title}>
+                Check your inbox
+              </Text>
+
+              <Text style={styles.subtitle}>
+                We sent a verification link to
+              </Text>
+
+              <View style={styles.emailPill}>
+                <Ionicons
+                  name="mail-outline"
+                  size={isTablet ? 17 : 15}
+                  color="#0072B5"
+                />
+
+                <Text
+                  style={styles.emailText}
+                  numberOfLines={1}
+                >
+                  {email || "your email address"}
+                </Text>
+              </View>
+
+              <Text style={styles.helperText}>
+                Tap the link in the email to verify
+                your account
+                and finish setting
+                things up.
+              </Text>
+
+              {email && (
+                <Pressable
+                  disabled={
+                    resendVerificationMutation.isPending
+                  }
+                  style={({ pressed }) => [
+                    styles.button,
+                    pressed &&
+                      styles.buttonPressed,
+                    resendVerificationMutation.isPending &&
+                      styles.buttonDisabled,
+                  ]}
+                  onPress={() =>
+                    resendVerificationMutation.mutate(
+                      email
+                    )
+                  }
+                >
+                  {resendVerificationMutation.isPending ? (
+                    <ActivityIndicator
+                      size="small"
+                      color="#FFFFFF"
+                    />
+                  ) : (
+                    <>
+                      <Ionicons
+                        name="refresh-outline"
+                        size={18}
+                        color="#FFFFFF"
+                      />
+
+                      <Text style={styles.buttonText}>
+                        Resend Verification Email
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+              )}
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.secondaryButton,
+                  pressed &&
+                    styles.secondaryButtonPressed,
+                ]}
+                onPress={() =>
+                  router.replace("/(auth)/login")
+                }
+              >
+                <Ionicons
+                  name="arrow-back"
+                  size={16}
+                  color="#64748B"
+                />
+
+                <Text
+                  style={styles.secondaryButtonText}
+                >
+                  Back to Login
+                </Text>
+              </Pressable>
             </View>
+          )}
+
+          {isLoading && (
+            <View style={styles.stateContainer}>
+              <View style={styles.iconCircle}>
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={isTablet ? 32 : 29}
+                  color="#0072B5"
+                />
+              </View>
+
+              <Text style={styles.eyebrow}>
+                EMAIL VERIFICATION
+              </Text>
+
+              <Text style={styles.title}>
+                Verifying your email
+              </Text>
+
+              <Text style={styles.subtitle}>
+                Please wait while we securely verify
+                your email address.
+              </Text>
+
+              <View style={styles.loadingCard}>
+                <ActivityIndicator
+                  size="small"
+                  color="#0072B5"
+                />
+
+                <Text style={styles.loadingText}>
+                  Verifying account...
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {isSuccess && (
+            <View style={styles.stateContainer}>
+              <View
+                style={[
+                  styles.iconCircle,
+                  styles.successCircle,
+                ]}
+              >
+                <Ionicons
+                  name="checkmark"
+                  size={isTablet ? 34 : 30}
+                  color="#16A34A"
+                />
+              </View>
+
+              <Text style={styles.eyebrow}>
+                EMAIL VERIFIED
+              </Text>
+
+              <Text style={styles.title}>
+                You're all set
+              </Text>
+
+              <Text style={styles.subtitle}>
+                Your email has been successfully
+                verified.
+              </Text>
+
+              <View style={styles.successCard}>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color="#16A34A"
+                />
+
+                <Text style={styles.successText}>
+                  Taking you to login...
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {isError && (
+            <View style={styles.stateContainer}>
+              <View
+                style={[
+                  styles.iconCircle,
+                  styles.errorCircle,
+                ]}
+              >
+                <Ionicons
+                  name="alert-outline"
+                  size={isTablet ? 34 : 30}
+                  color="#DC2626"
+                />
+              </View>
+
+              <Text style={styles.eyebrow}>
+                VERIFICATION FAILED
+              </Text>
+
+              <Text style={styles.title}>
+                Link is invalid or expired
+              </Text>
+
+              <Text style={styles.subtitle}>
+                This verification link is no longer
+                valid. Please request a new one.
+              </Text>
+
+              {email && (
+                <Pressable
+                  disabled={
+                    resendVerificationMutation.isPending
+                  }
+                  style={({ pressed }) => [
+                    styles.button,
+                    pressed &&
+                      styles.buttonPressed,
+                    resendVerificationMutation.isPending &&
+                      styles.buttonDisabled,
+                  ]}
+                  onPress={() =>
+                    resendVerificationMutation.mutate(
+                      email
+                    )
+                  }
+                >
+                  {resendVerificationMutation.isPending ? (
+                    <ActivityIndicator
+                      size="small"
+                      color="#FFFFFF"
+                    />
+                  ) : (
+                    <>
+                      <Ionicons
+                        name="refresh-outline"
+                        size={18}
+                        color="#FFFFFF"
+                      />
+
+                      <Text style={styles.buttonText}>
+                        Resend Verification Email
+                      </Text>
+                    </>
+                  )}
+                </Pressable>
+              )}
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.secondaryButton,
+                  pressed &&
+                    styles.secondaryButtonPressed,
+                ]}
+                onPress={() =>
+                  router.replace("/(auth)/login")
+                }
+              >
+                <Ionicons
+                  name="arrow-back"
+                  size={16}
+                  color="#64748B"
+                />
+
+                <Text
+                  style={styles.secondaryButtonText}
+                >
+                  Back to Login
+                </Text>
+              </Pressable>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.security}>
+          <View style={styles.securityIcon}>
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={14}
+              color="#64748B"
+            />
           </View>
-        </SafeAreaView>
+
+          <Text style={styles.securityText}>
+            Your information is securely encrypted.
+          </Text>
+        </View>
       </View>
-    </TouchableWithoutFeedback>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#F7F9FC",
-  },
-
-  safeArea: {
-    flex: 1,
-  },
-
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 10,
-    paddingBottom: 18,
-  },
-
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    gap: 8,
-    paddingVertical: 7,
-  },
-
-  backIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E1E7EF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  backText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#475569",
-  },
-
-  content: {
-    flex: 1,
-    justifyContent: "center",
-  },
-
-  brand: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 22,
-  },
-
-  header: {
-    alignItems: "center",
-  },
-
-  eyebrow: {
-    fontSize: 8,
-    fontWeight: "800",
-    letterSpacing: 1.35,
-    color: "#94A3B8",
-    marginBottom: 6,
-  },
-
-  title: {
-    fontSize: 28,
-    lineHeight: 33,
-    fontWeight: "800",
-    letterSpacing: -0.7,
-    color: "#273449",
-    textAlign: "center",
-  },
-
-  subtitle: {
-    maxWidth: 335,
-    marginTop: 9,
-    fontSize: 13,
-    lineHeight: 19,
-    color: "#64748B",
-    textAlign: "center",
-  },
-
-  formCard: {
-    marginTop: 28,
-    padding: 17,
-    borderRadius: 18,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E1E7EF",
-  },
-
-  field: {
-    width: "100%",
-  },
-
-  label: {
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 1.05,
-    color: "#64748B",
-    marginBottom: 8,
-  },
-
-  inputContainer: {
-    height: 54,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#DDE4ED",
-    backgroundColor: "#FAFBFC",
-  },
-
-  inputContainerActive: {
-    borderColor: "#9FCBE0",
-    backgroundColor: "#FFFFFF",
-  },
-
-  inputIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    backgroundColor: "#EAF4FA",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-
-  input: {
-    flex: 1,
-    height: "100%",
-    fontSize: 14,
-    color: "#273449",
-  },
-
-  errorContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 12,
-    padding: 10,
-    borderRadius: 11,
-    backgroundColor: "#FEF2F2",
-    borderWidth: 1,
-    borderColor: "#FECACA",
-  },
-
-  errorIcon: {
-    width: 23,
-    height: 23,
-    borderRadius: 8,
-    backgroundColor: "#FEE2E2",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-
-  errorText: {
-    flex: 1,
-    fontSize: 11,
-    lineHeight: 16,
-    color: "#B91C1C",
-  },
-
-  button: {
-    height: 52,
-    marginTop: 18,
-    borderRadius: 14,
-    backgroundColor: "#0072B5",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-
-    shadowColor: "#0072B5",
-    shadowOpacity: 0.15,
-    shadowRadius: 9,
-    shadowOffset: {
-      width: 0,
-      height: 4,
+const getStyles = (isTablet: boolean) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: "#F7F9FC",
     },
 
-    elevation: 3,
-  },
+    container: {
+      flex: 1,
+      paddingHorizontal: isTablet ? 48 : 24,
+      paddingTop: isTablet ? 24 : 12,
+      paddingBottom: isTablet ? 28 : 20,
+    },
 
-  buttonDisabled: {
-    opacity: 0.45,
-  },
+    content: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "800",
-  },
+    brand: {
+      marginBottom: isTablet ? 38 : 34,
+    },
 
-  formHint: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 5,
-    marginTop: 13,
-  },
+    logoContainer: {
+      width: isTablet ? 92 : 76,
+      height: isTablet ? 92 : 76,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: 30,
+      shadowColor: "#0F172A",
+      shadowOpacity: 0.06,
+      shadowRadius: isTablet ? 20 : 16,
+      shadowOffset: {
+        width: 0,
+        height: isTablet ? 8 : 6,
+      },
 
-  formHintText: {
-    fontSize: 9,
-    color: "#94A3B8",
-  },
+      elevation: 3,
+    },
 
-  success: {
-    alignItems: "center",
-  },
+    stateContainer: {
+      width: "100%",
+      maxWidth: isTablet ? 560 : 430,
+      alignItems: "center",
+      backgroundColor: "#FFFFFF",
+      borderRadius: isTablet ? 30 : 24,
+      paddingHorizontal: isTablet ? 42 : 26,
+      paddingTop: isTablet ? 38 : 28,
+      paddingBottom: isTablet ? 36 : 26,
 
-  successLogo: {
-    width: 70,
-    height: 70,
-    borderRadius: 22,
-    backgroundColor: "#EAF4FA",
-    borderWidth: 1,
-    borderColor: "#D3E8F3",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 18,
-  },
+      borderWidth: 1,
+      borderColor: "#E5EAF0",
 
-  successEyebrow: {
-    fontSize: 8,
-    fontWeight: "800",
-    letterSpacing: 1.3,
-    color: "#94A3B8",
-    marginBottom: 6,
-  },
+      shadowColor: "#0F172A",
+      shadowOpacity: 0.05,
+      shadowRadius: isTablet ? 24 : 18,
+      shadowOffset: {
+        width: 0,
+        height: isTablet ? 10 : 7,
+      },
 
-  successTitle: {
-    fontSize: 28,
-    lineHeight: 33,
-    fontWeight: "800",
-    letterSpacing: -0.7,
-    color: "#273449",
-    textAlign: "center",
-  },
+      elevation: 3,
+    },
 
-  successSubtitle: {
-    maxWidth: 335,
-    marginTop: 10,
-    fontSize: 13,
-    lineHeight: 20,
-    color: "#64748B",
-    textAlign: "center",
-  },
+    iconCircle: {
+      width: isTablet ? 76 : 64,
+      height: isTablet ? 76 : 64,
+      borderRadius: isTablet ? 24 : 20,
+      backgroundColor: "#EAF4FB",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: isTablet ? 21 : 17,
+    },
 
-  emailHighlight: {
-    fontWeight: "700",
-    color: "#475569",
-  },
+    successCircle: {
+      backgroundColor: "#DCFCE7",
+    },
 
-  successCard: {
-    width: "100%",
-    marginTop: 24,
-    padding: 15,
-    borderRadius: 17,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#E1E7EF",
-  },
+    errorCircle: {
+      backgroundColor: "#FEE2E2",
+    },
 
-  successRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+    eyebrow: {
+      fontSize: isTablet ? 9 : 8,
+      fontWeight: "800",
+      letterSpacing: 1.35,
+      color: "#94A3B8",
+      marginBottom: isTablet ? 8 : 6,
+    },
 
-  successCheck: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: "#EAF4FA",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
+    title: {
+      fontSize: isTablet ? 34 : 28,
+      lineHeight: isTablet ? 40 : 33,
+      fontWeight: "800",
+      letterSpacing: -0.7,
+      color: "#273449",
+      textAlign: "center",
+    },
 
-  successTextContainer: {
-    flex: 1,
-  },
+    subtitle: {
+      maxWidth: isTablet ? 430 : 340,
+      marginTop: isTablet ? 12 : 9,
+      fontSize: isTablet ? 15 : 13,
+      lineHeight: isTablet ? 22 : 19,
+      color: "#64748B",
+      textAlign: "center",
+    },
 
-  successCardTitle: {
-    fontSize: 11,
-    fontWeight: "800",
-    color: "#334155",
-  },
+    emailPill: {
+      maxWidth: "100%",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginTop: isTablet ? 17 : 14,
+      paddingHorizontal: isTablet ? 16 : 13,
+      paddingVertical: isTablet ? 10 : 8,
+      borderRadius: 12,
+      backgroundColor: "#F0F8FD",
+      borderWidth: 1,
+      borderColor: "#D7EAF5",
+    },
 
-  successCardText: {
-    marginTop: 2,
-    fontSize: 10,
-    lineHeight: 15,
-    color: "#94A3B8",
-  },
+    emailText: {
+      flexShrink: 1,
+      fontSize: isTablet ? 14 : 12,
+      fontWeight: "700",
+      color: "#0072B5",
+    },
 
-  successDivider: {
-    height: 1,
-    backgroundColor: "#EEF2F6",
-    marginVertical: 13,
-  },
+    helperText: {
+      maxWidth: isTablet ? 440 : 330,
+      marginTop: isTablet ? 16 : 13,
+      fontSize: isTablet ? 13 : 12,
+      lineHeight: isTablet ? 20 : 18,
+      color: "#94A3B8",
+      textAlign: "center",
+    },
 
-  successActions: {
-    width: "100%",
-    marginTop: 22,
-    alignItems: "center",
-  },
+    button: {
+      width: "100%",
+      maxWidth: isTablet ? 440 : 370,
+      height: isTablet ? 58 : 54,
+      marginTop: isTablet ? 30 : 26,
+      paddingHorizontal: 24,
+      borderRadius: isTablet ? 16 : 15,
+      backgroundColor: "#0072B5",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 9,
 
-  returnButton: {
-    height: 48,
-    paddingHorizontal: 20,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#CFE3EE",
-    backgroundColor: "#F4FAFD",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
+      shadowColor: "#0072B5",
+      shadowOpacity: 0.18,
+      shadowRadius: 10,
+      shadowOffset: {
+        width: 0,
+        height: 5,
+      },
 
-  returnButtonText: {
-    fontSize: 13,
-    fontWeight: "800",
-    color: "#0072B5",
-  },
+      elevation: 3,
+    },
 
-  tryAgainButton: {
-    paddingVertical: 13,
-  },
+    buttonPressed: {
+      backgroundColor: "#005F97",
+      transform: [{ scale: 0.985 }],
+    },
 
-  tryAgainText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#94A3B8",
-  },
+    buttonDisabled: {
+      opacity: 0.65,
+    },
 
-  security: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    paddingTop: 18,
-  },
+    buttonText: {
+      color: "#FFFFFF",
+      fontSize: isTablet ? 15 : 14,
+      fontWeight: "800",
+    },
 
-  securityIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 8,
-    backgroundColor: "#EAF4FA",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    secondaryButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 7,
+      minHeight: 44,
+      marginTop: 10,
+      paddingHorizontal: 18,
+    },
 
-  securityText: {
-    fontSize: 9,
-    color: "#94A3B8",
-  },
-});
+    secondaryButtonPressed: {
+      opacity: 0.55,
+    },
+
+    secondaryButtonText: {
+      color: "#64748B",
+      fontSize: isTablet ? 14 : 13,
+      fontWeight: "700",
+    },
+
+    loadingCard: {
+      width: "100%",
+      maxWidth: isTablet ? 400 : 330,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      marginTop: isTablet ? 26 : 22,
+      paddingVertical: isTablet ? 15 : 13,
+      paddingHorizontal: 18,
+      borderRadius: 13,
+      backgroundColor: "#F8FAFC",
+      borderWidth: 1,
+      borderColor: "#E8EEF5",
+    },
+
+    loadingText: {
+      fontSize: isTablet ? 13 : 12,
+      fontWeight: "700",
+      color: "#64748B",
+    },
+
+    successCard: {
+      width: "100%",
+      maxWidth: isTablet ? 400 : 330,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 9,
+      marginTop: isTablet ? 26 : 22,
+      paddingVertical: isTablet ? 15 : 13,
+      paddingHorizontal: 18,
+      borderRadius: 13,
+      backgroundColor: "#F0FDF4",
+      borderWidth: 1,
+      borderColor: "#DCFCE7",
+    },
+
+    successText: {
+      fontSize: isTablet ? 13 : 12,
+      fontWeight: "700",
+      color: "#15803D",
+    },
+
+    security: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 7,
+      paddingTop: isTablet ? 24 : 20,
+    },
+
+    securityIcon: {
+      width: isTablet ? 28 : 25,
+      height: isTablet ? 28 : 25,
+      borderRadius: isTablet ? 9 : 8,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#FFFFFF",
+      borderWidth: 1,
+      borderColor: "#E5EAF0",
+    },
+
+    securityText: {
+      fontSize: isTablet ? 11 : 10,
+      color: "#94A3B8",
+    },
+  });

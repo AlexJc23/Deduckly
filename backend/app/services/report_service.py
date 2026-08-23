@@ -315,23 +315,12 @@ def generate_tax_report(
             ),
         ]
 
-        if month is not None:
-            income_filters.append(
-                func.extract("month", Income.received_at) == month
-            )
-
-        if day is not None:
-            income_filters.append(
-                func.extract("day", Income.received_at) == day
-            )
-
         total_income = (
             db.query(func.sum(Income.amount))
             .filter(*income_filters)
             .scalar()
             or Decimal("0")
         )
-
 
         if (
             start_date
@@ -362,21 +351,12 @@ def generate_tax_report(
             ),
         ]
 
-        if month is not None:
-            expense_filters.append(
-                func.extract("month", Expense.incurred_at) == month
-            )
-
-        if day is not None:
-            expense_filters.append(
-                func.extract("day", Expense.incurred_at) == day
-            )
-
         expenses = (
             db.query(Expense)
             .filter(*expense_filters)
             .all()
         )
+
         total_expenses = Decimal("0")
 
         for expense in expenses:
@@ -386,7 +366,7 @@ def generate_tax_report(
         trip_filters = [
             Trip.user_id == user.id,
             *build_date_filters(
-                Trip.created_at,
+                Trip.start_time,
                 year,
                 month,
                 day,
@@ -396,20 +376,10 @@ def generate_tax_report(
             ),
         ]
 
-        if month is not None:
-            trip_filters.append(
-                func.extract("month", Trip.created_at) == month
-            )
-
-        if day is not None:
-            trip_filters.append(
-                func.extract("day", Trip.created_at) == day
-            )
-        
         trips = (
             db.query(Trip)
             .filter(*trip_filters)
-            .order_by(Trip.created_at.asc())
+            .order_by(Trip.start_time.asc())
             .all()
         )
 
@@ -482,7 +452,6 @@ def generate_tax_report(
             tax_brackets,
         )
 
-
         tax_without_deductions = calculate_tax(
             total_income,
             tax_brackets,
@@ -522,7 +491,6 @@ def generate_tax_report(
             "business_type": user.business_type,
             "largest_expense_category": largest_expense_category,
             "largest_expense_amount": largest_expense_amount,
-
 
             "vehicle_expense_total": vehicle_expense_total,
             "expense_breakdown": expense_breakdown,

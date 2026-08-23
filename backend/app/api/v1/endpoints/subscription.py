@@ -66,6 +66,12 @@ def revenuecat_webhook(
             detail="Missing app_user_id"
         )
 
+    if event.get("type") == "TEST":
+        return {
+            "success": True,
+            "message": "RevenueCat test webhook received",
+        }
+
     user = (
         db.query(User)
         .filter(User.id == app_user_id)
@@ -81,7 +87,7 @@ def revenuecat_webhook(
     purchased_at_ms = event.get("purchased_at_ms")
     expiration_at_ms = event.get("expiration_at_ms")
     event_type = event.get("type")
-
+    
     if event_type in {
         "INITIAL_PURCHASE",
         "RENEWAL",

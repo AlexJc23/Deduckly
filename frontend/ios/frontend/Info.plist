@@ -10,6 +10,61 @@
     <string>Deduckly</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIcons</key>
+    <dict>
+      <key>CFBundlePrimaryIcon</key>
+      <dict>
+        <key>CFBundleIconFiles</key>
+        <array>
+          <string>AppIcon</string>
+        </array>
+      </dict>
+      <key>CFBundleAlternateIcons</key>
+      <dict>
+        <key>SpringIcon</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>SpringIcon</string>
+          </array>
+        </dict>
+        <key>FallIcon</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>FallIcon</string>
+          </array>
+        </dict>
+        <key>WinterIcon</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>WinterIcon</string>
+          </array>
+        </dict>
+        <key>Halloween1Icon</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>Halloween1Icon</string>
+          </array>
+        </dict>
+        <key>Halloween2Icon</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>Halloween2Icon</string>
+          </array>
+        </dict>
+        <key>BlackWhiteIcon</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>BlackWhiteIcon</string>
+          </array>
+        </dict>
+      </dict>
+    </dict>
     <key>CFBundleIdentifier</key>
     <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
     <key>CFBundleInfoDictionaryVersion</key>
@@ -75,7 +130,6 @@
     <true/>
     <key>UIBackgroundModes</key>
     <array>
-      <string>location</string>
       <string>location</string>
     </array>
     <key>UILaunchStoryboardName</key>

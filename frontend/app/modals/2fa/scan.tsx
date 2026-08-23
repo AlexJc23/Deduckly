@@ -31,119 +31,122 @@ export default function TwoFAScanScreen() {
     await Clipboard.setStringAsync(secret);
   };
 
-  const isLoading =
-    enable2FAMutation.isPending;
-
-  const hasError =
-    enable2FAMutation.isError;
-
-  const secret =
-    enable2FAMutation.data?.secret;
-
-  const otpauthUrl =
-    enable2FAMutation.data?.otpauth_url;
+  const isLoading = enable2FAMutation.isPending;
+  const hasError = enable2FAMutation.isError;
+  const secret = enable2FAMutation.data?.secret;
+  const otpauthUrl = enable2FAMutation.data?.otpauth_url;
 
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>
-            Set Up 2FA
-          </Text>
-
-          <Pressable
-            style={styles.closeButton}
-            onPress={() => router.dismissAll()}
-            hitSlop={8}
-          >
-            <Ionicons
-              name="close"
-              size={20}
-              color="#64748B"
-            />
-          </Pressable>
-        </View>
-
         <View style={styles.content}>
           <View style={styles.hero}>
+            <View style={styles.stepBadge}>
+              <Text style={styles.stepBadgeText}>1</Text>
+            </View>
+
             <Text style={styles.eyebrow}>
               STEP 1 OF 2
             </Text>
 
             <Text style={styles.title}>
-              Scan this QR code
+              Connect your authenticator
             </Text>
 
             <Text style={styles.description}>
-              Open your authenticator app and
-              scan the code below to connect it
-              to your Deduckly account.
+              Scan the QR code with your authenticator
+              app to securely connect it to your
+              Deduckly account.
             </Text>
           </View>
 
           <View style={styles.qrCard}>
-            {isLoading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator
-                  size="large"
-                  color="#4A6FE3"
-                />
+            <View style={styles.qrInner}>
+              {isLoading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator
+                    size="large"
+                    color="#4A6FE3"
+                  />
 
-                <Text style={styles.loadingText}>
-                  Preparing secure setup...
-                </Text>
-              </View>
-            ) : hasError ? (
-              <View style={styles.errorContainer}>
-                <Ionicons
-                  name="alert-circle-outline"
-                  size={32}
-                  color="#DC2626"
-                />
-
-                <Text style={styles.errorTitle}>
-                  Unable to start setup
-                </Text>
-
-                <Text style={styles.errorText}>
-                  We couldn't generate your
-                  authentication code.
-                </Text>
-
-                <Pressable
-                  style={styles.retryButton}
-                  onPress={() =>
-                    enable2FAMutation.mutate()
-                  }
-                >
-                  <Text style={styles.retryText}>
-                    Try Again
+                  <Text style={styles.loadingText}>
+                    Preparing secure setup...
                   </Text>
-                </Pressable>
-              </View>
-            ) : otpauthUrl ? (
-              <QRCode
-                value={otpauthUrl}
-                size={190}
-                backgroundColor="#FFFFFF"
-                color="#273449"
-              />
-            ) : null}
+                </View>
+              ) : hasError ? (
+                <View style={styles.errorContainer}>
+                  <View style={styles.errorIcon}>
+                    <Ionicons
+                      name="alert-circle-outline"
+                      size={26}
+                      color="#DC2626"
+                    />
+                  </View>
+
+                  <Text style={styles.errorTitle}>
+                    Unable to start setup
+                  </Text>
+
+                  <Text style={styles.errorText}>
+                    We couldn't generate your
+                    authentication code.
+                  </Text>
+
+                  <Pressable
+                    style={styles.retryButton}
+                    onPress={() =>
+                      enable2FAMutation.mutate()
+                    }
+                  >
+                    <Ionicons
+                      name="refresh"
+                      size={15}
+                      color="#4A6FE3"
+                    />
+
+                    <Text style={styles.retryText}>
+                      Try Again
+                    </Text>
+                  </Pressable>
+                </View>
+              ) : otpauthUrl ? (
+                <QRCode
+                  value={otpauthUrl}
+                  size={190}
+                  backgroundColor="#FFFFFF"
+                  color="#273449"
+                />
+              ) : null}
+            </View>
           </View>
 
           {!isLoading && !hasError && secret && (
             <View style={styles.manualSection}>
-              <Text style={styles.manualLabel}>
-                Can't scan?
-              </Text>
+              <View style={styles.manualHeader}>
+                <View style={styles.manualIcon}>
+                  <Ionicons
+                    name="key-outline"
+                    size={15}
+                    color="#4A6FE3"
+                  />
+                </View>
 
-              <Text style={styles.manualDescription}>
-                Enter this setup key manually in
-                your authenticator app.
-              </Text>
+                <View style={styles.manualHeaderText}>
+                  <Text style={styles.manualLabel}>
+                    Can't scan the code?
+                  </Text>
+
+                  <Text style={styles.manualDescription}>
+                    Enter the setup key manually.
+                  </Text>
+                </View>
+              </View>
 
               <Pressable
-                style={styles.secretButton}
+                style={({ pressed }) => [
+                  styles.secretButton,
+                  pressed && styles.secretButtonPressed,
+                ]}
                 onPress={copySecret}
               >
                 <Text
@@ -153,15 +156,17 @@ export default function TwoFAScanScreen() {
                   {secret}
                 </Text>
 
-                <Ionicons
-                  name="copy-outline"
-                  size={18}
-                  color="#4A6FE3"
-                />
+                <View style={styles.copyIcon}>
+                  <Ionicons
+                    name="copy-outline"
+                    size={17}
+                    color="#4A6FE3"
+                  />
+                </View>
               </Pressable>
 
               <Text style={styles.copyHint}>
-                Tap to copy
+                Tap the key to copy
               </Text>
             </View>
           )}
@@ -169,13 +174,15 @@ export default function TwoFAScanScreen() {
           <View style={styles.actions}>
             <Pressable
               disabled={!secret}
-              style={[
+              style={({ pressed }) => [
                 styles.primaryButton,
-                !secret &&
-                  styles.primaryButtonDisabled,
+                !secret && styles.primaryButtonDisabled,
+                pressed &&
+                  secret &&
+                  styles.primaryButtonPressed,
               ]}
               onPress={() =>
-                router.push(
+                router.replace(
                   "/modals/2fa/verify"
                 )
               }
@@ -216,40 +223,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  header: {
-    height: 58,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E8ECF2",
-  },
-
-  headerTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#334155",
-  },
-
-  closeButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#EEF1F5",
-  },
-
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 26,
-    paddingBottom: 20,
+    paddingHorizontal: 22,
+    paddingTop: 28,
+    paddingBottom: 14,
   },
 
   hero: {
     alignItems: "center",
+  },
+
+  stepBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#4A6FE3",
+    marginBottom: 10,
+    shadowColor: "#4A6FE3",
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    elevation: 3,
+  },
+
+  stepBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "800",
   },
 
   eyebrow: {
@@ -257,20 +263,21 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 1.3,
     color: "#8A9BB3",
-    marginBottom: 6,
+    marginBottom: 5,
   },
 
   title: {
-    fontSize: 25,
-    lineHeight: 30,
+    fontSize: 26,
+    lineHeight: 31,
     fontWeight: "800",
-    letterSpacing: -0.6,
+    letterSpacing: -0.7,
     color: "#273449",
     textAlign: "center",
+    marginTop: 40,
   },
 
   description: {
-    maxWidth: 330,
+    maxWidth: 350,
     marginTop: 8,
     fontSize: 14,
     lineHeight: 20,
@@ -279,24 +286,36 @@ const styles = StyleSheet.create({
   },
 
   qrCard: {
-    width: 230,
-    height: 230,
-    marginTop: 24,
+    width: 242,
+    height: 242,
+    marginTop: 20,
     alignSelf: "center",
-    borderRadius: 22,
+    padding: 10,
+    borderRadius: 24,
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#E3E8F0",
+    borderColor: "#E1E7F0",
     alignItems: "center",
     justifyContent: "center",
+
     shadowColor: "#273449",
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
+    shadowOpacity: 0.07,
+    shadowRadius: 16,
     shadowOffset: {
       width: 0,
-      height: 5,
+      height: 7,
     },
-    elevation: 2,
+
+    elevation: 3,
+  },
+
+  qrInner: {
+    width: 218,
+    height: 218,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
   },
 
   loadingContainer: {
@@ -318,15 +337,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
 
+  errorIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FEF2F2",
+    marginBottom: 10,
+  },
+
   errorTitle: {
-    marginTop: 10,
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#334155",
+    textAlign: "center",
   },
 
   errorText: {
-    marginTop: 4,
+    marginTop: 5,
     fontSize: 12,
     lineHeight: 17,
     color: "#64748B",
@@ -337,46 +366,77 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingHorizontal: 16,
     paddingVertical: 9,
-    borderRadius: 10,
+    borderRadius: 11,
     backgroundColor: "#EEF2FF",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
 
   retryText: {
     fontSize: 12,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#4A6FE3",
   },
 
   manualSection: {
-    marginTop: 18,
+    marginTop: 16,
+    padding: 14,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E3E8F0",
+  },
+
+  manualHeader: {
+    flexDirection: "row",
     alignItems: "center",
   },
 
+  manualIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EEF2FF",
+    marginRight: 10,
+  },
+
+  manualHeaderText: {
+    flex: 1,
+  },
+
   manualLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "800",
     color: "#334155",
   },
 
   manualDescription: {
-    marginTop: 3,
+    marginTop: 2,
     fontSize: 11,
     color: "#7A899D",
-    textAlign: "center",
   },
 
   secretButton: {
     width: "100%",
     marginTop: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 13,
-    backgroundColor: "#FFFFFF",
+    minHeight: 46,
+    paddingLeft: 13,
+    paddingRight: 8,
+    borderRadius: 12,
+    backgroundColor: "#F8FAFC",
     borderWidth: 1,
     borderColor: "#E3E8F0",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+  },
+
+  secretButtonPressed: {
+    backgroundColor: "#F1F5F9",
+    transform: [{ scale: 0.99 }],
   },
 
   secret: {
@@ -388,14 +448,25 @@ const styles = StyleSheet.create({
     color: "#334155",
   },
 
+  copyIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EEF2FF",
+  },
+
   copyHint: {
-    marginTop: 4,
+    marginTop: 5,
     fontSize: 10,
     color: "#94A3B8",
+    textAlign: "center",
   },
 
   actions: {
     marginTop: "auto",
+    paddingTop: 16,
   },
 
   primaryButton: {
@@ -406,10 +477,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 9,
+
+    shadowColor: "#4A6FE3",
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 5,
+    },
+
+    elevation: 3,
+  },
+
+  primaryButtonPressed: {
+    backgroundColor: "#3559C7",
+    transform: [{ scale: 0.985 }],
   },
 
   primaryButtonDisabled: {
     opacity: 0.45,
+    shadowOpacity: 0,
+    elevation: 0,
   },
 
   primaryText: {
@@ -420,7 +508,7 @@ const styles = StyleSheet.create({
 
   cancelButton: {
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 12,
   },
 
   cancelText: {
