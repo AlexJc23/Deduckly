@@ -7,11 +7,11 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { router } from "expo-router";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { disable2FA } from "@/features/auth/api/auth.api";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
-import { BackHeader } from "@/components/ui/BackButton";
 
 export default function TwoFAEnabledScreen() {
   const { data: user } = useCurrentUser();
@@ -28,7 +28,7 @@ export default function TwoFAEnabledScreen() {
         queryKey: ["current-user"],
       });
 
-      router.replace("/settings/security");
+      router.dismiss();
     },
   });
 
@@ -38,97 +38,171 @@ export default function TwoFAEnabledScreen() {
 
   return (
     <View style={styles.screen}>
-      <BackHeader />
-
       <View style={styles.container}>
-        <View style={styles.iconContainer}>
-          <Text style={styles.icon}>✓</Text>
+        <View style={styles.hero}>
+          <View style={styles.iconContainer}>
+            <View style={styles.iconInner}>
+              <Ionicons
+                name="shield-checkmark"
+                size={30}
+                color="#4A6FE3"
+              />
+            </View>
+          </View>
+
+          <View style={styles.statusBadge}>
+            <View style={styles.statusDot} />
+
+            <Text style={styles.status}>
+              Protection enabled
+            </Text>
+          </View>
+
+          <Text style={styles.title}>
+            Two-Factor Authentication
+          </Text>
+
+          <Text style={styles.description}>
+            Your account has an additional layer
+            of security enabled. You'll need your
+            authenticator code when signing in.
+          </Text>
         </View>
-
-        <Text style={styles.title}>
-          Two-Factor Authentication
-        </Text>
-
-        <Text style={styles.status}>
-          Enabled
-        </Text>
-
-        <Text style={styles.description}>
-          Your account has an additional layer
-          of security enabled.
-        </Text>
 
         <View style={styles.accountCard}>
-          <Text style={styles.cardLabel}>
-            PROTECTED ACCOUNT
-          </Text>
+          <View style={styles.accountIcon}>
+            <Ionicons
+              name="person-outline"
+              size={18}
+              color="#4A6FE3"
+            />
+          </View>
 
-          <Text
-            style={styles.email}
-            numberOfLines={1}
-          >
-            {user?.email ?? "Your account"}
-          </Text>
-        </View>
-
-        <View style={styles.warningCard}>
-          <Text style={styles.warningTitle}>
-            Disable two-factor authentication?
-          </Text>
-
-          <Text style={styles.warningText}>
-            This will remove the additional
-            security step from your account.
-          </Text>
-        </View>
-
-        <Pressable
-          style={[
-            styles.disableButton,
-            disableMutation.isPending &&
-              styles.disabledButton,
-          ]}
-          disabled={disableMutation.isPending}
-          onPress={() =>
-            setShowConfirm(true)
-          }
-        >
-          {disableMutation.isPending ? (
-            <ActivityIndicator color="#DC2626" />
-          ) : (
-            <Text style={styles.disableText}>
-              Disable 2FA
+          <View style={styles.accountContent}>
+            <Text style={styles.cardLabel}>
+              PROTECTED ACCOUNT
             </Text>
-          )}
-        </Pressable>
+
+            <Text
+              style={styles.email}
+              numberOfLines={1}
+            >
+              {user?.email ?? "Your account"}
+            </Text>
+          </View>
+
+          <Ionicons
+            name="checkmark-circle"
+            size={22}
+            color="#22C55E"
+          />
+        </View>
+
+        <View style={styles.infoCard}>
+          <View style={styles.infoIcon}>
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={19}
+              color="#4A6FE3"
+            />
+          </View>
+
+          <View style={styles.infoContent}>
+            <Text style={styles.infoTitle}>
+              Your account is protected
+            </Text>
+
+            <Text style={styles.infoText}>
+              Two-factor authentication helps keep
+              your account secure even if your
+              password is compromised.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.securitySection}>
+          <Text style={styles.sectionLabel}>
+            SECURITY SETTINGS
+          </Text>
+
+          <Pressable
+            style={[
+              styles.disableButton,
+              disableMutation.isPending &&
+                styles.disabledButton,
+            ]}
+            disabled={disableMutation.isPending}
+            onPress={() =>
+              setShowConfirm(true)
+            }
+          >
+            <View style={styles.disableIcon}>
+              <Ionicons
+                name="shield-outline"
+                size={18}
+                color="#DC2626"
+              />
+            </View>
+
+            <View style={styles.disableContent}>
+              <Text style={styles.disableText}>
+                Disable 2FA
+              </Text>
+
+              <Text style={styles.disableSubtext}>
+                Remove two-factor authentication
+              </Text>
+            </View>
+
+            {disableMutation.isPending ? (
+              <ActivityIndicator color="#DC2626" />
+            ) : (
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color="#94A3B8"
+              />
+            )}
+          </Pressable>
+        </View>
 
         <Pressable
           style={styles.backButton}
           onPress={() =>
-            router.push(
-              "/settings/security",
-            )
+            router.dismiss()
           }
         >
+          <Ionicons
+            name="arrow-back"
+            size={16}
+            color="#64748B"
+          />
+
           <Text style={styles.backText}>
             Back to Security
           </Text>
         </Pressable>
       </View>
 
-      {/* Confirmation Modal */}
-
       {showConfirm && (
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
+            <View style={styles.modalIcon}>
+              <Ionicons
+                name="shield-outline"
+                size={25}
+                color="#DC2626"
+              />
+            </View>
+
             <Text style={styles.modalTitle}>
               Disable 2FA?
             </Text>
 
             <Text style={styles.modalText}>
-              Your account will no longer
-              require two-factor authentication
-              when signing in.
+              Your account will no longer require
+              two-factor authentication when
+              signing in.
             </Text>
 
             <View style={styles.modalButtons}>
@@ -161,9 +235,7 @@ export default function TwoFAEnabledScreen() {
                     color="#FFFFFF"
                   />
                 ) : (
-                  <Text
-                    style={styles.confirmText}
-                  >
+                  <Text style={styles.confirmText}>
                     Disable
                   </Text>
                 )}
@@ -179,66 +251,118 @@ export default function TwoFAEnabledScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#F6F8FB",
+    backgroundColor: "#F7F9FC",
   },
 
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 32,
+    paddingTop: 70,
+    paddingBottom: 24,
+  },
+
+  hero: {
     alignItems: "center",
   },
 
   iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: "#EEF2FF",
-    borderWidth: 1,
-    borderColor: "#DDE5FF",
+    width: 78,
+    height: 78,
+    borderRadius: 25,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 18,
+    backgroundColor: "#EEF2FF",
+    borderWidth: 1,
+    borderColor: "#DCE5FF",
+    marginBottom: 14,
   },
 
-  icon: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#4A6FE3",
+  iconInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#4A6FE3",
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    elevation: 2,
   },
 
-  title: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#273449",
-    textAlign: "center",
-    letterSpacing: -0.5,
+  statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: "#ECFDF3",
+    borderWidth: 1,
+    borderColor: "#BBF7D0",
+    marginBottom: 10,
+  },
+
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#22C55E",
+    marginRight: 6,
   },
 
   status: {
-    marginTop: 8,
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#4A6FE3",
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#15803D",
+  },
+
+  title: {
+    fontSize: 25,
+    lineHeight: 30,
+    fontWeight: "800",
+    color: "#273449",
+    textAlign: "center",
+    letterSpacing: -0.6,
+    marginTop: 20,
   },
 
   description: {
-    maxWidth: 310,
-    marginTop: 10,
+    maxWidth: 340,
+    marginTop: 9,
     fontSize: 14,
-    lineHeight: 21,
+    lineHeight: 20,
     color: "#64748B",
     textAlign: "center",
   },
 
   accountCard: {
     width: "100%",
-    marginTop: 28,
-    padding: 18,
-    borderRadius: 16,
+    marginTop: 26,
+    padding: 15,
+    borderRadius: 17,
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#E5EAF2",
+    borderColor: "#E3E8F0",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  accountIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EEF2FF",
+    marginRight: 12,
+  },
+
+  accountContent: {
+    flex: 1,
   },
 
   cardLabel: {
@@ -246,77 +370,128 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 1.1,
     color: "#94A3B8",
-    marginBottom: 6,
-  },
-
-  email: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#334155",
-  },
-
-  warningCard: {
-    width: "100%",
-    marginTop: 12,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: "#FFF7ED",
-    borderWidth: 1,
-    borderColor: "#FED7AA",
-  },
-
-  warningTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#9A3412",
     marginBottom: 4,
   },
 
-  warningText: {
+  email: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#334155",
+  },
+
+  infoCard: {
+    width: "100%",
+    marginTop: 12,
+    padding: 16,
+    borderRadius: 17,
+    backgroundColor: "#F1F5FF",
+    borderWidth: 1,
+    borderColor: "#DCE5FF",
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+
+  infoIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    marginRight: 11,
+  },
+
+  infoContent: {
+    flex: 1,
+  },
+
+  infoTitle: {
     fontSize: 13,
-    lineHeight: 19,
-    color: "#C2410C",
+    fontWeight: "800",
+    color: "#334155",
+    marginBottom: 4,
+  },
+
+  infoText: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: "#64748B",
+  },
+
+  securitySection: {
+    width: "100%",
+    marginTop: 24,
+  },
+
+  sectionLabel: {
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    color: "#94A3B8",
+    marginBottom: 8,
   },
 
   disableButton: {
     width: "100%",
-    marginTop: 20,
-    paddingVertical: 15,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FEF2F2",
+    minHeight: 66,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderRadius: 17,
+    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#FECACA",
+    borderColor: "#E3E8F0",
+    flexDirection: "row",
+    alignItems: "center",
   },
 
   disabledButton: {
     opacity: 0.6,
   },
 
+  disableIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FEF2F2",
+    marginRight: 12,
+  },
+
+  disableContent: {
+    flex: 1,
+  },
+
   disableText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#DC2626",
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#334155",
+  },
+
+  disableSubtext: {
+    marginTop: 3,
+    fontSize: 11,
+    color: "#94A3B8",
   },
 
   backButton: {
-    width: "100%",
-    marginTop: 10,
-    paddingVertical: 15,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    marginTop: "auto",
+    paddingVertical: 14,
   },
 
   backText: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
     color: "#64748B",
   },
 
   modalOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor:
-      "rgba(15, 23, 42, 0.45)",
+    backgroundColor: "rgba(15, 23, 42, 0.48)",
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
@@ -324,11 +499,31 @@ const styles = StyleSheet.create({
 
   modal: {
     width: "100%",
-    borderRadius: 22,
+    maxWidth: 420,
+    borderRadius: 24,
     backgroundColor: "#FFFFFF",
-    padding: 22,
+    padding: 24,
     borderWidth: 1,
-    borderColor: "#E5EAF2",
+    borderColor: "#E3E8F0",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    elevation: 8,
+  },
+
+  modalIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 16,
+    alignSelf: "center",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FEF2F2",
+    marginBottom: 14,
   },
 
   modalTitle: {
@@ -349,13 +544,13 @@ const styles = StyleSheet.create({
   modalButtons: {
     flexDirection: "row",
     gap: 10,
-    marginTop: 22,
+    marginTop: 24,
   },
 
   cancelButton: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 13,
+    borderRadius: 14,
     alignItems: "center",
     backgroundColor: "#F1F4F8",
   },
@@ -369,7 +564,7 @@ const styles = StyleSheet.create({
   confirmButton: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 13,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#DC2626",
@@ -377,7 +572,7 @@ const styles = StyleSheet.create({
 
   confirmText: {
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: "800",
     color: "#FFFFFF",
   },
 });

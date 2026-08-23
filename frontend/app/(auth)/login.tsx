@@ -19,12 +19,14 @@ import { login } from "@/features/auth/api/auth.api";
 import { saveTokens } from "@/features/auth/services/auth-service.service";
 import { useAuth } from "@/features/auth/context/auth.context";
 import { setTemporaryToken } from "@/features/auth/services/twofa-storage.service";
+import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] =
-    useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const isTablet = useIsTablet();
 
   const { signIn } = useAuth();
 
@@ -49,8 +51,33 @@ export default function Login() {
       router.replace("/(tabs)/dashboard");
     },
 
-    onError: (error) => {
-      console.log("Login failed:", error);
+    onError: (error: any) => {
+      console.log(
+        "Login failed:",
+        JSON.stringify(
+          error.response?.data,
+          null,
+          2,
+        ),
+      );
+
+      const status = error.response?.status;
+      const detail = error.response?.data?.detail;
+
+      if (
+        status === 403 &&
+        detail ===
+          "Please verify your email before logging in."
+      ) {
+        router.replace({
+          pathname: "/(auth)/verify-email",
+          params: {
+            email: email.trim(),
+          },
+        });
+
+        return;
+      }
     },
   });
 
@@ -79,45 +106,73 @@ export default function Login() {
           style={styles.flex}
           onPress={Keyboard.dismiss}
         >
-          <View style={styles.container}>
-            {/* Logo */}
-
-            <View style={styles.brand}>
+          <View
+            style={[
+              styles.container,
+              isTablet && styles.containerTablet,
+            ]}
+          >
+            <View
+              style={[
+                styles.brand,
+                isTablet && styles.brandTablet,
+              ]}
+            >
               <Logo
-                width={58}
-                height={58}
+                width={isTablet ? 72 : 58}
+                height={isTablet ? 72 : 58}
                 color="#0072B5"
               />
             </View>
 
-            {/* Header */}
-
-            <View style={styles.header}>
+            <View
+              style={[
+                styles.header,
+                isTablet && styles.headerTablet,
+              ]}
+            >
               <Text style={styles.eyebrow}>
                 WELCOME BACK
               </Text>
 
-              <Text style={styles.title}>
+              <Text
+                style={[
+                  styles.title,
+                  isTablet && styles.titleTablet,
+                ]}
+              >
                 Sign in to your account
               </Text>
 
-              <Text style={styles.subtitle}>
+              <Text
+                style={[
+                  styles.subtitle,
+                  isTablet && styles.subtitleTablet,
+                ]}
+              >
                 Keep your income, expenses, and
                 mileage organized in one place.
               </Text>
             </View>
 
-            {/* Form */}
-
-            <View style={styles.form}>
-              {/* Email */}
-
+            <View
+              style={[
+                styles.form,
+                isTablet && styles.formTablet,
+              ]}
+            >
               <View style={styles.field}>
                 <Text style={styles.label}>
                   Email
                 </Text>
 
-                <View style={styles.inputContainer}>
+                <View
+                  style={[
+                    styles.inputContainer,
+                    isTablet &&
+                      styles.inputContainerTablet,
+                  ]}
+                >
                   <Ionicons
                     name="mail-outline"
                     size={18}
@@ -141,8 +196,6 @@ export default function Login() {
                 </View>
               </View>
 
-              {/* Password */}
-
               <View style={styles.field}>
                 <View style={styles.labelRow}>
                   <Text style={styles.label}>
@@ -162,7 +215,13 @@ export default function Login() {
                   </Pressable>
                 </View>
 
-                <View style={styles.inputContainer}>
+                <View
+                  style={[
+                    styles.inputContainer,
+                    isTablet &&
+                      styles.inputContainerTablet,
+                  ]}
+                >
                   <Ionicons
                     name="lock-closed-outline"
                     size={18}
@@ -214,8 +273,6 @@ export default function Login() {
                 </View>
               </View>
 
-              {/* Error */}
-
               {loginMutation.isError && (
                 <View style={styles.errorContainer}>
                   <Ionicons
@@ -231,12 +288,12 @@ export default function Login() {
                 </View>
               )}
 
-              {/* Sign In */}
-
               <Pressable
                 disabled={isDisabled}
                 style={[
                   styles.signInButton,
+                  isTablet &&
+                    styles.signInButtonTablet,
                   isDisabled &&
                     styles.signInButtonDisabled,
                 ]}
@@ -269,9 +326,13 @@ export default function Login() {
               </Pressable>
             </View>
 
-            {/* Register */}
-
-            <View style={styles.registerContainer}>
+            <View
+              style={[
+                styles.registerContainer,
+                isTablet &&
+                  styles.registerContainerTablet,
+              ]}
+            >
               <Text style={styles.registerText}>
                 Don't have an account?
               </Text>
@@ -288,9 +349,12 @@ export default function Login() {
               </Link>
             </View>
 
-            {/* Security */}
-
-            <View style={styles.security}>
+            <View
+              style={[
+                styles.security,
+                isTablet && styles.securityTablet,
+              ]}
+            >
               <Ionicons
                 name="shield-checkmark-outline"
                 size={15}
@@ -329,15 +393,32 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
 
+  containerTablet: {
+    width: "100%",
+    maxWidth: 620,
+    alignSelf: "center",
+    paddingHorizontal: 40,
+    paddingTop: 150,
+    paddingBottom: 32,
+  },
+
   brand: {
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
   },
 
+  brandTablet: {
+    marginBottom: 4,
+  },
+
   header: {
     marginTop: 34,
     alignItems: "center",
+  },
+
+  headerTablet: {
+    marginTop: 30,
   },
 
   eyebrow: {
@@ -357,6 +438,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
+  titleTablet: {
+    fontSize: 34,
+    lineHeight: 40,
+    letterSpacing: -1,
+  },
+
   subtitle: {
     maxWidth: 340,
     marginTop: 9,
@@ -366,8 +453,22 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
+  subtitleTablet: {
+    maxWidth: 430,
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: 11,
+  },
+
   form: {
     marginTop: 34,
+  },
+
+  formTablet: {
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
+    marginTop: 38,
   },
 
   field: {
@@ -403,6 +504,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#DDE4ED",
     backgroundColor: "#FFFFFF",
+  },
+
+  inputContainerTablet: {
+    height: 58,
+    borderRadius: 15,
+    paddingHorizontal: 17,
   },
 
   input: {
@@ -453,6 +560,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
+  signInButtonTablet: {
+    height: 58,
+    borderRadius: 16,
+  },
+
   signInButtonDisabled: {
     opacity: 0.45,
   },
@@ -469,6 +581,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 25,
     gap: 5,
+  },
+
+  registerContainerTablet: {
+    marginTop: 28,
   },
 
   registerText: {
@@ -489,6 +605,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     paddingTop: 20,
+  },
+
+  securityTablet: {
+    paddingTop: 26,
   },
 
   securityText: {

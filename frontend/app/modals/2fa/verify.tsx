@@ -69,40 +69,25 @@ export default function TwoFAVerifyScreen() {
           style={styles.flex}
           onPress={Keyboard.dismiss}
         >
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>
-              Set Up 2FA
-            </Text>
-
-            <Pressable
-              style={styles.closeButton}
-              onPress={() => {
-                Keyboard.dismiss();
-                router.dismissAll();
-              }}
-              hitSlop={8}
-            >
-              <Ionicons
-                name="close"
-                size={20}
-                color="#64748B"
-              />
-            </Pressable>
-          </View>
-
           <View style={styles.content}>
             <View style={styles.hero}>
-              <View style={styles.iconContainer}>
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={30}
-                  color="#4A6FE3"
-                />
+              <View style={styles.stepBadge}>
+                <Text style={styles.stepBadgeText}>
+                  2
+                </Text>
               </View>
 
               <Text style={styles.eyebrow}>
                 STEP 2 OF 2
               </Text>
+
+              <View style={styles.iconContainer}>
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={32}
+                  color="#4A6FE3"
+                />
+              </View>
 
               <Text style={styles.title}>
                 Verify your code
@@ -110,22 +95,36 @@ export default function TwoFAVerifyScreen() {
 
               <Text style={styles.description}>
                 Enter the six-digit code from your
-                authenticator app to finish setting
-                up two-factor authentication.
+                authenticator app to finish securing
+                your Deduckly account.
               </Text>
             </View>
 
             <View style={styles.formCard}>
-              <Text style={styles.label}>
-                Authentication Code
-              </Text>
+              <View style={styles.labelRow}>
+                <Text style={styles.label}>
+                  Authentication Code
+                </Text>
+
+                <View style={styles.secureBadge}>
+                  <Ionicons
+                    name="lock-closed-outline"
+                    size={11}
+                    color="#64748B"
+                  />
+
+                  <Text style={styles.secureText}>
+                    Secure
+                  </Text>
+                </View>
+              </View>
 
               <TextInput
                 value={code}
                 onChangeText={handleCodeChange}
                 maxLength={6}
                 placeholder="000000"
-                placeholderTextColor="#A0AEC0"
+                placeholderTextColor="#B8C1CE"
                 keyboardType="number-pad"
                 textContentType="oneTimeCode"
                 autoComplete="one-time-code"
@@ -138,16 +137,32 @@ export default function TwoFAVerifyScreen() {
               />
 
               <View style={styles.codeHintRow}>
-                <Text
-                  style={[
-                    styles.hint,
-                    hasError && styles.errorText,
-                  ]}
-                >
-                  {hasError
-                    ? "That code isn't correct. Try again."
-                    : "Codes expire after a short period."}
-                </Text>
+                <View style={styles.hintContainer}>
+                  <Ionicons
+                    name={
+                      hasError
+                        ? "alert-circle-outline"
+                        : "time-outline"
+                    }
+                    size={13}
+                    color={
+                      hasError
+                        ? "#DC2626"
+                        : "#94A3B8"
+                    }
+                  />
+
+                  <Text
+                    style={[
+                      styles.hint,
+                      hasError && styles.errorText,
+                    ]}
+                  >
+                    {hasError
+                      ? "That code isn't correct. Try again."
+                      : "Your code changes periodically."}
+                  </Text>
+                </View>
 
                 <Text style={styles.counter}>
                   {code.length}/6
@@ -155,15 +170,34 @@ export default function TwoFAVerifyScreen() {
               </View>
             </View>
 
+            <View style={styles.infoCard}>
+              <View style={styles.infoIcon}>
+                <Ionicons
+                  name="information-circle-outline"
+                  size={17}
+                  color="#4A6FE3"
+                />
+              </View>
+
+              <Text style={styles.infoText}>
+                Keep your authenticator app available.
+                You'll use it each time you sign in.
+              </Text>
+            </View>
+
             <View style={styles.actions}>
               <Pressable
                 disabled={
                   code.length !== 6 || isPending
                 }
-                style={[
+                style={({ pressed }) => [
                   styles.primaryButton,
                   (code.length !== 6 || isPending) &&
                     styles.primaryButtonDisabled,
+                  pressed &&
+                    code.length === 6 &&
+                    !isPending &&
+                    styles.primaryButtonPressed,
                 ]}
                 onPress={handleVerify}
               >
@@ -227,106 +261,135 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  header: {
-    height: 58,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E8ECF2",
-  },
-
-  headerTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#334155",
-  },
-
-  closeButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#EEF1F5",
-  },
-
   content: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 28,
-    paddingBottom: 20,
+    paddingTop: 30,
+    paddingBottom: 18,
   },
 
   hero: {
     alignItems: "center",
   },
 
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+  stepBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#EEF2FF",
-    borderWidth: 1,
-    borderColor: "#DCE5FF",
-    marginBottom: 15,
+    backgroundColor: "#4A6FE3",
+    marginBottom: 9,
+    shadowColor: "#4A6FE3",
+    shadowOpacity: 0.16,
+    shadowRadius: 8,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    elevation: 2,
+  },
+
+  stepBadgeText: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#FFFFFF",
   },
 
   eyebrow: {
     fontSize: 9,
     fontWeight: "800",
-    letterSpacing: 1.3,
+    letterSpacing: 1.5,
     color: "#8A9BB3",
-    marginBottom: 6,
+    marginBottom: 13,
+  },
+
+  iconContainer: {
+    width: 70,
+    height: 70,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EEF2FF",
+    borderWidth: 1,
+    borderColor: "#DCE5FF",
+    marginBottom: 16,
   },
 
   title: {
-    fontSize: 25,
-    lineHeight: 30,
+    fontSize: 28,
+    lineHeight: 34,
     fontWeight: "800",
-    letterSpacing: -0.6,
+    letterSpacing: -0.8,
     color: "#273449",
     textAlign: "center",
   },
 
   description: {
-    maxWidth: 330,
-    marginTop: 8,
+    maxWidth: 360,
+    marginTop: 9,
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 21,
     color: "#64748B",
     textAlign: "center",
   },
 
   formCard: {
-    marginTop: 28,
+    marginTop: 30,
     padding: 18,
     borderRadius: 20,
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#E3E8F0",
+    shadowColor: "#273449",
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    elevation: 2,
+  },
+
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
   },
 
   label: {
     fontSize: 12,
     fontWeight: "800",
     color: "#475569",
-    marginBottom: 9,
+  },
+
+  secureBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: "#F8FAFC",
+  },
+
+  secureText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#64748B",
   },
 
   input: {
-    height: 58,
+    height: 62,
     borderWidth: 1,
     borderColor: "#DCE3EC",
-    borderRadius: 14,
+    borderRadius: 15,
     backgroundColor: "#F9FAFC",
     paddingHorizontal: 16,
-    fontSize: 25,
+    fontSize: 27,
     fontWeight: "700",
-    letterSpacing: 7,
+    letterSpacing: 8,
     color: "#273449",
     textAlign: "center",
   },
@@ -340,7 +403,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 8,
+    marginTop: 9,
+  },
+
+  hintContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
   },
 
   hint: {
@@ -360,12 +430,41 @@ const styles = StyleSheet.create({
     color: "#94A3B8",
   },
 
+  infoCard: {
+    marginTop: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: "#F1F5FF",
+    borderWidth: 1,
+    borderColor: "#E0E7FF",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 9,
+  },
+
+  infoIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 9,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#E5EBFF",
+  },
+
+  infoText: {
+    flex: 1,
+    fontSize: 11,
+    lineHeight: 16,
+    color: "#64748B",
+  },
+
   actions: {
     marginTop: "auto",
   },
 
   primaryButton: {
-    height: 52,
+    height: 54,
     borderRadius: 15,
     backgroundColor: "#4A6FE3",
     flexDirection: "row",
@@ -382,8 +481,15 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
+  primaryButtonPressed: {
+    backgroundColor: "#3559C7",
+    transform: [{ scale: 0.985 }],
+  },
+
   primaryButtonDisabled: {
     opacity: 0.45,
+    shadowOpacity: 0,
+    elevation: 0,
   },
 
   primaryText: {

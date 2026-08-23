@@ -1,4 +1,7 @@
 import {
+  Animated,
+  Dimensions,
+  Easing,
   View,
   Text,
   Pressable,
@@ -6,7 +9,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { router } from "expo-router";
 
 import Logo from "../../assets/images/logo.svg";
 import { BackHeader } from "@/components/ui/BackButton";
@@ -16,6 +20,9 @@ import { PurchasesPackage } from "react-native-purchases";
 import { revenueCatService } from "@/features/subscriptions/services/revenuecat.service";
 import { useRestorePurchases } from "@/features/subscriptions/hooks/use-restore-purchases";
 import { useIsTablet } from "@/hooks/use-is-tablet";
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } =
+  Dimensions.get("window");
 
 const FEATURES = [
   {
@@ -36,6 +43,166 @@ const FEATURES = [
   },
 ];
 
+type ConfettiPiece = {
+  id: number;
+  x: number;
+  color: string;
+  size: number;
+  rotation: number;
+  delay: number;
+};
+
+const CONFETTI_COLORS = [
+  "#3F6EE8",
+  "#16A34A",
+  "#F59E0B",
+  "#EC4899",
+  "#8B5CF6",
+  "#06B6D4",
+];
+
+function Confetti({
+    visible,
+    styles,
+  }: {
+    visible: boolean;
+    styles: ReturnType<typeof getStyles>;
+  }) {
+  const pieces = useRef<ConfettiPiece[]>(
+    Array.from({ length: 55 }, (_, index) => ({
+      id: index,
+      x: Math.random() * SCREEN_WIDTH,
+      color:
+        CONFETTI_COLORS[
+          index % CONFETTI_COLORS.length
+        ],
+      size: 5 + Math.random() * 5,
+      rotation: Math.random() * 360,
+      delay: Math.random() * 350,
+    })),
+  ).current;
+
+  const animations = useRef(
+    pieces.map(() => ({
+      translateY: new Animated.Value(-30),
+      translateX: new Animated.Value(0),
+      rotate: new Animated.Value(0),
+      opacity: new Animated.Value(0),
+    })),
+  ).current;
+
+  useEffect(() => {
+    if (!visible) {
+      animations.forEach((animation) => {
+        animation.translateY.setValue(-30);
+        animation.translateX.setValue(0);
+        animation.rotate.setValue(0);
+        animation.opacity.setValue(0);
+      });
+
+      return;
+    }
+
+    animations.forEach((animation, index) => {
+      const piece = pieces[index];
+
+      Animated.sequence([
+        Animated.delay(piece.delay),
+
+        Animated.parallel([
+          Animated.timing(animation.opacity, {
+            toValue: 1,
+            duration: 100,
+            useNativeDriver: true,
+          }),
+
+          Animated.timing(animation.translateY, {
+            toValue: SCREEN_HEIGHT + 100,
+            duration: 2200 + Math.random() * 700,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }),
+
+          Animated.timing(animation.translateX, {
+            toValue:
+              (Math.random() - 0.5) * 180,
+            duration: 2200 + Math.random() * 700,
+            easing: Easing.inOut(Easing.sin),
+            useNativeDriver: true,
+          }),
+
+          Animated.timing(animation.rotate, {
+            toValue: 4 + Math.random() * 6,
+            duration: 2400,
+            easing: Easing.linear,
+            useNativeDriver: true,
+          }),
+        ]),
+
+        Animated.timing(animation.opacity, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  }, [visible]);
+
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <View
+      pointerEvents="none"
+      style={styles.confettiContainer}
+    >
+      {pieces.map((piece, index) => {
+        const animation = animations[index];
+
+        return (
+          <Animated.View
+            key={piece.id}
+            style={[
+              styles.confettiPiece,
+              {
+                left: piece.x,
+                width: piece.size,
+                height: piece.size * 1.6,
+                backgroundColor: piece.color,
+                transform: [
+                  {
+                    translateY:
+                      animation.translateY,
+                  },
+                  {
+                    translateX:
+                      animation.translateX,
+                  },
+                  {
+                    rotate: animation.rotate.interpolate(
+                      {
+                        inputRange: [0, 1],
+                        outputRange: [
+                          `${piece.rotation}deg`,
+                          `${
+                            piece.rotation + 360
+                          }deg`,
+                        ],
+                      },
+                    ),
+                  },
+                ],
+                opacity: animation.opacity,
+              },
+            ]}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
 export default function PaywallScreen() {
   const isTablet = useIsTablet();
   const styles = getStyles(isTablet);
@@ -51,6 +218,12 @@ export default function PaywallScreen() {
 
   const [loadingOfferings, setLoadingOfferings] =
     useState(true);
+
+  const [isPurchasing, setIsPurchasing] =
+    useState(false);
+
+  const [showConfetti, setShowConfetti] =
+    useState(false);
 
   const restorePurchases = useRestorePurchases();
 
@@ -94,17 +267,86 @@ export default function PaywallScreen() {
     loadOfferings();
   }, []);
 
+  async function handlePurchase() {
+    const pkg =
+      selectedPlan === "annual"
+        ? annualPackage
+        : monthlyPackage;
+
+    if (!pkg) {
+      console.warn(
+        "RevenueCat package is not available",
+      );
+      return;
+    }
+
+    if (isPurchasing) {
+      return;
+    }
+
+    setIsPurchasing(true);
+
+    try {
+      const customerInfo =
+        await revenueCatService.purchasePackage(
+          pkg,
+        );
+
+      console.log(
+        "RevenueCat customer info:",
+        customerInfo,
+      );
+
+      /*
+       * Purchase completed successfully.
+       *
+       * Show the celebration first, then take the
+       * user back to the dashboard.
+       */
+      setShowConfetti(true);
+
+      setTimeout(() => {
+        router.replace("/(tabs)/dashboard");
+      }, 1800);
+    } catch (error: any) {
+      console.error(
+        "RevenueCat purchase failed:",
+        error,
+      );
+
+      console.error(
+        "RevenueCat purchase error code:",
+        error?.code,
+      );
+
+      console.error(
+        "RevenueCat purchase error message:",
+        error?.message,
+      );
+
+      console.error(
+        "RevenueCat purchase error userCancelled:",
+        error?.userCancelled,
+      );
+    } finally {
+      setIsPurchasing(false);
+    }
+  }
+
   return (
     <View style={styles.container}>
       <BackHeader />
 
       <SafeAreaView
         style={styles.safeArea}
-        edges={["bottom", "left", "right"]}
+        edges={[
+          "bottom",
+          "left",
+          "right",
+        ]}
       >
         <View style={styles.content}>
           <View style={styles.contentInner}>
-
             {/* Header */}
 
             <View style={styles.header}>
@@ -142,42 +384,65 @@ export default function PaywallScreen() {
             {/* Features */}
 
             <View style={styles.featuresCard}>
-              {FEATURES.map((feature, index) => (
-                <View
-                  key={feature.title}
-                  style={[
-                    styles.featureRow,
-                    index === FEATURES.length - 1 &&
-                      styles.lastFeatureRow,
-                  ]}
-                >
-                  <View style={styles.featureIcon}>
-                    <Ionicons
-                      name={feature.icon}
-                      size={isTablet ? 21 : 17}
-                      color="#3F6EE8"
-                    />
-                  </View>
+              {FEATURES.map(
+                (feature, index) => (
+                  <View
+                    key={feature.title}
+                    style={[
+                      styles.featureRow,
+                      index ===
+                        FEATURES.length - 1 &&
+                        styles.lastFeatureRow,
+                    ]}
+                  >
+                    <View
+                      style={
+                        styles.featureIcon
+                      }
+                    >
+                      <Ionicons
+                        name={feature.icon}
+                        size={
+                          isTablet
+                            ? 21
+                            : 17
+                        }
+                        color="#3F6EE8"
+                      />
+                    </View>
 
-                  <Text style={styles.featureText}>
-                    {feature.title}
-                  </Text>
+                    <Text
+                      style={
+                        styles.featureText
+                      }
+                    >
+                      {feature.title}
+                    </Text>
 
-                  <View style={styles.check}>
-                    <Ionicons
-                      name="checkmark"
-                      size={isTablet ? 15 : 13}
-                      color="#FFFFFF"
-                    />
+                    <View
+                      style={styles.check}
+                    >
+                      <Ionicons
+                        name="checkmark"
+                        size={
+                          isTablet
+                            ? 15
+                            : 13
+                        }
+                        color="#FFFFFF"
+                      />
+                    </View>
                   </View>
-                </View>
-              ))}
+                ),
+              )}
             </View>
 
             {/* Plans */}
 
             <View style={styles.planHeader}>
-              <Text style={styles.chooseLabel}>
+              <Text
+                style={styles.chooseLabel}
+              >
                 CHOOSE YOUR PLAN
               </Text>
 
@@ -187,56 +452,96 @@ export default function PaywallScreen() {
             </View>
 
             <View style={styles.plans}>
-
               {/* Annual */}
 
               <Pressable
+                disabled={isPurchasing}
                 style={[
                   styles.plan,
-                  selectedPlan === "annual" &&
+                  selectedPlan ===
+                    "annual" &&
                     styles.selectedPlan,
                 ]}
                 onPress={() =>
-                  setSelectedPlan("annual")
+                  setSelectedPlan(
+                    "annual",
+                  )
                 }
               >
                 <View
                   style={[
                     styles.radio,
-                    selectedPlan === "annual" &&
+                    selectedPlan ===
+                      "annual" &&
                       styles.radioSelected,
                   ]}
                 >
-                  {selectedPlan === "annual" && (
-                    <View style={styles.radioDot} />
+                  {selectedPlan ===
+                    "annual" && (
+                    <View
+                      style={
+                        styles.radioDot
+                      }
+                    />
                   )}
                 </View>
 
                 <View style={styles.planInfo}>
-                  <View style={styles.planNameRow}>
-                    <Text style={styles.planName}>
+                  <View
+                    style={
+                      styles.planNameRow
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.planName
+                      }
+                    >
                       Annual
                     </Text>
 
-                    <View style={styles.savingsBadge}>
-                      <Text style={styles.savingsText}>
+                    <View
+                      style={
+                        styles.savingsBadge
+                      }
+                    >
+                      <Text
+                        style={
+                          styles.savingsText
+                        }
+                      >
                         2 MONTHS FREE
                       </Text>
                     </View>
                   </View>
 
-                  <Text style={styles.planDescription}>
-                    Best value for year-round tracking
+                  <Text
+                    style={
+                      styles.planDescription
+                    }
+                  >
+                    Best value for year-round
+                    tracking
                   </Text>
                 </View>
 
-                <View style={styles.priceContainer}>
-                  <Text style={styles.price}>
-                    {annualPackage?.product.priceString ??
+                <View
+                  style={
+                    styles.priceContainer
+                  }
+                >
+                  <Text
+                    style={styles.price}
+                  >
+                    {annualPackage
+                      ?.product
+                      .priceString ??
                       "$49.99"}
                   </Text>
 
-                  <Text style={styles.period}>
+                  <Text
+                    style={styles.period}
+                  >
                     /year
                   </Text>
                 </View>
@@ -245,44 +550,73 @@ export default function PaywallScreen() {
               {/* Monthly */}
 
               <Pressable
+                disabled={isPurchasing}
                 style={[
                   styles.plan,
-                  selectedPlan === "monthly" &&
+                  selectedPlan ===
+                    "monthly" &&
                     styles.selectedPlan,
                 ]}
                 onPress={() =>
-                  setSelectedPlan("monthly")
+                  setSelectedPlan(
+                    "monthly",
+                  )
                 }
               >
                 <View
                   style={[
                     styles.radio,
-                    selectedPlan === "monthly" &&
+                    selectedPlan ===
+                      "monthly" &&
                       styles.radioSelected,
                   ]}
                 >
-                  {selectedPlan === "monthly" && (
-                    <View style={styles.radioDot} />
+                  {selectedPlan ===
+                    "monthly" && (
+                    <View
+                      style={
+                        styles.radioDot
+                      }
+                    />
                   )}
                 </View>
 
                 <View style={styles.planInfo}>
-                  <Text style={styles.planName}>
+                  <Text
+                    style={
+                      styles.planName
+                    }
+                  >
                     Monthly
                   </Text>
 
-                  <Text style={styles.planDescription}>
-                    Flexible month-to-month billing
+                  <Text
+                    style={
+                      styles.planDescription
+                    }
+                  >
+                    Flexible month-to-month
+                    billing
                   </Text>
                 </View>
 
-                <View style={styles.priceContainer}>
-                  <Text style={styles.price}>
-                    {monthlyPackage?.product.priceString ??
+                <View
+                  style={
+                    styles.priceContainer
+                  }
+                >
+                  <Text
+                    style={styles.price}
+                  >
+                    {monthlyPackage
+                      ?.product
+                      .priceString ??
                       "$4.99"}
                   </Text>
 
-                  <Text style={styles.period}>
+                  <Text
+                    style={styles.period}
+                  >
                     /month
                   </Text>
                 </View>
@@ -292,65 +626,40 @@ export default function PaywallScreen() {
             {/* CTA */}
 
             <Pressable
-              style={styles.subscribeButton}
-              onPress={async () => {
-                const pkg =
-                  selectedPlan === "annual"
-                    ? annualPackage
-                    : monthlyPackage;
-
-                if (!pkg) {
-                  console.warn(
-                    "RevenueCat package is not available",
-                  );
-                  return;
-                }
-
-                try {
-                  const customerInfo =
-                    await revenueCatService.purchasePackage(
-                      pkg,
-                    );
-
-                  console.log(
-                    "RevenueCat customer info:",
-                    customerInfo,
-                  );
-                } catch (error: any) {
-                  console.error(
-                    "RevenueCat purchase failed:",
-                    error,
-                  );
-
-                  console.error(
-                    "RevenueCat purchase error code:",
-                    error?.code,
-                  );
-
-                  console.error(
-                    "RevenueCat purchase error message:",
-                    error?.message,
-                  );
-
-                  console.error(
-                    "RevenueCat purchase error userCancelled:",
-                    error?.userCancelled,
-                  );
-                }
-              }}
+              disabled={
+                isPurchasing ||
+                loadingOfferings
+              }
+              style={[
+                styles.subscribeButton,
+                (isPurchasing ||
+                  loadingOfferings) &&
+                  styles.subscribeButtonDisabled,
+              ]}
+              onPress={handlePurchase}
             >
-              <Text style={styles.subscribeText}>
-                Continue with{" "}
-                {selectedPlan === "annual"
-                  ? "Annual"
-                  : "Monthly"}
+              <Text
+                style={styles.subscribeText}
+              >
+                {isPurchasing
+                  ? "Processing..."
+                  : `Continue with ${
+                      selectedPlan ===
+                      "annual"
+                        ? "Annual"
+                        : "Monthly"
+                    }`}
               </Text>
 
-              <Ionicons
-                name="arrow-forward"
-                size={isTablet ? 22 : 19}
-                color="#FFFFFF"
-              />
+              {!isPurchasing && (
+                <Ionicons
+                  name="arrow-forward"
+                  size={
+                    isTablet ? 22 : 19
+                  }
+                  color="#FFFFFF"
+                />
+              )}
             </Pressable>
 
             <Text style={styles.cancelText}>
@@ -358,6 +667,9 @@ export default function PaywallScreen() {
             </Text>
 
             <Pressable
+              disabled={
+                restorePurchases.isPending
+              }
               style={styles.restoreButton}
               onPress={async () => {
                 try {
@@ -370,26 +682,127 @@ export default function PaywallScreen() {
                 }
               }}
             >
-              <Text style={styles.restoreText}>
-                Restore Purchases
+              <Text
+                style={styles.restoreText}
+              >
+                {restorePurchases.isPending
+                  ? "Restoring..."
+                  : "Restore Purchases"}
               </Text>
             </Pressable>
 
             <Text style={styles.legal}>
-              Payment is charged to your Apple Account.
-              Subscriptions renew automatically unless
-              canceled at least 24 hours before the
-              current period ends.
+              Payment is charged to your Apple
+              Account. Subscriptions renew
+              automatically unless canceled at
+              least 24 hours before the current
+              period ends.
             </Text>
           </View>
         </View>
       </SafeAreaView>
+
+      {/* Purchase celebration */}
+
+      <Confetti
+        visible={showConfetti}
+        styles={styles}
+      />
+
+      {showConfetti && (
+        <View
+          pointerEvents="none"
+          style={styles.successOverlay}
+        >
+          <View style={styles.successCard}>
+            <View style={styles.successIcon}>
+              <Ionicons
+                name="checkmark"
+                size={32}
+                color="#FFFFFF"
+              />
+            </View>
+
+            <Text
+              style={styles.successTitle}
+            >
+              Welcome to Deduckly Pro!
+            </Text>
+
+            <Text
+              style={styles.successSubtitle}
+            >
+              Your subscription is active.
+            </Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
-
 const getStyles = (isTablet: boolean) =>
   StyleSheet.create({
+    confettiContainer: {
+      ...StyleSheet.absoluteFillObject,
+      zIndex: 100,
+      overflow: "hidden",
+    },
+
+    confettiPiece: {
+      position: "absolute",
+      top: 0,
+      borderRadius: 2,
+    },
+
+    successOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      zIndex: 90,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    successCard: {
+      alignItems: "center",
+      paddingHorizontal: 30,
+      paddingVertical: 25,
+      borderRadius: 24,
+      backgroundColor: "#FFFFFF",
+
+      shadowColor: "#111827",
+      shadowOpacity: 0.12,
+      shadowRadius: 24,
+      shadowOffset: {
+        width: 0,
+        height: 10,
+      },
+
+      elevation: 8,
+    },
+
+    successIcon: {
+      width: 58,
+      height: 58,
+      borderRadius: 999,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#16A34A",
+      marginBottom: 13,
+    },
+
+    successTitle: {
+      fontSize: 20,
+      fontWeight: "800",
+      color: "#273449",
+      textAlign: "center",
+    },
+
+    successSubtitle: {
+      marginTop: 5,
+      fontSize: 13,
+      color: "#64748B",
+      textAlign: "center",
+    },
+
     container: {
       flex: 1,
       backgroundColor: "#F7F9FC",
@@ -411,16 +824,14 @@ const getStyles = (isTablet: boolean) =>
       width: "100%",
       maxWidth: isTablet ? 720 : undefined,
       alignSelf: isTablet ? "center" : undefined,
-      justifyContent: isTablet
-        ? "center"
-        : "flex-start",
+      justifyContent: "flex-start",
     },
 
     /* Header */
 
     header: {
       alignItems: "center",
-      paddingTop: isTablet ? 8 : 20,
+      paddingTop: isTablet ? 20 : 20,
     },
 
     logoContainer: {
@@ -673,6 +1084,10 @@ const getStyles = (isTablet: boolean) =>
       },
 
       elevation: 3,
+    },
+
+    subscribeButtonDisabled: {
+      opacity: 0.55,
     },
 
     subscribeText: {

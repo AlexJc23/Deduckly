@@ -185,7 +185,7 @@ export default function DashboardScreen() {
         <View style={styles.banner}>
           <Ionicons
             name="checkmark-circle"
-            size={18}
+            size={isTablet ? 20 : 18}
             color="#FFFFFF"
           />
 
@@ -444,7 +444,7 @@ const getStyles = (isTablet: boolean) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      paddingHorizontal: isTablet ? 28 : 20,
+      paddingHorizontal: isTablet ? 22 : 20,
       backgroundColor: "#F8FAFC",
     },
 
@@ -457,22 +457,20 @@ const getStyles = (isTablet: boolean) =>
 
     banner: {
       position: "absolute",
-      top: isTablet ? 18 : 50,
-      left: isTablet ? 28 : 8,
-      right: isTablet ? 28 : 8,
+      top: isTablet ? 18 : 12,
+      left: isTablet ? 22 : 16,
+      right: isTablet ? 22 : 16,
       zIndex: 1000,
-
-      minHeight: isTablet ? 56 : 52,
-      paddingHorizontal: isTablet ? 20 : 18,
-      borderRadius: isTablet ? 16 : 16,
-
-      backgroundColor: "#3559C7",
+      minHeight: isTablet ? 56 : 48,
+      paddingHorizontal: isTablet ? 20 : 16,
+      borderRadius: isTablet ? 16 : 14,
+      backgroundColor: "#111827",
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       gap: 8,
 
-      shadowColor: "#244181",
+      shadowColor: "#111827",
       shadowOpacity: 0.16,
       shadowRadius: 12,
       shadowOffset: {
@@ -490,15 +488,15 @@ const getStyles = (isTablet: boolean) =>
     },
 
     welcomeContainer: {
-      marginTop: isTablet ? 24 : 8,
+      marginTop: isTablet ? 20 : 8,
       marginBottom: isTablet ? 24 : 20,
-      maxWidth: isTablet ? 1000 : undefined,
+      maxWidth: isTablet ? 1200 : undefined,
       alignSelf: isTablet ? "center" : undefined,
       width: isTablet ? "100%" : undefined,
     },
 
     welcomeText: {
-      fontSize: isTablet ? 34 : 28,
+      fontSize: isTablet ? 36 : 28,
       letterSpacing: -0.8,
     },
 
@@ -513,15 +511,15 @@ const getStyles = (isTablet: boolean) =>
     },
 
     welcomeSubtitle: {
-      marginTop: 6,
-      fontSize: isTablet ? 15 : 14,
-      lineHeight: isTablet ? 22 : 20,
+      marginTop: 5,
+      fontSize: isTablet ? 16 : 14,
+      lineHeight: isTablet ? 23 : 20,
       color: "#64748B",
       fontWeight: "500",
     },
 
     goalContainer: {
-      maxWidth: isTablet ? 1000 : undefined,
+      maxWidth: isTablet ? 1200 : undefined,
       alignSelf: isTablet ? "center" : undefined,
       width: isTablet ? "100%" : undefined,
       marginBottom: isTablet ? 4 : 0,
@@ -529,12 +527,12 @@ const getStyles = (isTablet: boolean) =>
 
     taxCard: {
       backgroundColor: "#FFFFFF",
-      borderRadius: isTablet ? 20 : 18,
+      borderRadius: isTablet ? 22 : 18,
       borderWidth: 1,
       borderColor: "#E5E7EB",
-      padding: isTablet ? 22 : 18,
+      padding: isTablet ? 24 : 18,
       marginTop: isTablet ? 18 : 16,
-      maxWidth: isTablet ? 1000 : undefined,
+      maxWidth: isTablet ? 1200 : undefined,
       alignSelf: isTablet ? "center" : undefined,
       width: isTablet ? "100%" : undefined,
 
@@ -622,7 +620,7 @@ const getStyles = (isTablet: boolean) =>
       borderColor: "#E5E7EB",
       flexDirection: "row",
       alignItems: "center",
-      maxWidth: isTablet ? 1000 : undefined,
+      maxWidth: isTablet ? 1200 : undefined,
       alignSelf: isTablet ? "center" : undefined,
       width: isTablet ? "100%" : undefined,
 
@@ -672,7 +670,7 @@ const getStyles = (isTablet: boolean) =>
       flexDirection: "row",
       gap: isTablet ? 14 : 12,
       marginTop: isTablet ? 14 : 12,
-      maxWidth: isTablet ? 1000 : undefined,
+      maxWidth: isTablet ? 1200 : undefined,
       alignSelf: isTablet ? "center" : undefined,
       width: isTablet ? "100%" : undefined,
     },
@@ -722,10 +720,10 @@ const getStyles = (isTablet: boolean) =>
     },
 
     actionsContainer: {
-      marginTop: "auto",
+      marginTop: isTablet ? 18 : "auto",
       marginBottom: isTablet ? 28 : 18,
-      paddingTop: isTablet ? 24 : 14,
-      maxWidth: isTablet ? 1000 : undefined,
+      paddingTop: isTablet ? 10 : 14,
+      maxWidth: isTablet ? 1200 : undefined,
       alignSelf: isTablet ? "center" : undefined,
       width: isTablet ? "100%" : undefined,
     },

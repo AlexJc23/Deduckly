@@ -16,6 +16,8 @@
 		5B44ED913025F381009FEF8B /* SiriBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B44ED903025F381009FEF8B /* SiriBridge.m */; };
 		5B44ED933026ACDE009FEF8B /* StopTripIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B44ED923026ACCD009FEF8B /* StopTripIntent.swift */; };
 		5B44ED9530275EFA009FEF8B /* CancelTripIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B44ED9430275EEF009FEF8B /* CancelTripIntent.swift */; };
+		5B5AE3B5303B5083002723E1 /* AppIconManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B5AE3B3303B5082002723E1 /* AppIconManager.m */; };
+		5B5AE3B6303B5083002723E1 /* AppIconManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5AE3B4303B5082002723E1 /* AppIconManager.swift */; };
 		78FF2A795E816E7EAD6CF6BF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4F490B7087805EB7C635E270 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		EA1291ADA5A12F13EC9548D7 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A42328A2A34F1D9A9717CE /* ExpoModulesProvider.swift */; };
@@ -49,6 +51,8 @@
 		5B44ED903025F381009FEF8B /* SiriBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SiriBridge.m; sourceTree = "<group>"; };
 		5B44ED923026ACCD009FEF8B /* StopTripIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopTripIntent.swift; sourceTree = "<group>"; };
 		5B44ED9430275EEF009FEF8B /* CancelTripIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancelTripIntent.swift; sourceTree = "<group>"; };
+		5B5AE3B3303B5082002723E1 /* AppIconManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = frontend/AppIconManager.m; sourceTree = "<group>"; };
+		5B5AE3B4303B5082002723E1 /* AppIconManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = frontend/AppIconManager.swift; sourceTree = "<group>"; };
 		8CBAF9A6BA78A8FBA4AC9D13 /* Pods-frontend.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-frontend.debug.xcconfig"; path = "Target Support Files/Pods-frontend/Pods-frontend.debug.xcconfig"; sourceTree = "<group>"; };
 		A3A42328A2A34F1D9A9717CE /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-frontend/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = frontend/SplashScreen.storyboard; sourceTree = "<group>"; };
@@ -83,6 +87,8 @@
 		13B07FAE1A68108700A75B9A /* frontend */ = {
 			isa = PBXGroup;
 			children = (
+				5B5AE3B3303B5082002723E1 /* AppIconManager.m */,
+				5B5AE3B4303B5082002723E1 /* AppIconManager.swift */,
 				5B44ED903025F381009FEF8B /* SiriBridge.m */,
 				5B44ED8C3025F1F7009FEF8B /* SiriBridge.swift */,
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
@@ -396,6 +402,8 @@
 			files = (
 				5B44ED893024A982009FEF8B /* Platform.swift in Sources */,
 				5B44ED913025F381009FEF8B /* SiriBridge.m in Sources */,
+				5B5AE3B5303B5083002723E1 /* AppIconManager.m in Sources */,
+				5B5AE3B6303B5083002723E1 /* AppIconManager.swift in Sources */,
 				5B44ED8A3024A98D009FEF8B /* AppShortcuts.swift in Sources */,
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
 				5B44ED8D3025F1F7009FEF8B /* SiriBridge.swift in Sources */,
@@ -441,7 +449,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.karlsonworks.deduckly;
-				PRODUCT_NAME = Deduckly;
+				PRODUCT_NAME = "Deduckly";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -481,7 +489,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.karlsonworks.deduckly;
-				PRODUCT_NAME = Deduckly;
+				PRODUCT_NAME = "Deduckly";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
