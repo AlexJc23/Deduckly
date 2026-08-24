@@ -30,6 +30,13 @@ class RevenueCatService {
   async purchasePackage(
     pkg: PurchasesPackage,
   ): Promise<CustomerInfo> {
+    const before = await Purchases.getCustomerInfo();
+
+    console.log(
+      "RevenueCat purchase user:",
+      before.originalAppUserId,
+    );
+
     const { customerInfo } =
       await Purchases.purchasePackage(pkg);
 
