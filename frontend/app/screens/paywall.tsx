@@ -62,12 +62,12 @@ const CONFETTI_COLORS = [
 ];
 
 function Confetti({
-    visible,
-    styles,
-  }: {
-    visible: boolean;
-    styles: ReturnType<typeof getStyles>;
-  }) {
+  visible,
+  styles,
+}: {
+  visible: boolean;
+  styles: ReturnType<typeof getStyles>;
+}) {
   const pieces = useRef<ConfettiPiece[]>(
     Array.from({ length: 55 }, (_, index) => ({
       id: index,
@@ -124,8 +124,7 @@ function Confetti({
           }),
 
           Animated.timing(animation.translateX, {
-            toValue:
-              (Math.random() - 0.5) * 180,
+            toValue: (Math.random() - 0.5) * 180,
             duration: 2200 + Math.random() * 700,
             easing: Easing.inOut(Easing.sin),
             useNativeDriver: true,
@@ -172,25 +171,19 @@ function Confetti({
                 backgroundColor: piece.color,
                 transform: [
                   {
-                    translateY:
-                      animation.translateY,
+                    translateY: animation.translateY,
                   },
                   {
-                    translateX:
-                      animation.translateX,
+                    translateX: animation.translateX,
                   },
                   {
-                    rotate: animation.rotate.interpolate(
-                      {
-                        inputRange: [0, 1],
-                        outputRange: [
-                          `${piece.rotation}deg`,
-                          `${
-                            piece.rotation + 360
-                          }deg`,
-                        ],
-                      },
-                    ),
+                    rotate: animation.rotate.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [
+                        `${piece.rotation}deg`,
+                        `${piece.rotation + 360}deg`,
+                      ],
+                    }),
                   },
                 ],
                 opacity: animation.opacity,
@@ -233,14 +226,14 @@ export default function PaywallScreen() {
         const offerings =
           await revenueCatService.getOfferings();
 
-        const current = offerings.current;
-
         console.log(
-          "RevenueCat current offering:",
-          current,
+          "RevenueCat offerings:",
+          offerings,
         );
 
-        if (!current) {
+        const offering = offerings.current;
+
+        if (!offering) {
           console.warn(
             "RevenueCat: no current offering found",
           );
@@ -248,11 +241,11 @@ export default function PaywallScreen() {
         }
 
         setAnnualPackage(
-          current.annual ?? null,
+          offering.annual ?? null,
         );
 
         setMonthlyPackage(
-          current.monthly ?? null,
+          offering.monthly ?? null,
         );
       } catch (error) {
         console.error(
@@ -268,19 +261,16 @@ export default function PaywallScreen() {
   }, []);
 
   async function handlePurchase() {
+    if (isPurchasing) {
+      return;
+    }
+
     const pkg =
       selectedPlan === "annual"
         ? annualPackage
         : monthlyPackage;
 
     if (!pkg) {
-      console.warn(
-        "RevenueCat package is not available",
-      );
-      return;
-    }
-
-    if (isPurchasing) {
       return;
     }
 
@@ -288,67 +278,40 @@ export default function PaywallScreen() {
 
     try {
       const customerInfo =
-        await revenueCatService.purchasePackage(
-          pkg,
-        );
+        await revenueCatService.purchasePackage(pkg);
 
-      console.log(
-        "RevenueCat customer info:",
-        customerInfo,
-      );
+      const isPremium =
+        customerInfo.entitlements.active["Deduckly Pro"] !== undefined;
 
-      /*
-       * Purchase completed successfully.
-       *
-       * Show the celebration first, then take the
-       * user back to the dashboard.
-       */
+      if (!isPremium) {
+        return;
+      }
+
       setShowConfetti(true);
 
       setTimeout(() => {
         router.replace("/(tabs)/dashboard");
       }, 1800);
     } catch (error: any) {
-      console.error(
-        "RevenueCat purchase failed:",
-        error,
-      );
+      if (error?.userCancelled) {
+        return;
+      }
 
-      console.error(
-        "RevenueCat purchase error code:",
-        error?.code,
-      );
-
-      console.error(
-        "RevenueCat purchase error message:",
-        error?.message,
-      );
-
-      console.error(
-        "RevenueCat purchase error userCancelled:",
-        error?.userCancelled,
-      );
+      console.error("Purchase failed:", error);
     } finally {
       setIsPurchasing(false);
     }
   }
-
   return (
     <View style={styles.container}>
       <BackHeader />
 
       <SafeAreaView
         style={styles.safeArea}
-        edges={[
-          "bottom",
-          "left",
-          "right",
-        ]}
+        edges={["bottom", "left", "right"]}
       >
         <View style={styles.content}>
           <View style={styles.contentInner}>
-            {/* Header */}
-
             <View style={styles.header}>
               <View style={styles.logoContainer}>
                 <Logo
@@ -381,68 +344,41 @@ export default function PaywallScreen() {
               </Text>
             </View>
 
-            {/* Features */}
-
             <View style={styles.featuresCard}>
-              {FEATURES.map(
-                (feature, index) => (
-                  <View
-                    key={feature.title}
-                    style={[
-                      styles.featureRow,
-                      index ===
-                        FEATURES.length - 1 &&
-                        styles.lastFeatureRow,
-                    ]}
-                  >
-                    <View
-                      style={
-                        styles.featureIcon
-                      }
-                    >
-                      <Ionicons
-                        name={feature.icon}
-                        size={
-                          isTablet
-                            ? 21
-                            : 17
-                        }
-                        color="#3F6EE8"
-                      />
-                    </View>
-
-                    <Text
-                      style={
-                        styles.featureText
-                      }
-                    >
-                      {feature.title}
-                    </Text>
-
-                    <View
-                      style={styles.check}
-                    >
-                      <Ionicons
-                        name="checkmark"
-                        size={
-                          isTablet
-                            ? 15
-                            : 13
-                        }
-                        color="#FFFFFF"
-                      />
-                    </View>
+              {FEATURES.map((feature, index) => (
+                <View
+                  key={feature.title}
+                  style={[
+                    styles.featureRow,
+                    index === FEATURES.length - 1 &&
+                      styles.lastFeatureRow,
+                  ]}
+                >
+                  <View style={styles.featureIcon}>
+                    <Ionicons
+                      name={feature.icon}
+                      size={isTablet ? 21 : 17}
+                      color="#3F6EE8"
+                    />
                   </View>
-                ),
-              )}
+
+                  <Text style={styles.featureText}>
+                    {feature.title}
+                  </Text>
+
+                  <View style={styles.check}>
+                    <Ionicons
+                      name="checkmark"
+                      size={isTablet ? 15 : 13}
+                      color="#FFFFFF"
+                    />
+                  </View>
+                </View>
+              ))}
             </View>
 
-            {/* Plans */}
-
             <View style={styles.planHeader}>
-              <Text
-                style={styles.chooseLabel}
-              >
+              <Text style={styles.chooseLabel}>
                 CHOOSE YOUR PLAN
               </Text>
 
@@ -452,211 +388,142 @@ export default function PaywallScreen() {
             </View>
 
             <View style={styles.plans}>
-              {/* Annual */}
-
               <Pressable
                 disabled={isPurchasing}
                 style={[
                   styles.plan,
-                  selectedPlan ===
-                    "annual" &&
+                  selectedPlan === "annual" &&
                     styles.selectedPlan,
                 ]}
                 onPress={() =>
-                  setSelectedPlan(
-                    "annual",
-                  )
+                  setSelectedPlan("annual")
                 }
               >
                 <View
                   style={[
                     styles.radio,
-                    selectedPlan ===
-                      "annual" &&
+                    selectedPlan === "annual" &&
                       styles.radioSelected,
                   ]}
                 >
-                  {selectedPlan ===
-                    "annual" && (
-                    <View
-                      style={
-                        styles.radioDot
-                      }
-                    />
+                  {selectedPlan === "annual" && (
+                    <View style={styles.radioDot} />
                   )}
                 </View>
 
                 <View style={styles.planInfo}>
-                  <View
-                    style={
-                      styles.planNameRow
-                    }
-                  >
-                    <Text
-                      style={
-                        styles.planName
-                      }
-                    >
-                      Annual
-                    </Text>
-
-                    <View
-                      style={
-                        styles.savingsBadge
-                      }
-                    >
-                      <Text
-                        style={
-                          styles.savingsText
-                        }
-                      >
-                        2 MONTHS FREE
-                      </Text>
-                    </View>
-                  </View>
+                  <Text style={styles.planName}>
+                    Annual
+                  </Text>
 
                   <Text
-                    style={
-                      styles.planDescription
-                    }
+                    style={styles.planDescription}
                   >
                     Best value for year-round
                     tracking
                   </Text>
                 </View>
 
-                <View
-                  style={
-                    styles.priceContainer
-                  }
-                >
-                  <Text
-                    style={styles.price}
-                  >
-                    {annualPackage
-                      ?.product
-                      .priceString ??
+                <View style={styles.priceContainer}>
+                  <Text style={styles.price}>
+                    {annualPackage?.product.priceString ??
                       "$49.99"}
                   </Text>
 
-                  <Text
-                    style={styles.period}
-                  >
+                  <Text style={styles.period}>
                     /year
                   </Text>
                 </View>
               </Pressable>
 
-              {/* Monthly */}
-
               <Pressable
                 disabled={isPurchasing}
                 style={[
                   styles.plan,
-                  selectedPlan ===
-                    "monthly" &&
+                  selectedPlan === "monthly" &&
                     styles.selectedPlan,
                 ]}
                 onPress={() =>
-                  setSelectedPlan(
-                    "monthly",
-                  )
+                  setSelectedPlan("monthly")
                 }
               >
                 <View
                   style={[
                     styles.radio,
-                    selectedPlan ===
-                      "monthly" &&
+                    selectedPlan === "monthly" &&
                       styles.radioSelected,
                   ]}
                 >
-                  {selectedPlan ===
-                    "monthly" && (
-                    <View
-                      style={
-                        styles.radioDot
-                      }
-                    />
+                  {selectedPlan === "monthly" && (
+                    <View style={styles.radioDot} />
                   )}
                 </View>
 
                 <View style={styles.planInfo}>
-                  <Text
-                    style={
-                      styles.planName
-                    }
-                  >
+                  <Text style={styles.planName}>
                     Monthly
                   </Text>
 
                   <Text
-                    style={
-                      styles.planDescription
-                    }
+                    style={styles.planDescription}
                   >
                     Flexible month-to-month
                     billing
                   </Text>
                 </View>
 
-                <View
-                  style={
-                    styles.priceContainer
-                  }
-                >
-                  <Text
-                    style={styles.price}
-                  >
-                    {monthlyPackage
-                      ?.product
-                      .priceString ??
+                <View style={styles.priceContainer}>
+                  <Text style={styles.price}>
+                    {monthlyPackage?.product.priceString ??
                       "$4.99"}
                   </Text>
 
-                  <Text
-                    style={styles.period}
-                  >
+                  <Text style={styles.period}>
                     /month
                   </Text>
                 </View>
               </Pressable>
             </View>
 
-            {/* CTA */}
-
             <Pressable
               disabled={
                 isPurchasing ||
-                loadingOfferings
+                loadingOfferings ||
+                !(
+                  selectedPlan === "annual"
+                    ? annualPackage
+                    : monthlyPackage
+                )
               }
               style={[
                 styles.subscribeButton,
                 (isPurchasing ||
-                  loadingOfferings) &&
+                  loadingOfferings ||
+                  !(
+                    selectedPlan === "annual"
+                      ? annualPackage
+                      : monthlyPackage
+                  )) &&
                   styles.subscribeButtonDisabled,
               ]}
               onPress={handlePurchase}
             >
-              <Text
-                style={styles.subscribeText}
-              >
-                {isPurchasing
-                  ? "Processing..."
-                  : `Continue with ${
-                      selectedPlan ===
-                      "annual"
-                        ? "Annual"
-                        : "Monthly"
-                    }`}
+              <Text style={styles.subscribeText}>
+                {loadingOfferings
+                  ? "Loading..."
+                  : isPurchasing
+                    ? "Processing..."
+                    : `Continue with ${
+                        selectedPlan === "annual"
+                          ? "Annual"
+                          : "Monthly"
+                      }`}
               </Text>
 
-              {!isPurchasing && (
+              {!isPurchasing && !loadingOfferings && (
                 <Ionicons
                   name="arrow-forward"
-                  size={
-                    isTablet ? 22 : 19
-                  }
+                  size={isTablet ? 22 : 19}
                   color="#FFFFFF"
                 />
               )}
@@ -667,9 +534,7 @@ export default function PaywallScreen() {
             </Text>
 
             <Pressable
-              disabled={
-                restorePurchases.isPending
-              }
+              disabled={restorePurchases.isPending}
               style={styles.restoreButton}
               onPress={async () => {
                 try {
@@ -682,9 +547,7 @@ export default function PaywallScreen() {
                 }
               }}
             >
-              <Text
-                style={styles.restoreText}
-              >
+              <Text style={styles.restoreText}>
                 {restorePurchases.isPending
                   ? "Restoring..."
                   : "Restore Purchases"}
@@ -701,8 +564,6 @@ export default function PaywallScreen() {
           </View>
         </View>
       </SafeAreaView>
-
-      {/* Purchase celebration */}
 
       <Confetti
         visible={showConfetti}
@@ -723,15 +584,11 @@ export default function PaywallScreen() {
               />
             </View>
 
-            <Text
-              style={styles.successTitle}
-            >
+            <Text style={styles.successTitle}>
               Welcome to Deduckly Pro!
             </Text>
 
-            <Text
-              style={styles.successSubtitle}
-            >
+            <Text style={styles.successSubtitle}>
               Your subscription is active.
             </Text>
           </View>

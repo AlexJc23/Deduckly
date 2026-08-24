@@ -108,7 +108,11 @@ def revenuecat_webhook(
 
     subscription_data = {
         "status": status,
-        "product_id": event.get("product_id"),
+        "product_id": (
+            event.get("new_product_id")
+            if event_type == "PRODUCT_CHANGE"
+            else event.get("product_id")
+        ),
         "original_transaction_id": event.get(
             "original_transaction_id"
         ),

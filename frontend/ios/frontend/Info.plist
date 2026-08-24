@@ -4,12 +4,16 @@
   <dict>
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
+
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
+
     <key>CFBundleDisplayName</key>
     <string>Deduckly</string>
+
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
+
     <key>CFBundleIcons</key>
     <dict>
       <key>CFBundlePrimaryIcon</key>
@@ -19,43 +23,9 @@
           <string>AppIcon</string>
         </array>
       </dict>
+
       <key>CFBundleAlternateIcons</key>
       <dict>
-        <key>SpringIcon</key>
-        <dict>
-          <key>CFBundleIconFiles</key>
-          <array>
-            <string>SpringIcon</string>
-          </array>
-        </dict>
-        <key>FallIcon</key>
-        <dict>
-          <key>CFBundleIconFiles</key>
-          <array>
-            <string>FallIcon</string>
-          </array>
-        </dict>
-        <key>WinterIcon</key>
-        <dict>
-          <key>CFBundleIconFiles</key>
-          <array>
-            <string>WinterIcon</string>
-          </array>
-        </dict>
-        <key>Halloween1Icon</key>
-        <dict>
-          <key>CFBundleIconFiles</key>
-          <array>
-            <string>Halloween1Icon</string>
-          </array>
-        </dict>
-        <key>Halloween2Icon</key>
-        <dict>
-          <key>CFBundleIconFiles</key>
-          <array>
-            <string>Halloween2Icon</string>
-          </array>
-        </dict>
         <key>BlackWhiteIcon</key>
         <dict>
           <key>CFBundleIconFiles</key>
@@ -63,20 +33,67 @@
             <string>BlackWhiteIcon</string>
           </array>
         </dict>
+
+        <key>FallIcon</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>FallIcon</string>
+          </array>
+        </dict>
+
+        <key>Halloween1Icon</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>Halloween1Icon</string>
+          </array>
+        </dict>
+
+        <key>Halloween2Icon</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>Halloween2Icon</string>
+          </array>
+        </dict>
+
+        <key>SpringIcon</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>SpringIcon</string>
+          </array>
+        </dict>
+
+        <key>WinterIcon</key>
+        <dict>
+          <key>CFBundleIconFiles</key>
+          <array>
+            <string>WinterIcon</string>
+          </array>
+        </dict>
       </dict>
     </dict>
+
     <key>CFBundleIdentifier</key>
     <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
+
     <key>CFBundleName</key>
     <string>$(PRODUCT_NAME)</string>
+
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+
     <key>CFBundleShortVersionString</key>
     <string>1.0.0</string>
+
     <key>CFBundleSignature</key>
     <string>????</string>
+
     <key>CFBundleURLTypes</key>
     <array>
       <dict>
@@ -86,6 +103,7 @@
           <string>com.karlsonworks.deduckly</string>
         </array>
       </dict>
+
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
@@ -93,14 +111,19 @@
         </array>
       </dict>
     </array>
+
     <key>CFBundleVersion</key>
     <string>1</string>
+
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
+
     <key>LSRequiresIPhoneOS</key>
     <true/>
+
     <key>NSAppTransportSecurity</key>
     <dict>
       <key>NSAllowsArbitraryLoads</key>
@@ -108,45 +131,61 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+
     <key>NSCameraUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your camera</string>
+
     <key>NSFaceIDUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
+
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>Deduckly uses your location to automatically track trips even when the app is in the background.</string>
+
     <key>NSLocationAlwaysUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your location</string>
+
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Deduckly uses your location to track your trips.</string>
+
     <key>NSMicrophoneUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your microphone</string>
+
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your photos</string>
+
     <key>NSUserActivityTypes</key>
     <array>
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
     </array>
+
     <key>RCTNewArchEnabled</key>
     <true/>
+
     <key>UIBackgroundModes</key>
     <array>
       <string>location</string>
     </array>
+
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>
+
     <key>UIRequiredDeviceCapabilities</key>
     <array>
       <string>arm64</string>
     </array>
+
     <key>UIRequiresFullScreen</key>
     <false/>
+
     <key>UIStatusBarStyle</key>
     <string>UIStatusBarStyleDefault</string>
+
     <key>UISupportedInterfaceOrientations</key>
     <array>
       <string>UIInterfaceOrientationPortrait</string>
       <string>UIInterfaceOrientationPortraitUpsideDown</string>
     </array>
+
     <key>UISupportedInterfaceOrientations~ipad</key>
     <array>
       <string>UIInterfaceOrientationPortrait</string>
@@ -154,8 +193,10 @@
       <string>UIInterfaceOrientationLandscapeLeft</string>
       <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
+
     <key>UIUserInterfaceStyle</key>
     <string>Automatic</string>
+
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
   </dict>
