@@ -218,6 +218,19 @@ export default function PaywallScreen() {
   const [showConfetti, setShowConfetti] =
     useState(false);
 
+  const annualMonthsFree =
+    annualPackage?.product.price &&
+    monthlyPackage?.product.price
+      ? Math.max(
+          0,
+          Math.round(
+            12 -
+              annualPackage.product.price /
+                monthlyPackage.product.price
+          )
+        )
+      : null;
+
   const restorePurchases = useRestorePurchases();
 
   useEffect(() => {
@@ -302,6 +315,7 @@ export default function PaywallScreen() {
       setIsPurchasing(false);
     }
   }
+
   return (
     <View style={styles.container}>
       <BackHeader />
@@ -433,6 +447,17 @@ export default function PaywallScreen() {
                   <Text style={styles.period}>
                     /year
                   </Text>
+
+                  {annualMonthsFree !== null &&
+                    annualMonthsFree > 0 && (
+                      <Text style={styles.freeMonthsText}>
+                        {annualMonthsFree}{" "}
+                        {annualMonthsFree === 1
+                          ? "month"
+                          : "months"}{" "}
+                        free
+                      </Text>
+                    )}
                 </View>
               </Pressable>
 
@@ -520,13 +545,14 @@ export default function PaywallScreen() {
                       }`}
               </Text>
 
-              {!isPurchasing && !loadingOfferings && (
-                <Ionicons
-                  name="arrow-forward"
-                  size={isTablet ? 22 : 19}
-                  color="#FFFFFF"
-                />
-              )}
+              {!isPurchasing &&
+                !loadingOfferings && (
+                  <Ionicons
+                    name="arrow-forward"
+                    size={isTablet ? 22 : 19}
+                    color="#FFFFFF"
+                  />
+                )}
             </Pressable>
 
             <Text style={styles.cancelText}>
@@ -597,6 +623,7 @@ export default function PaywallScreen() {
     </View>
   );
 }
+
 const getStyles = (isTablet: boolean) =>
   StyleSheet.create({
     confettiContainer: {
@@ -918,6 +945,13 @@ const getStyles = (isTablet: boolean) =>
       marginTop: 0,
       fontSize: isTablet ? 10 : 9,
       color: "#64748B",
+    },
+
+    freeMonthsText: {
+      marginTop: 3,
+      fontSize: isTablet ? 10 : 9,
+      fontWeight: "800",
+      color: "#16A34A",
     },
 
     /* CTA */

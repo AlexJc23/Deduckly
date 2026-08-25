@@ -7,9 +7,7 @@ import { ENV } from "@/config/env";
 
 class RevenueCatService {
   async configure() {
-    const apiKey = __DEV__
-      ? ENV.REVENUECAT_TEST_API_KEY
-      : ENV.REVENUECAT_IOS_API_KEY;
+    const apiKey = ENV.REVENUECAT_IOS_API_KEY;
 
     await Purchases.configure({
       apiKey,

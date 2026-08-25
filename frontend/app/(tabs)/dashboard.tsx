@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -39,7 +40,15 @@ export default function DashboardScreen() {
   const userQuery = useCurrentUser();
   const { saved } = useLocalSearchParams();
   const isTablet = useIsTablet();
-  const styles = getStyles(isTablet);
+  const { width, height } = useWindowDimensions();
+
+  // iPhone 15 and other compact phones have much less vertical space
+  // than the larger Plus/Pro Max devices. Keep the tablet and large-phone
+  // layouts intact and only tighten the dashboard when the available
+  // height is genuinely constrained.
+  const isSmallPhone = !isTablet && (height <= 750 || width <= 375);
+
+  const styles = getStyles(isTablet, isSmallPhone);
 
   const {
     isTracking,
@@ -440,7 +449,7 @@ export default function DashboardScreen() {
   );
 }
 
-const getStyles = (isTablet: boolean) =>
+const getStyles = (isTablet: boolean, isSmallPhone: boolean) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -488,15 +497,16 @@ const getStyles = (isTablet: boolean) =>
     },
 
     welcomeContainer: {
-      marginTop: isTablet ? 20 : 8,
-      marginBottom: isTablet ? 24 : 20,
+      marginTop: isTablet ? 20 : isSmallPhone ? 4 : 8,
+      marginBottom: isTablet ? 24 : isSmallPhone ? 10 : 20,
       maxWidth: isTablet ? 1200 : undefined,
       alignSelf: isTablet ? "center" : undefined,
       width: isTablet ? "100%" : undefined,
     },
 
     welcomeText: {
-      fontSize: isTablet ? 36 : 28,
+      fontSize: isTablet ? 36 : isSmallPhone ? 25 : 28,
+      lineHeight: isTablet ? 43 : isSmallPhone ? 30 : 34,
       letterSpacing: -0.8,
     },
 
@@ -511,9 +521,9 @@ const getStyles = (isTablet: boolean) =>
     },
 
     welcomeSubtitle: {
-      marginTop: 5,
-      fontSize: isTablet ? 16 : 14,
-      lineHeight: isTablet ? 23 : 20,
+      marginTop: isSmallPhone ? 3 : 5,
+      fontSize: isTablet ? 16 : isSmallPhone ? 12 : 14,
+      lineHeight: isTablet ? 23 : isSmallPhone ? 17 : 20,
       color: "#64748B",
       fontWeight: "500",
     },
@@ -527,11 +537,11 @@ const getStyles = (isTablet: boolean) =>
 
     taxCard: {
       backgroundColor: "#FFFFFF",
-      borderRadius: isTablet ? 22 : 18,
+      borderRadius: isTablet ? 22 : isSmallPhone ? 15 : 18,
       borderWidth: 1,
       borderColor: "#E5E7EB",
-      padding: isTablet ? 24 : 18,
-      marginTop: isTablet ? 18 : 16,
+      padding: isTablet ? 24 : isSmallPhone ? 13 : 18,
+      marginTop: isTablet ? 18 : isSmallPhone ? 9 : 16,
       maxWidth: isTablet ? 1200 : undefined,
       alignSelf: isTablet ? "center" : undefined,
       width: isTablet ? "100%" : undefined,
@@ -570,9 +580,9 @@ const getStyles = (isTablet: boolean) =>
     },
 
     taxAmount: {
-      marginTop: isTablet ? 14 : 12,
-      fontSize: isTablet ? 34 : 30,
-      lineHeight: isTablet ? 41 : 36,
+      marginTop: isTablet ? 14 : isSmallPhone ? 8 : 12,
+      fontSize: isTablet ? 34 : isSmallPhone ? 25 : 30,
+      lineHeight: isTablet ? 41 : isSmallPhone ? 30 : 36,
       fontWeight: "800",
       letterSpacing: -0.7,
       color: "#111827",
@@ -587,8 +597,8 @@ const getStyles = (isTablet: boolean) =>
     taxSavingsRow: {
       flexDirection: "row",
       alignItems: "center",
-      marginTop: isTablet ? 18 : 16,
-      paddingTop: isTablet ? 14 : 13,
+      marginTop: isTablet ? 18 : isSmallPhone ? 9 : 16,
+      paddingTop: isTablet ? 14 : isSmallPhone ? 9 : 13,
       borderTopWidth: 1,
       borderTopColor: "#E5E7EB",
     },
@@ -610,11 +620,11 @@ const getStyles = (isTablet: boolean) =>
     },
 
     offerAnalyzerButton: {
-      minHeight: isTablet ? 76 : 68,
-      marginTop: isTablet ? 16 : 14,
-      paddingHorizontal: isTablet ? 18 : 14,
-      paddingVertical: isTablet ? 14 : 12,
-      borderRadius: isTablet ? 18 : 16,
+      minHeight: isTablet ? 76 : isSmallPhone ? 57 : 68,
+      marginTop: isTablet ? 16 : isSmallPhone ? 9 : 14,
+      paddingHorizontal: isTablet ? 18 : isSmallPhone ? 12 : 14,
+      paddingVertical: isTablet ? 14 : isSmallPhone ? 9 : 12,
+      borderRadius: isTablet ? 18 : isSmallPhone ? 14 : 16,
       backgroundColor: "#FFFFFF",
       borderWidth: 1,
       borderColor: "#E5E7EB",
@@ -641,9 +651,9 @@ const getStyles = (isTablet: boolean) =>
     },
 
     offerIcon: {
-      width: isTablet ? 46 : 40,
-      height: isTablet ? 46 : 40,
-      borderRadius: isTablet ? 14 : 12,
+      width: isTablet ? 46 : isSmallPhone ? 35 : 40,
+      height: isTablet ? 46 : isSmallPhone ? 35 : 40,
+      borderRadius: isTablet ? 14 : isSmallPhone ? 11 : 12,
       backgroundColor: "#DCE6FF",
       alignItems: "center",
       justifyContent: "center",
@@ -655,21 +665,21 @@ const getStyles = (isTablet: boolean) =>
     },
 
     offerTitle: {
-      fontSize: isTablet ? 17 : 15,
+      fontSize: isTablet ? 17 : isSmallPhone ? 14 : 15,
       fontWeight: "700",
       color: "#111827",
     },
 
     offerSubtitle: {
-      marginTop: 2,
-      fontSize: isTablet ? 13 : 12,
+      marginTop: 1,
+      fontSize: isTablet ? 13 : isSmallPhone ? 10.5 : 12,
       color: "#64748B",
     },
 
     metricRow: {
       flexDirection: "row",
-      gap: isTablet ? 14 : 12,
-      marginTop: isTablet ? 14 : 12,
+      gap: isTablet ? 14 : isSmallPhone ? 8 : 12,
+      marginTop: isTablet ? 14 : isSmallPhone ? 8 : 12,
       maxWidth: isTablet ? 1200 : undefined,
       alignSelf: isTablet ? "center" : undefined,
       width: isTablet ? "100%" : undefined,
@@ -677,12 +687,12 @@ const getStyles = (isTablet: boolean) =>
 
     metricCard: {
       flex: 1,
-      minHeight: isTablet ? 112 : 92,
+      minHeight: isTablet ? 112 : isSmallPhone ? 72 : 92,
       backgroundColor: "#FFFFFF",
-      borderRadius: isTablet ? 18 : 16,
+      borderRadius: isTablet ? 18 : isSmallPhone ? 14 : 16,
       borderWidth: 1,
       borderColor: "#E5E7EB",
-      padding: isTablet ? 18 : 14,
+      padding: isTablet ? 18 : isSmallPhone ? 10 : 14,
 
       shadowColor: "#111827",
       shadowOpacity: 0.03,
@@ -705,24 +715,24 @@ const getStyles = (isTablet: boolean) =>
     },
 
     metricValue: {
-      marginTop: isTablet ? 10 : 8,
-      fontSize: isTablet ? 21 : 18,
+      marginTop: isTablet ? 10 : isSmallPhone ? 5 : 8,
+      fontSize: isTablet ? 21 : isSmallPhone ? 16 : 18,
       fontWeight: "800",
       letterSpacing: -0.3,
       color: "#111827",
     },
 
     metricLabel: {
-      marginTop: 2,
-      fontSize: isTablet ? 12 : 11,
+      marginTop: 1,
+      fontSize: isTablet ? 12 : isSmallPhone ? 10 : 11,
       fontWeight: "600",
       color: "#64748B",
     },
 
     actionsContainer: {
-      marginTop: isTablet ? 18 : "auto",
-      marginBottom: isTablet ? 28 : 18,
-      paddingTop: isTablet ? 10 : 14,
+      marginTop: isTablet ? 18 : isSmallPhone ? 8 : "auto",
+      marginBottom: isTablet ? 28 : isSmallPhone ? 8 : 18,
+      paddingTop: isTablet ? 10 : isSmallPhone ? 2 : 14,
       maxWidth: isTablet ? 1200 : undefined,
       alignSelf: isTablet ? "center" : undefined,
       width: isTablet ? "100%" : undefined,
@@ -730,21 +740,21 @@ const getStyles = (isTablet: boolean) =>
 
     actionButtonsRow: {
       flexDirection: "row",
-      gap: isTablet ? 14 : 10,
+      gap: isTablet ? 14 : isSmallPhone ? 8 : 10,
     },
 
     actionButton: {
       flex: 1,
-      minHeight: isTablet ? 58 : 46,
+      minHeight: isTablet ? 58 : isSmallPhone ? 40 : 46,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: "#FFFFFF",
       borderRadius: isTablet ? 15 : 12,
-      paddingHorizontal: isTablet ? 16 : 12,
+      paddingHorizontal: isTablet ? 16 : isSmallPhone ? 8 : 12,
       borderWidth: 1,
       borderColor: "#E5E7EB",
-      gap: 7,
+      gap: isSmallPhone ? 5 : 7,
     },
 
     actionButtonPressed: {
@@ -753,17 +763,17 @@ const getStyles = (isTablet: boolean) =>
     },
 
     actionButtonText: {
-      fontSize: isTablet ? 14 : 13,
+      fontSize: isTablet ? 14 : isSmallPhone ? 11.5 : 13,
       fontWeight: "700",
       color: "#334155",
     },
 
     startTripButton: {
-      marginTop: isTablet ? 14 : 12,
-      minHeight: isTablet ? 66 : 56,
-      borderRadius: isTablet ? 18 : 16,
+      marginTop: isTablet ? 14 : isSmallPhone ? 8 : 12,
+      minHeight: isTablet ? 66 : isSmallPhone ? 48 : 56,
+      borderRadius: isTablet ? 18 : isSmallPhone ? 14 : 16,
       backgroundColor: "#4A6FE3",
-      paddingHorizontal: isTablet ? 20 : 18,
+      paddingHorizontal: isTablet ? 20 : isSmallPhone ? 14 : 18,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
@@ -793,7 +803,7 @@ const getStyles = (isTablet: boolean) =>
 
     startTripButtonText: {
       color: "#FFFFFF",
-      fontSize: isTablet ? 18 : 16,
+      fontSize: isTablet ? 18 : isSmallPhone ? 14 : 16,
       fontWeight: "700",
     },
 
