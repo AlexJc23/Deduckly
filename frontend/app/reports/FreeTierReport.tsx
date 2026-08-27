@@ -190,7 +190,7 @@ const getStyles = (isTablet: boolean) =>
     },
 
     title: {
-      fontSize: isTablet ? 36 : 27,
+      fontSize: isTablet ? 36 : 30,
       lineHeight: isTablet ? 43 : 33,
       fontWeight: "800",
       letterSpacing: -0.7,
