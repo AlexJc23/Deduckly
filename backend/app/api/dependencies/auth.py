@@ -11,7 +11,7 @@ from jose import JWTError
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-# 👤 Current User Dependency
+# Current User Dependency
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),

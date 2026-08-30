@@ -261,7 +261,7 @@ export default function AppIconScreen() {
                               styles.lockTextTablet,
                           ]}
                         >
-                          🔒
+                          Lock
                         </Text>
                       </View>
                     )}

@@ -85,7 +85,7 @@ export function ExpenseCategoryModal({
               onPress={handleClose}
             >
               <Text style={styles.closeText}>
-                ×
+                x
               </Text>
             </Pressable>
           </View>

@@ -136,7 +136,7 @@ class User(Base):
         nullable=True,
     )
 
-    weekly_income_goal: Mapped[Decimal | None] = mapped_column(
+    daily_income_goal: Mapped[Decimal | None] = mapped_column(
         Numeric(10, 2),
         nullable=True,
     )

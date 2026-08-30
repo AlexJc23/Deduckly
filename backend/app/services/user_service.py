@@ -19,7 +19,7 @@ ALLOWED_USER_UPDATE_FIELDS = [
     "business_type",
     "tax_method",
     "monthly_income_goal",
-    "weekly_income_goal",
+    "daily_income_goal",
     "cost_per_mile",
     "minimum_profit",
     "minimum_hourly_rate",
@@ -154,28 +154,24 @@ def update_user(
         db.rollback()
         raise
 
-def get_weekly_income(
+def get_daily_income(
     db: Session,
     user_id: int,
 ) -> Decimal:
     """
-    Returns the total income earned during the current week
-    (Monday through today).
+    Returns the total income earned during the current day
+    (midnight through 11:59 PM).
     """
     tz = ZoneInfo("America/New_York")
     now = datetime.now(tz)
 
-
-    start_of_week = (
-        now - timedelta(days=now.weekday())
-    ).replace(
+    start_of_day = now.replace(
         hour=0,
         minute=0,
         second=0,
         microsecond=0,
     )
-
-
+    start_of_next_day = start_of_day + timedelta(days=1)
 
     total = (
         db.query(
@@ -186,20 +182,10 @@ def get_weekly_income(
         )
         .filter(
             Income.user_id == user_id,
-            Income.received_at >= start_of_week,
+            Income.received_at >= start_of_day,
+            Income.received_at < start_of_next_day,
         )
         .scalar()
-    )
-
-
-
-    incomes = (
-        db.query(Income)
-        .filter(
-            Income.user_id == user_id,
-            Income.received_at >= start_of_week,
-        )
-        .all()
     )
 
     return Decimal(total)

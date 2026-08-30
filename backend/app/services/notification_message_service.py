@@ -17,7 +17,7 @@ def build_goal_reminder_message(
 
 def build_goal_reached_message() -> tuple[str, str]:
     return (
-        "🎉 Monthly Goal Reached!",
+        "Monthly Goal Reached!",
         "Congratulations! You've reached your monthly income goal!",
     )
 

@@ -9,7 +9,7 @@ from app.api.dependencies.auth import get_current_user
 from app.schemas.v1.user import UserResponse, UserUpdate
 from app.services.subscription_service import is_user_premium
 from app.services.user_service import (
-    get_weekly_income,
+    get_daily_income,
     get_monthly_income,
     update_user,
 )
@@ -20,20 +20,6 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[UserResponse])
-def get_users(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    if current_user.role != UserRole.ADMIN:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to access this resource.",
-        )
-
-    return db.query(User).all()
-
-
 @router.get("/me", response_model=UserResponse)
 def get_me(
     current_user: User = Depends(get_current_user),
@@ -42,14 +28,14 @@ def get_me(
 
 
 
-@router.get("/me/weekly-goal")
-def get_weekly_goal(
+@router.get("/me/daily-goal")
+def get_daily_goal(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     if (
-        current_user.weekly_income_goal is None
-        or current_user.weekly_income_goal == 0
+        current_user.daily_income_goal is None
+        or current_user.daily_income_goal == 0
     ):
         return {
             "goal": 0,
@@ -59,9 +45,9 @@ def get_weekly_goal(
             "percentage": 0,
         }
 
-    goal = current_user.weekly_income_goal
+    goal = current_user.daily_income_goal
 
-    current = get_weekly_income(
+    current = get_daily_income(
         db=db,
         user_id=current_user.id,
     )

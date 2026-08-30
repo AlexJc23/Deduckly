@@ -421,20 +421,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8CBAF9A6BA78A8FBA4AC9D13 /* Pods-frontend.debug.xcconfig */;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppleIcon BlackRedChromeIcon BlackWhiteIcon ChromeIcon DeducklyHorizonIcon FallIcon Halloween1Icon Halloween2Icon RoseGoldIcon SpringIcon WinterIcon";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = (
-						AppleIcon,
-						BlackRedChromeIcon,
-						BlackWhiteIcon,
-						ChromeIcon,
-						DeducklyHorizonIcon,
-						FallIcon,
-						Halloween1Icon,
-						Halloween2Icon,
-						RoseGoldIcon,
-						SpringIcon,
-						WinterIcon,
-				);
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = frontend/frontend.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -462,7 +450,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.karlsonworks.deduckly;
-				PRODUCT_NAME = "Deduckly";
+				PRODUCT_NAME = Deduckly;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -479,20 +467,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = D0CFEACC63FCA25E89A6E632 /* Pods-frontend.release.xcconfig */;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppleIcon BlackRedChromeIcon BlackWhiteIcon ChromeIcon DeducklyHorizonIcon FallIcon Halloween1Icon Halloween2Icon RoseGoldIcon SpringIcon WinterIcon";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = (
-						AppleIcon,
-						BlackRedChromeIcon,
-						BlackWhiteIcon,
-						ChromeIcon,
-						DeducklyHorizonIcon,
-						FallIcon,
-						Halloween1Icon,
-						Halloween2Icon,
-						RoseGoldIcon,
-						SpringIcon,
-						WinterIcon,
-				);
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = frontend/frontend.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -515,7 +491,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.karlsonworks.deduckly;
-				PRODUCT_NAME = "Deduckly";
+				PRODUCT_NAME = Deduckly;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;

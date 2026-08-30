@@ -10,7 +10,7 @@ export function usePreferences() {
 
     const [preferences, setPreferences] = useState({
         monthlyIncomeGoal: "",
-        weeklyIncomeGoal: "",
+        dailyIncomeGoal: "",
 
         minimumHourlyRate: "",
         minimumProfit: "",
@@ -34,7 +34,7 @@ export function usePreferences() {
 
         setPreferences({
             monthlyIncomeGoal: user.monthly_income_goal ?? "",
-            weeklyIncomeGoal: user.weekly_income_goal ?? "",
+            dailyIncomeGoal: user.daily_income_goal ?? "",
 
             minimumHourlyRate: user.minimum_hourly_rate ?? "",
             minimumProfit: user.minimum_profit ?? "",
@@ -107,8 +107,8 @@ export function usePreferences() {
             monthly_income_goal:
                 preferences.monthlyIncomeGoal || null,
 
-            weekly_income_goal:
-                preferences.weeklyIncomeGoal || null,
+            daily_income_goal:
+                preferences.dailyIncomeGoal || null,
 
             minimum_hourly_rate:
                 preferences.minimumHourlyRate || null,

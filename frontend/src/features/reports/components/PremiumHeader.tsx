@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
+    marginBottom: 13,
   },
 
   textContainer: {
@@ -75,9 +75,9 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 25,
+    fontSize: 30,
     fontWeight: "800",
-    letterSpacing: -0.6,
+    letterSpacing: -0.7,
     color: "#111827",
   },
 

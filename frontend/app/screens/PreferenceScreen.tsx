@@ -60,6 +60,17 @@ export default function PreferenceScreen() {
                             )
                         }
                     />
+                    <PreferenceInput
+                        label="Daily Income Goal"
+                        value={preferences.dailyIncomeGoal}
+                        keyboardType="numeric"
+                        onChangeText={(text) =>
+                            updateField(
+                                "dailyIncomeGoal",
+                                text
+                            )
+                        }
+                    />
                 </PreferenceSection>
 
                 <PreferenceSection title="Offer Analyzer">
@@ -123,28 +134,28 @@ export default function PreferenceScreen() {
                                 label="Minimum Hourly Rate"
                                 value=""
                                 editable={false}
-                                placeholder="🔒 Premium"
+                                placeholder="Premium"
                             />
 
                             <PreferenceInput
                                 label="Minimum Profit"
                                 value=""
                                 editable={false}
-                                placeholder="🔒 Premium"
+                                placeholder="Premium"
                             />
 
                             <PreferenceInput
                                 label="Minimum $ per Mile"
                                 value=""
                                 editable={false}
-                                placeholder="🔒 Premium"
+                                placeholder="Premium"
                             />
 
                             <PreferenceInput
                                 label="Maximum Delivery Distance"
                                 value=""
                                 editable={false}
-                                placeholder="🔒 Premium"
+                                placeholder="Premium"
                             />
 
                             <View style={{ marginTop: 12 }}>

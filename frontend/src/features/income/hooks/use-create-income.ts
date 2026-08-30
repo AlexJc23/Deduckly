@@ -25,6 +25,9 @@ export function useCreateIncome() {
         queryClient.invalidateQueries({
           queryKey: ["monthly-goal"],
         }),
+        queryClient.invalidateQueries({
+          queryKey: ["daily-goal"],
+        }),
 
         queryClient.invalidateQueries({
           queryKey: ["report"],

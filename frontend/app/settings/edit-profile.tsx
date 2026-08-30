@@ -223,7 +223,7 @@ export default function UserUpdateScreen() {
                 </Text>
 
                 <Text style={styles.chevron}>
-                  ›
+                  >
                 </Text>
               </Pressable>
             </View>

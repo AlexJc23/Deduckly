@@ -84,9 +84,9 @@ export default function MileageRate() {
                       currentRate.business_rate *
                       100
                     ).toFixed(1)
-                  : "—"}
+                  : "-"}
                 <Text style={styles.rateUnit}>
-                  ¢ / mile
+                  c / mile
                 </Text>
               </Text>
             )}
@@ -225,7 +225,7 @@ export default function MileageRate() {
                             styles.rateAmountUnit
                           }
                         >
-                          ¢ / mile
+                          c / mile
                         </Text>
                       </Text>
                     </View>

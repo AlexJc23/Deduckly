@@ -1,6 +1,7 @@
 from datetime import datetime, time
 from sqlalchemy.orm import Session
 from app.models import Trip
+from app.models.enums import TripCategory
 from app.schemas.v1.trip import TripCreate, TripUpdate
 from app.services.income_service import upsert_income_for_trip
 from fastapi import HTTPException
@@ -12,14 +13,14 @@ from app.services.analytics_service import create_analytics_event
 
 def create_trip(db: Session, trip_in: TripCreate, user_id: int) -> Trip:
 
-    # 🔥 validate distance
+    # validate distance
     if trip_in.distance_miles is None or trip_in.distance_miles <= 0:
         raise HTTPException(status_code=400, detail="Invalid distance")
 
     if trip_in.distance_miles > 1000:
         raise HTTPException(status_code=400, detail="Distance too large")
 
-    # 🔥 calculate deduction
+    # calculate deduction
     rate = get_business_rate_for_date(
         db,
         trip_in.start_time.date()
@@ -48,11 +49,13 @@ def create_trip(db: Session, trip_in: TripCreate, user_id: int) -> Trip:
     db.add(db_trip)
     db.commit()
     db.refresh(db_trip)
+
     create_analytics_event(
         db,
         event_type="trip_created",
         user_id=user_id,
     )
+
     upsert_income_for_trip(
         db,
         trip_id=db_trip.id,
@@ -75,9 +78,17 @@ def get_trip(db: Session, trip_id: int, user_id: int) -> Trip:
     return trip
 
 
-def get_trips_for_user(db, user_id: int, start_date=None, end_date=None, sort="desc") -> list[Trip]:
+def get_trips_for_user(
+    db,
+    user_id: int,
+    start_date=None,
+    end_date=None,
+    sort="desc"
+) -> list[Trip]:
 
-    query = db.query(Trip).filter(Trip.user_id == user_id)
+    query = db.query(Trip).filter(
+        Trip.user_id == user_id
+    )
 
     if start_date:
         start_dt = datetime.combine(start_date, time.min)
@@ -94,7 +105,57 @@ def get_trips_for_user(db, user_id: int, start_date=None, end_date=None, sort="d
 
     return query.all()
 
-def update_trip(db: Session, trip_id: int, user_id: int, trip_in: TripUpdate) -> Trip:
+
+def get_daily_trip_breakdown(
+    db: Session,
+    user_id: int,
+    start_of_day: datetime,
+    start_of_next_day: datetime,
+):
+    trips = (
+        db.query(Trip)
+        .filter(
+            Trip.user_id == user_id,
+            Trip.category == TripCategory.BUSINESS,
+            Trip.start_time >= start_of_day,
+            Trip.start_time < start_of_next_day,
+        )
+        .order_by(Trip.start_time.asc())
+        .all()
+    )
+
+    breakdown = {}
+
+    for trip in trips:
+        platform = trip.platform.value
+
+        if platform not in breakdown:
+            breakdown[platform] = {
+                "platform": platform,
+                "miles": Decimal("0"),
+                "trip_count": 0,
+            }
+
+        breakdown[platform]["miles"] += trip.distance_miles
+        breakdown[platform]["trip_count"] += 1
+
+    return sorted(
+        breakdown.values(),
+        key=lambda item: (
+            item["trip_count"],
+            item["miles"],
+        ),
+        reverse=True,
+    )
+
+
+def update_trip(
+    db: Session,
+    trip_id: int,
+    user_id: int,
+    trip_in: TripUpdate
+) -> Trip:
+
     trip = get_trip(db, trip_id, user_id)
 
     update_data = trip_in.dict(exclude_unset=True)
@@ -126,15 +187,21 @@ def update_trip(db: Session, trip_id: int, user_id: int, trip_in: TripUpdate) ->
             amount=update_data["income_amount"]
         )
 
-    # 🔥 validate + recalc distance
+    # validate + recalc distance
     if "distance_miles" in update_data:
         distance = trip.distance_miles
 
         if distance is None or distance <= 0:
-            raise HTTPException(status_code=400, detail="Invalid distance")
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid distance"
+            )
 
         if distance > 1000:
-            raise HTTPException(status_code=400, detail="Distance too large")
+            raise HTTPException(
+                status_code=400,
+                detail="Distance too large"
+            )
 
         rate = get_business_rate_for_date(
             db,
@@ -151,7 +218,12 @@ def update_trip(db: Session, trip_id: int, user_id: int, trip_in: TripUpdate) ->
     return trip
 
 
-def delete_trip(db: Session, trip_id: int, user_id: int) -> None:
+def delete_trip(
+    db: Session,
+    trip_id: int,
+    user_id: int
+) -> None:
+
     trip = get_trip(db, trip_id, user_id)
     db.delete(trip)
 
@@ -160,4 +232,7 @@ def delete_trip(db: Session, trip_id: int, user_id: int) -> None:
         return {"message": "Trip deleted"}
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail="Failed to delete trip") from e
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete trip"
+        ) from e

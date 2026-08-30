@@ -75,7 +75,7 @@ export default function PremiumReportScreen() {
       <View style={styles.emptyContainer}>
         <View style={styles.emptyIcon}>
           <Text style={styles.emptyIconText}>
-            —
+            -
           </Text>
         </View>
 
