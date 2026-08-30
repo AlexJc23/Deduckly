@@ -301,7 +301,7 @@ def generate_tax_report(
     end_date: Optional[date] = None,
 ):
     try:
-        # 💰 income filters
+        #  income filters
         income_filters = [
             Income.user_id == user.id,
             *build_date_filters(
@@ -337,7 +337,7 @@ def generate_tax_report(
         if report_year is None and start_date:
             report_year = start_date.year
 
-        # 💸 expense filters
+        #  expense filters
         expense_filters = [
             Expense.user_id == user.id,
             *build_date_filters(
@@ -362,7 +362,7 @@ def generate_tax_report(
         for expense in expenses:
             total_expenses += Decimal(str(expense.amount))
 
-        # 🚗 trip filters
+        #  trip filters
         trip_filters = [
             Trip.user_id == user.id,
             *build_date_filters(
@@ -416,10 +416,10 @@ def generate_tax_report(
         else:
             total_deductions = deductible_expense_total
 
-        # 📉 profit
+        #  profit
         net_profit = total_income - total_deductions
 
-        # 💵 taxable income
+        #  taxable income
         taxable_income = max(
             net_profit,
             Decimal("0")
@@ -430,7 +430,7 @@ def generate_tax_report(
         if report_year is None and start_date:
             report_year = start_date.year
 
-        # 🧮 tax calculation
+        #  tax calculation
         tax_brackets = (
             db.query(TaxBracket)
             .filter(

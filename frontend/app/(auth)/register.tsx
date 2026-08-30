@@ -14,37 +14,31 @@ import {
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { router, Link } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons, FontAwesome6 } from "@expo/vector-icons";
 
 import Logo from "../../assets/images/logo.svg";
 
+import { startGoogleLogin } from "@/features/auth/api/google-auth.api";
 import { register } from "@/features/auth/api/auth.api";
+import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function RegisterScreen() {
-  const [firstName, setFirstName] =
-    useState("");
-  const [lastName, setLastName] =
-    useState("");
-  const [email, setEmail] =
-    useState("");
-  const [password, setPassword] =
-    useState("");
-  const [confirmPassword, setConfirmPassword] =
-    useState("");
+  const isTablet = useIsTablet();
 
-  const [showPassword, setShowPassword] =
-    useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const passwordsMatch =
-    password.length > 0 &&
-    confirmPassword.length > 0 &&
-    password === confirmPassword;
+  const [showPassword, setShowPassword] = useState(false);
 
-  const hasPasswordMismatch =
-    confirmPassword.length > 0 &&
-    password !== confirmPassword;
+  const handleGoogleLogin = async () => {
+    try {
+      await startGoogleLogin();
+    } catch (error) {
+      console.error("Google login failed:", error);
+    }
+  };
 
   const registerMutation = useMutation({
     mutationFn: register,
@@ -54,10 +48,7 @@ export default function RegisterScreen() {
     },
 
     onError: (error) => {
-      console.error(
-        "Registration failed:",
-        error
-      );
+      console.error("Registration failed:", error);
     },
   });
 
@@ -68,9 +59,7 @@ export default function RegisterScreen() {
       !firstName.trim() ||
       !lastName.trim() ||
       !email.trim() ||
-      !password ||
-      !confirmPassword ||
-      !passwordsMatch
+      !password
     ) {
       return;
     }
@@ -89,75 +78,116 @@ export default function RegisterScreen() {
     !lastName.trim() ||
     !email.trim() ||
     !password ||
-    !confirmPassword ||
-    !passwordsMatch ||
     registerMutation.isPending;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={
-          Platform.OS === "ios"
-            ? "padding"
-            : "height"
-        }
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <Pressable
           style={styles.keyboardDismissArea}
           onPress={Keyboard.dismiss}
         >
-          <View style={styles.container}>
-            <Pressable
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <Ionicons
-                name="chevron-back"
-                size={18}
-                color="#273449"
-              />
-
-              <Text style={styles.backText}>
-                Back
-              </Text>
-            </Pressable>
-
+          <View
+            style={[
+              styles.container,
+              isTablet && styles.containerTablet,
+            ]}
+          >
             <ScrollView
               style={styles.scroll}
-              contentContainerStyle={
-                styles.scrollContent
-              }
+              contentContainerStyle={[
+                styles.scrollContent,
+                isTablet && styles.scrollContentTablet,
+              ]}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="interactive"
             >
-              <View style={styles.content}>
-                <View style={styles.brand}>
+              <View
+                style={[
+                  styles.content,
+                  isTablet && styles.contentTablet,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.brand,
+                    isTablet && styles.brandTablet,
+                  ]}
+                >
                   <Logo
-                    width={58}
-                    height={58}
+                    width={isTablet ? 150 : 70}
+                    height={isTablet ? 150 : 70}
                     color="#0072B5"
                   />
                 </View>
 
                 <View style={styles.header}>
-                  <Text style={styles.eyebrow}>
-                    GET STARTED
+                  <Text
+                    style={[
+                      styles.title,
+                      isTablet && styles.titleTablet,
+                    ]}
+                  >
+                    Let's get started!
                   </Text>
 
-                  <Text style={styles.title}>
-                    Create your account
-                  </Text>
-
-                  <Text style={styles.subtitle}>
-                    Start tracking your miles,
-                    expenses, and income with
-                    Deduckly.
+                  <Text
+                    style={[
+                      styles.subtitle,
+                      isTablet && styles.subtitleTablet,
+                    ]}
+                  >
+                    Your miles, money, and work, all in one place
                   </Text>
                 </View>
 
-                <View style={styles.form}>
+                {/* Google */}
+                <View
+                  style={[
+                    styles.socialSection,
+                    isTablet && styles.socialSectionTablet,
+                  ]}
+                >
+                  <Pressable
+                    style={[
+                      styles.googleButton,
+                      isTablet && styles.googleButtonTablet,
+                    ]}
+                    onPress={handleGoogleLogin}
+                    disabled={registerMutation.isPending}
+                  >
+                    <FontAwesome6
+                      name="google"
+                      size={20}
+                    />
+
+                    <Text style={styles.googleButtonText}>
+                      Continue with Google
+                    </Text>
+                  </Pressable>
+
+                  {/* Divider */}
+                  <View style={styles.dividerContainer}>
+                    <View style={styles.divider} />
+
+                    <Text style={styles.dividerText}>
+                      OR
+                    </Text>
+
+                    <View style={styles.divider} />
+                  </View>
+                </View>
+
+                <View
+                  style={[
+                    styles.form,
+                    isTablet && styles.formTablet,
+                  ]}
+                >
                   {/* First + Last Name */}
 
                   <View style={styles.row}>
@@ -168,18 +198,17 @@ export default function RegisterScreen() {
 
                       <TextInput
                         value={firstName}
-                        onChangeText={
-                          setFirstName
-                        }
+                        onChangeText={setFirstName}
                         placeholder="First name"
                         placeholderTextColor="#A0AEC0"
                         autoCapitalize="words"
                         autoCorrect={false}
-                        editable={
-                          !registerMutation.isPending
-                        }
+                        editable={!registerMutation.isPending}
                         returnKeyType="next"
-                        style={styles.input}
+                        style={[
+                          styles.input,
+                          isTablet && styles.inputTablet,
+                        ]}
                       />
                     </View>
 
@@ -190,18 +219,17 @@ export default function RegisterScreen() {
 
                       <TextInput
                         value={lastName}
-                        onChangeText={
-                          setLastName
-                        }
+                        onChangeText={setLastName}
                         placeholder="Last name"
                         placeholderTextColor="#A0AEC0"
                         autoCapitalize="words"
                         autoCorrect={false}
-                        editable={
-                          !registerMutation.isPending
-                        }
+                        editable={!registerMutation.isPending}
                         returnKeyType="next"
-                        style={styles.input}
+                        style={[
+                          styles.input,
+                          isTablet && styles.inputTablet,
+                        ]}
                       />
                     </View>
                   </View>
@@ -214,9 +242,11 @@ export default function RegisterScreen() {
                     </Text>
 
                     <View
-                      style={
-                        styles.inputContainer
-                      }
+                      style={[
+                        styles.inputContainer,
+                        isTablet &&
+                          styles.inputContainerTablet,
+                      ]}
                     >
                       <Ionicons
                         name="mail-outline"
@@ -233,13 +263,9 @@ export default function RegisterScreen() {
                         autoCapitalize="none"
                         autoCorrect={false}
                         textContentType="emailAddress"
-                        editable={
-                          !registerMutation.isPending
-                        }
+                        editable={!registerMutation.isPending}
                         returnKeyType="next"
-                        style={
-                          styles.inputWithIcon
-                        }
+                        style={styles.inputWithIcon}
                       />
                     </View>
                   </View>
@@ -252,9 +278,11 @@ export default function RegisterScreen() {
                     </Text>
 
                     <View
-                      style={
-                        styles.inputContainer
-                      }
+                      style={[
+                        styles.inputContainer,
+                        isTablet &&
+                          styles.inputContainerTablet,
+                      ]}
                     >
                       <Ionicons
                         name="lock-closed-outline"
@@ -267,19 +295,14 @@ export default function RegisterScreen() {
                         onChangeText={setPassword}
                         placeholder="Create a password"
                         placeholderTextColor="#A0AEC0"
-                        secureTextEntry={
-                          !showPassword
-                        }
+                        secureTextEntry={!showPassword}
                         autoCapitalize="none"
                         autoCorrect={false}
                         textContentType="newPassword"
-                        editable={
-                          !registerMutation.isPending
-                        }
-                        returnKeyType="next"
-                        style={
-                          styles.inputWithIcon
-                        }
+                        editable={!registerMutation.isPending}
+                        returnKeyType="done"
+                        onSubmitEditing={handleRegister}
+                        style={styles.inputWithIcon}
                       />
 
                       <Pressable
@@ -312,136 +335,19 @@ export default function RegisterScreen() {
                     </View>
                   </View>
 
-                  {/* Confirm Password */}
-
-                  <View style={styles.field}>
-                    <Text style={styles.label}>
-                      Confirm password
-                    </Text>
-
-                    <View
-                      style={[
-                        styles.inputContainer,
-                        hasPasswordMismatch &&
-                          styles.inputError,
-                        passwordsMatch &&
-                          styles.inputSuccess,
-                      ]}
-                    >
-                      <Ionicons
-                        name="lock-closed-outline"
-                        size={18}
-                        color={
-                          passwordsMatch
-                            ? "#16A34A"
-                            : "#94A3B8"
-                        }
-                      />
-
-                      <TextInput
-                        value={confirmPassword}
-                        onChangeText={
-                          setConfirmPassword
-                        }
-                        placeholder="Confirm password"
-                        placeholderTextColor="#A0AEC0"
-                        secureTextEntry={
-                          !showConfirmPassword
-                        }
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        textContentType="newPassword"
-                        editable={
-                          !registerMutation.isPending
-                        }
-                        returnKeyType="done"
-                        onSubmitEditing={
-                          handleRegister
-                        }
-                        style={
-                          styles.inputWithIcon
-                        }
-                      />
-
-                      <Pressable
-                        onPress={() =>
-                          setShowConfirmPassword(
-                            (current) => !current
-                          )
-                        }
-                        hitSlop={10}
-                        disabled={
-                          registerMutation.isPending
-                        }
-                        accessibilityRole="button"
-                        accessibilityLabel={
-                          showConfirmPassword
-                            ? "Hide password"
-                            : "Show password"
-                        }
-                      >
-                        <Ionicons
-                          name={
-                            showConfirmPassword
-                              ? "eye-off-outline"
-                              : "eye-outline"
-                          }
-                          size={20}
-                          color="#94A3B8"
-                        />
-                      </Pressable>
-
-                      {passwordsMatch && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={19}
-                          color="#16A34A"
-                        />
-                      )}
-                    </View>
-
-                    {hasPasswordMismatch && (
-                      <Text
-                        style={
-                          styles.validationText
-                        }
-                      >
-                        Passwords do not match.
-                      </Text>
-                    )}
-
-                    {passwordsMatch && (
-                      <Text
-                        style={
-                          styles.successText
-                        }
-                      >
-                        Passwords match.
-                      </Text>
-                    )}
-                  </View>
-
                   {/* Error */}
 
                   {registerMutation.isError && (
-                    <View
-                      style={
-                        styles.errorContainer
-                      }
-                    >
+                    <View style={styles.errorContainer}>
                       <Ionicons
                         name="alert-circle-outline"
                         size={17}
                         color="#DC2626"
                       />
 
-                      <Text
-                        style={styles.errorText}
-                      >
-                        Unable to create your
-                        account. Please check
-                        your information and try
-                        again.
+                      <Text style={styles.errorText}>
+                        Unable to create your account. Please
+                        check your information and try again.
                       </Text>
                     </View>
                   )}
@@ -452,6 +358,7 @@ export default function RegisterScreen() {
                     disabled={isDisabled}
                     style={[
                       styles.button,
+                      isTablet && styles.buttonTablet,
                       isDisabled &&
                         styles.buttonDisabled,
                     ]}
@@ -464,21 +371,13 @@ export default function RegisterScreen() {
                           color="#FFFFFF"
                         />
 
-                        <Text
-                          style={
-                            styles.buttonText
-                          }
-                        >
+                        <Text style={styles.buttonText}>
                           Creating Account...
                         </Text>
                       </>
                     ) : (
                       <>
-                        <Text
-                          style={
-                            styles.buttonText
-                          }
-                        >
+                        <Text style={styles.buttonText}>
                           Create Account
                         </Text>
 
@@ -490,49 +389,31 @@ export default function RegisterScreen() {
                       </>
                     )}
                   </Pressable>
+                </View>
 
-                  {/* Sign In */}
+                {/* Sign In */}
 
-                  <View style={styles.loginRow}>
-                    <Text
-                      style={styles.loginText}
-                    >
-                      Already have an account?
-                    </Text>
+                <View style={styles.loginRow}>
+                  <Text style={styles.loginText}>
+                    Already have an account?
+                  </Text>
 
-                    <Link
-                      href="/(auth)/login"
-                      asChild
-                    >
-                      <Pressable>
-                        <Text
-                          style={
-                            styles.loginLink
-                          }
-                        >
-                          Sign in
-                        </Text>
-                      </Pressable>
-                    </Link>
-                  </View>
+                  <Link
+                    href="/(auth)/login"
+                    asChild
+                  >
+                    <Pressable>
+                      <Text style={styles.loginLink}>
+                        Sign in
+                      </Text>
+                    </Pressable>
+                  </Link>
                 </View>
               </View>
             </ScrollView>
 
-            {/* Security */}
 
-            <View style={styles.security}>
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={15}
-                color="#94A3B8"
-              />
-
-              <Text style={styles.securityText}>
-                Your information is securely
-                encrypted.
-              </Text>
-            </View>
+            
           </View>
         </Pressable>
       </KeyboardAvoidingView>
@@ -561,6 +442,12 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
 
+  containerTablet: {
+    paddingHorizontal: 48,
+    paddingTop: 18,
+    paddingBottom: 28,
+  },
+
   scroll: {
     flex: 1,
   },
@@ -568,6 +455,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 20,
+  },
+
+  scrollContentTablet: {
+    alignItems: "center",
+    paddingBottom: 32,
   },
 
   backButton: {
@@ -587,6 +479,14 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: "center",
+    width: "100%",
+  },
+
+  contentTablet: {
+    width: "100%",
+    maxWidth: 560,
+    alignSelf: "center",
+    justifyContent: "center",
   },
 
   brand: {
@@ -595,8 +495,13 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
 
+  brandTablet: {
+    marginBottom: 34,
+  },
+
   header: {
     alignItems: "center",
+    marginBottom: 20,
   },
 
   eyebrow: {
@@ -616,6 +521,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
+  titleTablet: {
+    fontSize: 34,
+    lineHeight: 40,
+    letterSpacing: -1,
+  },
+
   subtitle: {
     maxWidth: 340,
     marginTop: 10,
@@ -625,8 +536,28 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
+  subtitleTablet: {
+    maxWidth: 430,
+    fontSize: 15,
+    lineHeight: 22,
+    marginTop: 12,
+  },
+
+  socialSection: {
+    marginTop: 12,
+  },
+
+  socialSectionTablet: {
+    marginTop: 16,
+  },
+
   form: {
-    marginTop: 32,
+    marginTop: 4,
+  },
+
+  formTablet: {
+    marginTop: 4,
+    width: "100%",
   },
 
   row: {
@@ -661,6 +592,13 @@ const styles = StyleSheet.create({
     color: "#273449",
   },
 
+  inputTablet: {
+    height: 58,
+    borderRadius: 15,
+    fontSize: 16,
+    paddingHorizontal: 17,
+  },
+
   inputContainer: {
     height: 54,
     flexDirection: "row",
@@ -672,6 +610,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
 
+  inputContainerTablet: {
+    height: 58,
+    borderRadius: 15,
+    paddingHorizontal: 17,
+  },
+
   inputWithIcon: {
     flex: 1,
     height: "100%",
@@ -679,28 +623,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#273449",
     textAlignVertical: "center",
-  },
-
-  inputError: {
-    borderColor: "#FCA5A5",
-    backgroundColor: "#FFF8F8",
-  },
-
-  inputSuccess: {
-    borderColor: "#86EFAC",
-    backgroundColor: "#F7FFF9",
-  },
-
-  validationText: {
-    marginTop: 6,
-    fontSize: 11,
-    color: "#B91C1C",
-  },
-
-  successText: {
-    marginTop: 6,
-    fontSize: 11,
-    color: "#15803D",
   },
 
   errorContainer: {
@@ -733,6 +655,11 @@ const styles = StyleSheet.create({
     gap: 9,
   },
 
+  buttonTablet: {
+    height: 58,
+    borderRadius: 16,
+  },
+
   buttonDisabled: {
     opacity: 0.45,
   },
@@ -741,6 +668,49 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 15,
     fontWeight: "800",
+  },
+
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginVertical: 20,
+  },
+
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#E2E8F0",
+  },
+
+  dividerText: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1,
+    color: "#94A3B8",
+  },
+
+  googleButton: {
+    height: 54,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "#DDE4ED",
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+
+  googleButtonTablet: {
+    height: 58,
+    borderRadius: 16,
+  },
+
+  googleButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#273449",
   },
 
   loginRow: {
@@ -768,6 +738,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     paddingTop: 20,
+  },
+
+  securityTablet: {
+    paddingTop: 28,
   },
 
   securityText: {

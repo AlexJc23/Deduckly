@@ -52,7 +52,7 @@ class UserUpdate(BaseModel):
 
     # Goals
     monthly_income_goal: Decimal | None = None
-    weekly_income_goal: Decimal | None = None
+    daily_income_goal: Decimal | None = None
 
     # Offer Analyzer
     cost_per_mile: Decimal | None = None
@@ -155,7 +155,7 @@ class UserResponse(BaseModel):
 
     # Goals
     monthly_income_goal: Decimal | None = None
-    weekly_income_goal: Decimal | None = None
+    daily_income_goal: Decimal | None = None
 
     # Offer Analyzer
     cost_per_mile: Decimal | None = None

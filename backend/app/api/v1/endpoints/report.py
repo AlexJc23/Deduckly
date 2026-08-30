@@ -15,6 +15,7 @@ from app.db.session import get_db
 from app.models import User
 from app.services.pdf_service import build_tax_report_pdf
 from app.services.report_service import generate_tax_report
+from app.services.trip_service import get_daily_trip_breakdown
 from app.schemas.v1.current_report import CurrentReport
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -32,13 +33,42 @@ def get_today_report(
 
     today = datetime.now(tz)
 
-    return generate_tax_report(
+    start_of_day = today.replace(
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+
+    start_of_next_day = start_of_day.replace(
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+
+    from datetime import timedelta
+
+    start_of_next_day += timedelta(days=1)
+
+    report = generate_tax_report(
         db=db,
         user=current_user,
         year=today.year,
         month=today.month,
         day=today.day,
     )
+
+    trip_breakdown = get_daily_trip_breakdown(
+        db=db,
+        user_id=current_user.id,
+        start_of_day=start_of_day,
+        start_of_next_day=start_of_next_day,
+    )
+
+    report["trip_breakdown"] = trip_breakdown
+
+    return report
 
 
 # -------------------------
@@ -90,6 +120,8 @@ def export_pdf(
                 f'attachment; filename="Deduckly_Report_{report.year}.pdf"'
         },
     )
+
+
 @router.post("/exports/csv")
 def export_csv(
     report: CurrentReport,

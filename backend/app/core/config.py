@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     google_client_id: str
     google_client_secret: str
     google_redirect_uri: str
+    google_frontend_redirect_uri: str
     aws_access_key: str
     aws_secret_key: str
     aws_region: str

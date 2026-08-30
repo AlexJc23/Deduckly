@@ -25,7 +25,7 @@ export default function Mileage_rate() {
                 {isLoading ? (
                     <ActivityIndicator />
                 ) : (
-                    <Text>{(currentRate?.business_rate * 100).toFixed(1)}¢ / mile</Text>
+                    <Text>{(currentRate?.business_rate * 100).toFixed(1)}c / mile</Text>
                 )}
                 {isLoading ? (
                     <ActivityIndicator />
@@ -76,7 +76,7 @@ export default function Mileage_rate() {
                             (rate: { id: string; effective_date: string; business_rate: number }) => (
                                 <View key={rate.id}>
                                     <Text>{formatEffectiveDate(rate.effective_date)}</Text>
-                                    <Text>{(rate.business_rate * 100).toFixed(1)}¢ / mile</Text>
+                                    <Text>{(rate.business_rate * 100).toFixed(1)}c / mile</Text>
                                 </View>
                             )
                         )

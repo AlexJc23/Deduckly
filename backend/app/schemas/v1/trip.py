@@ -5,7 +5,7 @@ from decimal import Decimal
 from app.models.enums import TripPlatform, TripCategory
 
 
-# 🔹 Base (shared structure)
+# Base (shared structure)
 class TripBase(BaseModel):
     start_time: datetime
     end_time: datetime
@@ -24,12 +24,12 @@ class TripBase(BaseModel):
     category: TripCategory
 
 
-# 🔹 Create (same as base)
+# Create (same as base)
 class TripCreate(TripBase):
     income_amount: Optional[Decimal] = None  # New field for income
 
 
-# 🔹 Update (ALL optional, no inheritance)
+# Update (ALL optional, no inheritance)
 class TripUpdate(BaseModel):
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
@@ -48,7 +48,7 @@ class TripUpdate(BaseModel):
     category: Optional[TripCategory] = None
 
 
-# 🔹 Response (clean output)
+# Response (clean output)
 class TripResponse(TripBase):
     model_config = ConfigDict(from_attributes=True)
 

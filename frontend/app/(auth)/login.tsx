@@ -11,7 +11,7 @@ import {
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { router, Link } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons, FontAwesome6 } from "@expo/vector-icons";
 
 import Logo from "../../assets/images/logo.svg";
 
@@ -20,6 +20,7 @@ import { saveTokens } from "@/features/auth/services/auth-service.service";
 import { useAuth } from "@/features/auth/context/auth.context";
 import { setTemporaryToken } from "@/features/auth/services/twofa-storage.service";
 import { useIsTablet } from "@/hooks/use-is-tablet";
+import { startGoogleLogin } from "@/features/auth/api/google-auth.api";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -29,6 +30,14 @@ export default function Login() {
   const isTablet = useIsTablet();
 
   const { signIn } = useAuth();
+
+  const handleGoogleLogin = async () => {
+    try {
+      await startGoogleLogin();
+    } catch (error) {
+      console.error("Google login failed:", error);
+    }
+  };
 
   const loginMutation = useMutation({
     mutationFn: login,
@@ -119,8 +128,8 @@ export default function Login() {
               ]}
             >
               <Logo
-                width={isTablet ? 72 : 58}
-                height={isTablet ? 72 : 58}
+                width={isTablet ? 72 : 100}
+                height={isTablet ? 72 : 100}
                 color="#0072B5"
               />
             </View>
@@ -131,17 +140,13 @@ export default function Login() {
                 isTablet && styles.headerTablet,
               ]}
             >
-              <Text style={styles.eyebrow}>
-                WELCOME BACK
-              </Text>
-
               <Text
                 style={[
                   styles.title,
                   isTablet && styles.titleTablet,
                 ]}
               >
-                Sign in to your account
+                Welcome back!
               </Text>
 
               <Text
@@ -150,10 +155,43 @@ export default function Login() {
                   isTablet && styles.subtitleTablet,
                 ]}
               >
-                Keep your income, expenses, and
-                mileage organized in one place.
+                Log in to keep your miles, earnings, and expenses organized.
               </Text>
             </View>
+
+            {/* Google */}
+
+            <Pressable
+              style={[
+                styles.googleButton,
+                isTablet && styles.googleButtonTablet,
+              ]}
+              onPress={handleGoogleLogin}
+              disabled={loginMutation.isPending}
+            >
+              <FontAwesome6
+                name="google"
+                size={20}
+              />
+
+              <Text style={styles.googleButtonText}>
+                Continue with Google
+              </Text>
+            </Pressable>
+
+            {/* Divider */}
+
+            <View style={styles.dividerContainer}>
+              <View style={styles.divider} />
+
+              <Text style={styles.dividerText}>
+                OR
+              </Text>
+
+              <View style={styles.divider} />
+            </View>
+
+            {/* Login Form */}
 
             <View
               style={[
@@ -161,6 +199,8 @@ export default function Login() {
                 isTablet && styles.formTablet,
               ]}
             >
+              {/* Email */}
+
               <View style={styles.field}>
                 <Text style={styles.label}>
                   Email
@@ -188,31 +228,19 @@ export default function Login() {
                     textContentType="emailAddress"
                     placeholder="you@example.com"
                     placeholderTextColor="#A0AEC0"
-                    editable={
-                      !loginMutation.isPending
-                    }
+                    editable={!loginMutation.isPending}
                     style={styles.input}
                   />
                 </View>
               </View>
+
+              {/* Password */}
 
               <View style={styles.field}>
                 <View style={styles.labelRow}>
                   <Text style={styles.label}>
                     Password
                   </Text>
-
-                  <Pressable
-                    onPress={() =>
-                      router.push(
-                        "/(auth)/forgot-password",
-                      )
-                    }
-                  >
-                    <Text style={styles.forgotText}>
-                      Forgot password?
-                    </Text>
-                  </Pressable>
                 </View>
 
                 <View
@@ -235,9 +263,7 @@ export default function Login() {
                     textContentType="password"
                     placeholder="Enter your password"
                     placeholderTextColor="#A0AEC0"
-                    editable={
-                      !loginMutation.isPending
-                    }
+                    editable={!loginMutation.isPending}
                     returnKeyType="go"
                     onSubmitEditing={handleLogin}
                     style={styles.input}
@@ -271,7 +297,22 @@ export default function Login() {
                     />
                   </Pressable>
                 </View>
+
+                <Pressable
+                  onPress={() =>
+                    router.push(
+                      "/(auth)/forgot-password",
+                    )
+                  }
+                  style={styles.forgotButton}
+                >
+                  <Text style={styles.forgotText}>
+                    Forgot password?
+                  </Text>
+                </Pressable>
               </View>
+
+              {/* Error */}
 
               {loginMutation.isError && (
                 <View style={styles.errorContainer}>
@@ -287,6 +328,8 @@ export default function Login() {
                   </Text>
                 </View>
               )}
+
+              {/* Login */}
 
               <Pressable
                 disabled={isDisabled}
@@ -313,7 +356,7 @@ export default function Login() {
                 ) : (
                   <>
                     <Text style={styles.buttonText}>
-                      Sign In
+                      Log In
                     </Text>
 
                     <Ionicons
@@ -325,6 +368,8 @@ export default function Login() {
                 )}
               </Pressable>
             </View>
+
+            {/* Register */}
 
             <View
               style={[
@@ -347,23 +392,6 @@ export default function Login() {
                   </Text>
                 </Pressable>
               </Link>
-            </View>
-
-            <View
-              style={[
-                styles.security,
-                isTablet && styles.securityTablet,
-              ]}
-            >
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={15}
-                color="#94A3B8"
-              />
-
-              <Text style={styles.securityText}>
-                Your information is securely encrypted.
-              </Text>
             </View>
           </View>
         </Pressable>
@@ -389,8 +417,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 10,
     paddingBottom: 20,
+    top: "5%",
   },
 
   containerTablet: {
@@ -419,6 +448,51 @@ const styles = StyleSheet.create({
 
   headerTablet: {
     marginTop: 30,
+  },
+
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginVertical: 20,
+  },
+
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#E2E8F0",
+  },
+
+  dividerText: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1,
+    color: "#94A3B8",
+  },
+
+  googleButton: {
+    height: 54,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "#DDE4ED",
+    backgroundColor: "#FFFFFF",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    marginTop: 34,
+  },
+
+  googleButtonTablet: {
+    height: 58,
+    borderRadius: 16,
+    marginTop: 38,
+  },
+
+  googleButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#273449",
   },
 
   eyebrow: {
@@ -461,14 +535,14 @@ const styles = StyleSheet.create({
   },
 
   form: {
-    marginTop: 34,
+    marginTop: 4,
   },
 
   formTablet: {
     width: "100%",
     maxWidth: 520,
     alignSelf: "center",
-    marginTop: 38,
+    marginTop: 4,
   },
 
   field: {
@@ -487,6 +561,11 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#475569",
     marginBottom: 8,
+  },
+
+  forgotButton: {
+    alignSelf: "flex-end",
+    marginTop: 10,
   },
 
   forgotText: {

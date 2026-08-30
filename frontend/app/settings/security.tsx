@@ -42,7 +42,7 @@ export default function SecuritySettingsScreen() {
               </Text>
             </View>
 
-            <Text style={styles.chevron}>›</Text>
+            <Text style={styles.chevron}>></Text>
           </View>
         </Pressable>
 
@@ -90,7 +90,7 @@ export default function SecuritySettingsScreen() {
                 </Text>
               </View>
 
-              <Text style={styles.chevron}>›</Text>
+              <Text style={styles.chevron}>></Text>
             </View>
           </View>
         </Pressable>

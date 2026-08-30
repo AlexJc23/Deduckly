@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text,
   View,
+  Image,
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,15 +13,17 @@ import { router, useLocalSearchParams } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
-import { MonthlyIncomeGoalCard } from "@/features/reports/components/MonthlyIncomeGoal";
-import { useCurrentReport } from "@/features/reports/hooks/use-current-report";
+import { DailyIncomeGoalCard } from "@/features/reports/components/DailyIncomeGoal";
 import { useTodayReport } from "@/features/reports/hooks/use-today-report";
-import { getCurrentMonthAndYear } from "@/features/reports/utils/date";
 import { StartTripModal } from "@/features/tracking/components/StartTripModal";
 import { useTracking } from "@/features/tracking/context/tracking.context";
-import { useMonthlyGoal } from "@/features/users/hooks/use-monthly-goal";
+import { useDailyGoal } from "@/features/users/hooks/use-daily-goal";
 import { getPendingTrip } from "@/services/siri.service";
 import { useIsTablet } from "@/hooks/use-is-tablet";
+import {
+  platformIcons,
+  type PlatformName,
+} from "../constants/platform-icons";
 
 const subtitles = [
   "Making taxes slightly less terrible.",
@@ -42,10 +45,13 @@ export default function DashboardScreen() {
   const isTablet = useIsTablet();
   const { width, height } = useWindowDimensions();
 
+  const isSmallPhone =
+    !isTablet && (height <= 931 || width <= 429);
 
-  const isSmallPhone = !isTablet && (height <= 931 || width <= 429);
-
-  const styles = getStyles(isTablet, isSmallPhone);
+  const styles = getStyles(
+    isTablet,
+    isSmallPhone
+  );
 
   const {
     isTracking,
@@ -61,36 +67,28 @@ export default function DashboardScreen() {
   const bannerTimeoutRef =
     useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { data: monthlyGoal } =
-    useMonthlyGoal();
-
-  const { year, month } =
-    getCurrentMonthAndYear();
+  const { data: dailyGoal } =
+    useDailyGoal();
 
   const {
     data: todayReport,
     isLoading: todayLoading,
   } = useTodayReport();
 
-  const {
-    data: monthlyReport,
-    isLoading: monthlyLoading,
-  } = useCurrentReport({
-    year,
-    month,
-  });
-
-  const estimatedTaxOwed =
-    monthlyReport?.estimated_tax_owed.toFixed(2) ?? "--";
-
-  const estimatedTaxSavings =
-    monthlyReport?.estimated_tax_savings.toFixed(2) ?? "--";
-
-  const todayMiles =
-    todayReport?.total_miles.toFixed(2) ?? "--";
-
   const todayExpenses =
     todayReport?.total_expenses.toFixed(2) ?? "--";
+
+  const tripBreakdown =
+    todayReport?.trip_breakdown ?? [];
+
+  const visibleTripBreakdown =
+    tripBreakdown.slice(0, 3);
+
+  const totalMiles =
+    todayReport?.total_miles ?? 0;
+
+  const hasMorePlatforms =
+    tripBreakdown.length > 3;
 
   const openStartModal = useCallback(
     () => setShowStartTripModal(true),
@@ -133,17 +131,22 @@ export default function DashboardScreen() {
     setShowBanner(true);
 
     if (bannerTimeoutRef.current) {
-      clearTimeout(bannerTimeoutRef.current);
+      clearTimeout(
+        bannerTimeoutRef.current
+      );
     }
 
-    bannerTimeoutRef.current = setTimeout(() => {
-      setShowBanner(false);
-      bannerTimeoutRef.current = null;
-    }, 3000);
+    bannerTimeoutRef.current =
+      setTimeout(() => {
+        setShowBanner(false);
+        bannerTimeoutRef.current = null;
+      }, 3000);
 
     return () => {
       if (bannerTimeoutRef.current) {
-        clearTimeout(bannerTimeoutRef.current);
+        clearTimeout(
+          bannerTimeoutRef.current
+        );
       }
     };
   }, [saved]);
@@ -169,7 +172,7 @@ export default function DashboardScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  if (monthlyLoading || todayLoading) {
+  if (todayLoading) {
     return (
       <SafeAreaView
         style={styles.loadingScreen}
@@ -218,51 +221,13 @@ export default function DashboardScreen() {
         </View>
       )}
 
-      {monthlyGoal && (
+      {dailyGoal && (
         <View style={styles.goalContainer}>
-          <MonthlyIncomeGoalCard
-            monthlyGoal={monthlyGoal}
+          <DailyIncomeGoalCard
+            dailyGoal={dailyGoal}
           />
         </View>
       )}
-
-      <View style={styles.taxCard}>
-        <View style={styles.taxHeader}>
-          <View style={styles.taxIcon}>
-            <Ionicons
-              name="calculator-outline"
-              size={isTablet ? 22 : 18}
-              color="#4A6FE3"
-            />
-          </View>
-
-          <Text style={styles.taxLabel}>
-            ESTIMATED TAXES
-          </Text>
-        </View>
-
-        <Text style={styles.taxAmount}>
-          ${estimatedTaxOwed}
-        </Text>
-
-        <Text style={styles.taxHint}>
-          Estimated taxes this month
-        </Text>
-
-        <View style={styles.taxSavingsRow}>
-          <View style={styles.savingsIcon}>
-            <Ionicons
-              name="trending-down-outline"
-              size={isTablet ? 17 : 15}
-              color="#22C55E"
-            />
-          </View>
-
-          <Text style={styles.taxSavingsText}>
-            ${estimatedTaxSavings} saved
-          </Text>
-        </View>
-      </View>
 
       <Pressable
         style={({ pressed }) => [
@@ -301,40 +266,144 @@ export default function DashboardScreen() {
         />
       </Pressable>
 
-      <View style={styles.metricRow}>
-        <View style={styles.metricCard}>
-          <View style={styles.metricIcon}>
-            <Ionicons
-              name="speedometer-outline"
-              size={isTablet ? 21 : 17}
-              color="#4A6FE3"
-            />
+      <View style={styles.platformCard}>
+        <View style={styles.platformHeader}>
+
+          <View style={styles.platformHeaderText}>
+            <Text style={styles.platformTitle}>
+              MILEAGE BREAKDOWN
+            </Text>
+
+            <Text style={styles.platformSubtitle}>
+              Miles tracked today
+            </Text>
           </View>
 
-          <Text style={styles.metricValue}>
-            {todayMiles}
-          </Text>
+          <View style={styles.totalMilesContainer}>
+            <Text style={styles.totalMilesValue}>
+              {Number(totalMiles).toFixed(2)}
+            </Text>
 
-          <Text style={styles.metricLabel}>
-            miles today
-          </Text>
+            <Text style={styles.totalMilesLabel}>
+              miles
+            </Text>
+          </View>
         </View>
 
-        <View style={styles.metricCard}>
-          <View style={styles.metricIcon}>
+        {visibleTripBreakdown.length > 0 ? (
+  <View style={styles.platformList}>
+    {visibleTripBreakdown.map(
+      (
+        trip: {
+          platform: PlatformName;
+          miles: number;
+          trip_count: number;
+        },
+        index: number
+      ) => (
+        <View
+          key={`${trip.platform}-${index}`}
+          style={[
+            styles.platformRow,
+            index ===
+              visibleTripBreakdown.length - 1 &&
+              !hasMorePlatforms &&
+              styles.platformRowLast,
+          ]}
+        >
+          <View style={styles.platformNameContainer}>
+            <Image
+              source={
+                platformIcons[trip.platform] ??
+                platformIcons.other
+              }
+              style={styles.platformLogo}
+              resizeMode="contain"
+            />
+
+            <View>
+              <Text style={styles.platformName}>
+                {formatPlatformName(
+                  trip.platform
+                )}
+              </Text>
+
+              <Text
+                style={styles.platformTripCount}
+              >
+                {trip.trip_count}{" "}
+                {trip.trip_count === 1
+                  ? "trip"
+                  : "trips"}
+              </Text>
+            </View>
+          </View>
+
+          <Text style={styles.platformMiles}>
+            {Number(trip.miles).toFixed(2)} mi
+          </Text>
+        </View>
+      )
+    )}
+  </View>
+) : (
+  <View style={styles.emptyMileage}>
+    <Ionicons
+      name="car-outline"
+      size={isTablet ? 24 : 21}
+      color="#94A3B8"
+    />
+
+    <Text style={styles.emptyMileageText}>
+      No miles tracked today
+    </Text>
+  </View>
+)}
+
+<Pressable
+  onPress={() =>
+    router.push("/(tabs)/activity")
+  }
+  style={({ pressed }) => [
+    styles.seeMoreButton,
+    pressed &&
+      styles.seeMoreButtonPressed,
+  ]}
+>
+  <Text style={styles.seeMoreText}>
+    View your trips
+  </Text>
+
+  <Ionicons
+    name="chevron-forward"
+    size={isTablet ? 18 : 16}
+    color="#4A6FE3"
+  />
+</Pressable>
+      </View>
+
+      <View style={styles.expenseCard}>
+        <View style={styles.expenseHeader}>
+          <View style={styles.expenseIcon}>
             <Ionicons
               name="receipt-outline"
-              size={isTablet ? 21 : 17}
+              size={isTablet ? 20 : 17}
               color="#F4B942"
             />
           </View>
 
-          <Text style={styles.metricValue}>
-            ${todayExpenses}
-          </Text>
+          <View>
+            <Text style={styles.expenseTitle}>
+              EXPENSES
+            </Text>
 
-          <Text style={styles.metricLabel}>
-            expenses
+            <Text style={styles.expenseSubtitle}>
+              Expenses recorded today
+            </Text>
+          </View>
+
+          <Text style={styles.expenseAmount}>
+            ${todayExpenses}
           </Text>
         </View>
       </View>
@@ -416,17 +485,25 @@ export default function DashboardScreen() {
             }
           />
 
-          <Text
-            style={[
-              styles.startTripButtonText,
-              isTracking &&
-                styles.startTripButtonTextTracking,
-            ]}
-          >
-            {isTracking
-              ? "Trip in Progress"
-              : "Start Trip"}
-          </Text>
+          <View style={styles.startTripTextContainer}>
+            <Text
+              style={[
+                styles.startTripButtonText,
+                isTracking &&
+                  styles.startTripButtonTextTracking,
+              ]}
+            >
+              {isTracking
+                ? "Trip in Progress"
+                : "Start Trip"}
+            </Text>
+
+            {!isTracking && (
+              <Text style={styles.siriHint}>
+                Or say "Siri, Start a trip in Deduckly"
+              </Text>
+            )}
+          </View>
 
           {!isTracking && (
             <Ionicons
@@ -446,11 +523,49 @@ export default function DashboardScreen() {
   );
 }
 
-const getStyles = (isTablet: boolean, isSmallPhone: boolean) =>
+function formatPlatformName(
+  platform?: string
+): string {
+  const names: Record<string, string> = {
+    uber_eats: "Uber Eats",
+    spark: "Spark",
+    doordash: "DoorDash",
+    lyft: "Lyft",
+    uber: "Uber",
+    grubhub: "Grubhub",
+    instacart: "Instacart",
+    amazon_flex: "Amazon Flex",
+    shipt: "Shipt",
+    other: "Other",
+    personal: "Personal",
+  };
+
+  if (!platform) {
+    return "Other";
+  }
+
+  return (
+    names[platform] ??
+    platform
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) =>
+        char.toUpperCase()
+      )
+  );
+}
+
+const getStyles = (
+  isTablet: boolean,
+  isSmallPhone: boolean
+) =>
   StyleSheet.create({
     safeArea: {
       flex: 1,
-      paddingHorizontal: isTablet ? 22 : isSmallPhone ? 16 : 20,
+      paddingHorizontal: isTablet
+        ? 22
+        : isSmallPhone
+        ? 16
+        : 20,
       backgroundColor: "#F8FAFC",
     },
 
@@ -463,13 +578,23 @@ const getStyles = (isTablet: boolean, isSmallPhone: boolean) =>
 
     banner: {
       position: "absolute",
-      // top: isTablet ? 18 : isSmallPhone ? 10 : 12,
-      // left: isTablet ? 22 : isSmallPhone ? 14 : 16,
       alignSelf: "center",
       zIndex: 1000,
-      minHeight: isTablet ? 56 : isSmallPhone ? 44 : 48,
-      paddingHorizontal: isTablet ? 20 : isSmallPhone ? 14 : 16,
-      borderRadius: isTablet ? 16 : isSmallPhone ? 13 : 14,
+      minHeight: isTablet
+        ? 56
+        : isSmallPhone
+        ? 44
+        : 48,
+      paddingHorizontal: isTablet
+        ? 20
+        : isSmallPhone
+        ? 14
+        : 16,
+      borderRadius: isTablet
+        ? 16
+        : isSmallPhone
+        ? 13
+        : 14,
       backgroundColor: "#4A6FE3",
       height: isTablet ? 80 : 100,
       width: isTablet ? 800 : 500,
@@ -492,21 +617,47 @@ const getStyles = (isTablet: boolean, isSmallPhone: boolean) =>
 
     bannerText: {
       color: "#FFFFFF",
-      fontSize: isTablet ? 16 : isSmallPhone ? 13 : 14,
+      fontSize: isTablet
+        ? 16
+        : isSmallPhone
+        ? 13
+        : 14,
       fontWeight: "700",
     },
 
     welcomeContainer: {
-      marginTop: isTablet ? 20 : isSmallPhone ? 4 : 8,
-      marginBottom: isTablet ? 24 : isSmallPhone ? 8 : 20,
-      maxWidth: isTablet ? 1200 : undefined,
-      alignSelf: isTablet ? "center" : undefined,
-      width: isTablet ? "100%" : undefined,
+      marginTop: isTablet
+        ? 20
+        : isSmallPhone
+        ? 4
+        : 8,
+      marginBottom: isTablet
+        ? 24
+        : isSmallPhone
+        ? 8
+        : 20,
+      maxWidth: isTablet
+        ? 1200
+        : undefined,
+      alignSelf: isTablet
+        ? "center"
+        : undefined,
+      width: isTablet
+        ? "100%"
+        : undefined,
     },
 
     welcomeText: {
-      fontSize: isTablet ? 36 : isSmallPhone ? 27 : 28,
-      lineHeight: isTablet ? 43 : isSmallPhone ? 32 : 34,
+      fontSize: isTablet
+        ? 36
+        : isSmallPhone
+        ? 27
+        : 28,
+      lineHeight: isTablet
+        ? 43
+        : isSmallPhone
+        ? 32
+        : 34,
       letterSpacing: -0.8,
     },
 
@@ -521,118 +672,355 @@ const getStyles = (isTablet: boolean, isSmallPhone: boolean) =>
     },
 
     welcomeSubtitle: {
-      marginTop: isSmallPhone ? 3 : 5,
-      fontSize: isTablet ? 16 : isSmallPhone ? 12 : 14,
-      lineHeight: isTablet ? 23 : isSmallPhone ? 17 : 20,
+      marginTop: isSmallPhone
+        ? 3
+        : 5,
+      fontSize: isTablet
+        ? 16
+        : isSmallPhone
+        ? 12
+        : 14,
+      lineHeight: isTablet
+        ? 23
+        : isSmallPhone
+        ? 17
+        : 20,
       color: "#64748B",
       fontWeight: "500",
     },
 
     goalContainer: {
-      maxWidth: isTablet ? 1200 : undefined,
-      alignSelf: isTablet ? "center" : undefined,
-      width: isTablet ? "100%" : undefined,
-      marginBottom: isTablet ? 4 : 0,
+      maxWidth: isTablet
+        ? 1200
+        : undefined,
+      alignSelf: isTablet
+        ? "center"
+        : undefined,
+      width: isTablet
+        ? "100%"
+        : undefined,
+      marginBottom: isTablet
+        ? 4
+        : 0,
     },
 
-    taxCard: {
+    todayHeader: {
+      marginTop: isTablet
+        ? 20
+        : isSmallPhone
+        ? 12
+        : 16,
+      marginBottom: isTablet
+        ? 10
+        : isSmallPhone
+        ? 7
+        : 9,
+      maxWidth: isTablet
+        ? 1200
+        : undefined,
+      alignSelf: isTablet
+        ? "center"
+        : undefined,
+      width: isTablet
+        ? "100%"
+        : undefined,
+    },
+
+    todayTitle: {
+      fontSize: isTablet
+        ? 12
+        : isSmallPhone
+        ? 10
+        : 11,
+      fontWeight: "800",
+      letterSpacing: 1.2,
+      color: "#64748B",
+    },
+
+    todaySubtitle: {
+      marginTop: 2,
+      fontSize: isTablet
+        ? 13
+        : isSmallPhone
+        ? 11
+        : 12,
+      color: "#94A3B8",
+      fontWeight: "500",
+    },
+
+    platformCard: {
+      marginTop: 10,
       backgroundColor: "#FFFFFF",
-      borderRadius: isTablet ? 22 : isSmallPhone ? 16 : 18,
+      borderRadius: isTablet
+        ? 18
+        : isSmallPhone
+        ? 14
+        : 16,
       borderWidth: 1,
       borderColor: "#E5E7EB",
-      padding: isTablet ? 24 : isSmallPhone ? 15 : 18,
-      marginTop: isTablet ? 18 : isSmallPhone ? 10 : 16,
-      maxWidth: isTablet ? 1200 : undefined,
-      alignSelf: isTablet ? "center" : undefined,
-      width: isTablet ? "100%" : undefined,
+      padding: isTablet
+        ? 18
+        : isSmallPhone
+        ? 13
+        : 15,
+      maxWidth: isTablet
+        ? 1200
+        : undefined,
+      height: isTablet
+        ? 270
+        : isSmallPhone
+        ? 210
+        : 230,
+      alignSelf: isTablet
+        ? "center"
+        : undefined,
+      width: isTablet
+        ? "100%"
+        : undefined,
 
       shadowColor: "#111827",
-      shadowOpacity: 0.04,
-      shadowRadius: 10,
+      shadowOpacity: 0.03,
+      shadowRadius: 7,
       shadowOffset: {
         width: 0,
-        height: 3,
+        height: 2,
       },
 
-      elevation: 2,
+      elevation: 1,
     },
 
-    taxHeader: {
+    platformHeader: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 9,
     },
 
-    taxIcon: {
-      width: isTablet ? 38 : isSmallPhone ? 32 : 32,
-      height: isTablet ? 38 : isSmallPhone ? 32 : 32,
-      borderRadius: isTablet ? 11 : 10,
+    platformHeaderText: {
+      flex: 1,
+      paddingLeft: 4,
+    },
+
+    platformIcon: {
+      width: isTablet
+        ? 38
+        : isSmallPhone
+        ? 32
+        : 34,
+      height: isTablet
+        ? 38
+        : isSmallPhone
+        ? 32
+        : 34,
+      borderRadius: isTablet
+        ? 11
+        : 10,
       backgroundColor: "#DCE6FF",
       alignItems: "center",
       justifyContent: "center",
+      marginRight: 10,
     },
 
-    taxLabel: {
-      fontSize: isTablet ? 11 : isSmallPhone ? 10 : 10,
+    platformTitle: {
+      fontSize: isTablet
+        ? 11
+        : isSmallPhone
+        ? 9
+        : 10,
       fontWeight: "800",
-      letterSpacing: 1.1,
+      letterSpacing: 1.05,
       color: "#64748B",
     },
 
-    taxAmount: {
-      marginTop: isTablet ? 14 : isSmallPhone ? 9 : 12,
-      fontSize: isTablet ? 34 : isSmallPhone ? 27 : 30,
-      lineHeight: isTablet ? 41 : isSmallPhone ? 32 : 36,
+    platformSubtitle: {
+      marginTop: 2,
+      fontSize: isTablet
+        ? 12
+        : isSmallPhone
+        ? 10
+        : 11,
+      color: "#94A3B8",
+      fontWeight: "500",
+    },
+
+    totalMilesContainer: {
+      alignItems: "flex-end",
+      marginLeft: 8,
+    },
+
+    totalMilesValue: {
+      fontSize: isTablet
+        ? 18
+        : isSmallPhone
+        ? 15
+        : 16,
       fontWeight: "800",
-      letterSpacing: -0.7,
       color: "#111827",
     },
 
-    taxHint: {
-      marginTop: 3,
-      fontSize: isTablet ? 13 : isSmallPhone ? 12 : 12,
-      color: "#64748B",
+    totalMilesLabel: {
+      marginTop: 1,
+      fontSize: isTablet
+        ? 10
+        : isSmallPhone
+        ? 8
+        : 9,
+      color: "#94A3B8",
+      fontWeight: "600",
     },
 
-    taxSavingsRow: {
+    platformList: {
+      marginTop: isTablet
+        ? 12
+        : isSmallPhone
+        ? 9
+        : 10,
+    },
+
+    platformRow: {
+      minHeight: isTablet
+        ? 48
+        : isSmallPhone
+        ? 40
+        : 44,
       flexDirection: "row",
       alignItems: "center",
-      marginTop: isTablet ? 18 : isSmallPhone ? 10 : 16,
-      paddingTop: isTablet ? 14 : isSmallPhone ? 10 : 13,
-      borderTopWidth: 1,
-      borderTopColor: "#E5E7EB",
+      justifyContent: "space-between",
+      borderBottomWidth: 1,
+      borderBottomColor: "#F1F5F9",
     },
 
-    savingsIcon: {
-      width: isTablet ? 28 : 26,
-      height: isTablet ? 28 : 26,
-      borderRadius: isTablet ? 9 : 8,
-      backgroundColor: "#DCFCE7",
+    platformRowLast: {
+      borderBottomWidth: 0,
+    },
+
+    platformNameContainer: {
+      flex: 1,
+      flexDirection: "row",
+    },
+
+    platformName: {
+      fontSize: isTablet
+        ? 14
+        : isSmallPhone
+        ? 12
+        : 13,
+      fontWeight: "700",
+      color: "#334155",
+    },
+
+    platformTripCount: {
+      marginTop: 1,
+      fontSize: isTablet
+        ? 11
+        : isSmallPhone
+        ? 9
+        : 10,
+      color: "#94A3B8",
+      fontWeight: "500",
+    },
+    platformLogo: {
+      width: 40,
+      height: 40,
+      marginRight: 10,
+    },
+    platformMiles: {
+      fontSize: isTablet
+        ? 14
+        : isSmallPhone
+        ? 12
+        : 13,
+      fontWeight: "800",
+      color: "#111827",
+    },
+
+    seeMoreButton: {
+      minHeight: isTablet
+        ? 42
+        : isSmallPhone
+        ? 18
+        : 20,
+      flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      marginRight: 8,
+      gap: 4,
+      marginTop: 2,
     },
 
-    taxSavingsText: {
-      fontSize: isTablet ? 14 : isSmallPhone ? 13 : 13,
+    seeMoreButtonPressed: {
+      opacity: 0.65,
+    },
+
+    seeMoreText: {
+      color: "#4A6FE3",
+      fontSize: isTablet
+        ? 13
+        : isSmallPhone
+        ? 11
+        : 12,
       fontWeight: "700",
-      color: "#22C55E",
+    },
+
+    emptyMileage: {
+      minHeight: isTablet
+        ? 70
+        : isSmallPhone
+        ? 58
+        : 64,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      paddingTop: 60,
+    },
+
+    emptyMileageText: {
+      color: "#94A3B8",
+      fontSize: isTablet
+        ? 12
+        : isSmallPhone
+        ? 10
+        : 11,
+      fontWeight: "500",
     },
 
     offerAnalyzerButton: {
-      minHeight: isTablet ? 76 : isSmallPhone ? 60 : 68,
-      marginTop: isTablet ? 16 : isSmallPhone ? 10 : 14,
-      paddingHorizontal: isTablet ? 18 : isSmallPhone ? 13 : 14,
-      paddingVertical: isTablet ? 14 : isSmallPhone ? 10 : 12,
-      borderRadius: isTablet ? 18 : isSmallPhone ? 15 : 16,
-      backgroundColor: "#FFFFFF",
+      minHeight: isTablet
+        ? 76
+        : isSmallPhone
+        ? 60
+        : 68,
+      marginTop: isTablet
+        ? 16
+        : isSmallPhone
+        ? 10
+        : 14,
+      paddingHorizontal: isTablet
+        ? 18
+        : isSmallPhone
+        ? 13
+        : 14,
+      paddingVertical: isTablet
+        ? 14
+        : isSmallPhone
+        ? 10
+        : 12,
+      borderRadius: isTablet
+        ? 18
+        : isSmallPhone
+        ? 15
+        : 16,
+      backgroundColor: "#4a70e315",
       borderWidth: 1,
       borderColor: "#E5E7EB",
       flexDirection: "row",
       alignItems: "center",
-      maxWidth: isTablet ? 1200 : undefined,
-      alignSelf: isTablet ? "center" : undefined,
-      width: isTablet ? "100%" : undefined,
+      maxWidth: isTablet
+        ? 1200
+        : undefined,
+      alignSelf: isTablet
+        ? "center"
+        : undefined,
+      width: isTablet
+        ? "100%"
+        : undefined,
 
       shadowColor: "#111827",
       shadowOpacity: 0.035,
@@ -651,9 +1039,21 @@ const getStyles = (isTablet: boolean, isSmallPhone: boolean) =>
     },
 
     offerIcon: {
-      width: isTablet ? 46 : isSmallPhone ? 37 : 40,
-      height: isTablet ? 46 : isSmallPhone ? 37 : 40,
-      borderRadius: isTablet ? 14 : isSmallPhone ? 11 : 12,
+      width: isTablet
+        ? 46
+        : isSmallPhone
+        ? 37
+        : 40,
+      height: isTablet
+        ? 46
+        : isSmallPhone
+        ? 37
+        : 40,
+      borderRadius: isTablet
+        ? 14
+        : isSmallPhone
+        ? 11
+        : 12,
       backgroundColor: "#DCE6FF",
       alignItems: "center",
       justifyContent: "center",
@@ -661,38 +1061,59 @@ const getStyles = (isTablet: boolean, isSmallPhone: boolean) =>
 
     offerTextContainer: {
       flex: 1,
-      marginLeft: isTablet ? 14 : 12,
+      marginLeft: isTablet
+        ? 14
+        : 12,
     },
 
     offerTitle: {
-      fontSize: isTablet ? 17 : isSmallPhone ? 15 : 15,
+      fontSize: isTablet
+        ? 17
+        : isSmallPhone
+        ? 15
+        : 15,
       fontWeight: "700",
       color: "#111827",
     },
 
     offerSubtitle: {
       marginTop: 1,
-      fontSize: isTablet ? 13 : isSmallPhone ? 11 : 12,
+      fontSize: isTablet
+        ? 13
+        : isSmallPhone
+        ? 11
+        : 12,
       color: "#64748B",
     },
 
-    metricRow: {
-      flexDirection: "row",
-      gap: isTablet ? 14 : isSmallPhone ? 9 : 12,
-      marginTop: isTablet ? 14 : isSmallPhone ? 9 : 12,
-      maxWidth: isTablet ? 1200 : undefined,
-      alignSelf: isTablet ? "center" : undefined,
-      width: isTablet ? "100%" : undefined,
-    },
-
-    metricCard: {
-      flex: 1,
-      minHeight: isTablet ? 112 : isSmallPhone ? 78 : 92,
+    expenseCard: {
+      marginTop: isTablet
+        ? 14
+        : isSmallPhone
+        ? 9
+        : 12,
       backgroundColor: "#FFFFFF",
-      borderRadius: isTablet ? 18 : isSmallPhone ? 14 : 16,
+      borderRadius: isTablet
+        ? 18
+        : isSmallPhone
+        ? 14
+        : 16,
       borderWidth: 1,
       borderColor: "#E5E7EB",
-      padding: isTablet ? 18 : isSmallPhone ? 11 : 14,
+      padding: isTablet
+        ? 18
+        : isSmallPhone
+        ? 13
+        : 15,
+      maxWidth: isTablet
+        ? 1200
+        : undefined,
+      alignSelf: isTablet
+        ? "center"
+        : undefined,
+      width: isTablet
+        ? "100%"
+        : undefined,
 
       shadowColor: "#111827",
       shadowOpacity: 0.03,
@@ -705,56 +1126,120 @@ const getStyles = (isTablet: boolean, isSmallPhone: boolean) =>
       elevation: 1,
     },
 
-    metricIcon: {
-      width: isTablet ? 34 : isSmallPhone ? 29 : 30,
-      height: isTablet ? 34 : isSmallPhone ? 29 : 30,
-      borderRadius: isTablet ? 10 : 9,
-      backgroundColor: "#F1F5F9",
+    expenseHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+
+    expenseIcon: {
+      width: isTablet
+        ? 38
+        : isSmallPhone
+        ? 32
+        : 34,
+      height: isTablet
+        ? 38
+        : isSmallPhone
+        ? 32
+        : 34,
+      borderRadius: isTablet
+        ? 11
+        : 10,
+      backgroundColor: "#FFF7DB",
       alignItems: "center",
       justifyContent: "center",
+      marginRight: 10,
     },
 
-    metricValue: {
-      marginTop: isTablet ? 10 : isSmallPhone ? 6 : 8,
-      fontSize: isTablet ? 21 : isSmallPhone ? 17 : 18,
+    expenseTitle: {
+      fontSize: isTablet
+        ? 11
+        : isSmallPhone
+        ? 9
+        : 10,
       fontWeight: "800",
-      letterSpacing: -0.3,
-      color: "#111827",
-    },
-
-    metricLabel: {
-      marginTop: 1,
-      fontSize: isTablet ? 12 : isSmallPhone ? 10 : 11,
-      fontWeight: "600",
+      letterSpacing: 1.05,
       color: "#64748B",
     },
 
+    expenseSubtitle: {
+      marginTop: 2,
+      fontSize: isTablet
+        ? 12
+        : isSmallPhone
+        ? 10
+        : 11,
+      color: "#94A3B8",
+      fontWeight: "500",
+    },
+
+    expenseAmount: {
+      marginLeft: "auto",
+      fontSize: isTablet
+        ? 16
+        : isSmallPhone
+        ? 13
+        : 14,
+      fontWeight: "800",
+      color: "#111827",
+    },
+
     actionsContainer: {
-      marginTop: isTablet ? 18 : isSmallPhone ? 8 : 0,
-      marginBottom: isTablet ? 28 : isSmallPhone ? 10 : 18,
-      paddingTop: isTablet ? 10 : isSmallPhone ? 2 : 14,
-      maxWidth: isTablet ? 1200 : undefined,
-      alignSelf: isTablet ? "center" : undefined,
-      width: isTablet ? "100%" : undefined,
+      marginTop: 8,
+      marginBottom: isTablet
+        ? 28
+        : isSmallPhone
+        ? 10
+        : 18,
+      paddingTop: isTablet
+        ? 10
+        : isSmallPhone
+        ? 2
+        : 4,
+      maxWidth: isTablet
+        ? 1200
+        : undefined,
+      alignSelf: isTablet
+        ? "center"
+        : undefined,
+      width: isTablet
+        ? "100%"
+        : undefined,
     },
 
     actionButtonsRow: {
       flexDirection: "row",
-      gap: isTablet ? 14 : isSmallPhone ? 9 : 10,
+      gap: isTablet
+        ? 14
+        : isSmallPhone
+        ? 9
+        : 10,
     },
 
     actionButton: {
       flex: 1,
-      minHeight: isTablet ? 58 : isSmallPhone ? 43 : 46,
+      minHeight: isTablet
+        ? 58
+        : isSmallPhone
+        ? 43
+        : 46,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: "#FFFFFF",
-      borderRadius: isTablet ? 15 : 12,
-      paddingHorizontal: isTablet ? 16 : isSmallPhone ? 9 : 12,
+      borderRadius: isTablet
+        ? 15
+        : 12,
+      paddingHorizontal: isTablet
+        ? 16
+        : isSmallPhone
+        ? 9
+        : 12,
       borderWidth: 1,
       borderColor: "#E5E7EB",
-      gap: isSmallPhone ? 5 : 7,
+      gap: isSmallPhone
+        ? 5
+        : 7,
     },
 
     actionButtonPressed: {
@@ -763,17 +1248,37 @@ const getStyles = (isTablet: boolean, isSmallPhone: boolean) =>
     },
 
     actionButtonText: {
-      fontSize: isTablet ? 14 : isSmallPhone ? 12 : 13,
+      fontSize: isTablet
+        ? 14
+        : isSmallPhone
+        ? 12
+        : 13,
       fontWeight: "700",
       color: "#334155",
     },
 
     startTripButton: {
-      marginTop: isTablet ? 14 : isSmallPhone ? 8 : 12,
-      minHeight: isTablet ? 66 : isSmallPhone ? 52 : 56,
-      borderRadius: isTablet ? 18 : isSmallPhone ? 14 : 16,
+      marginTop: isTablet
+        ? 14
+        : isSmallPhone
+        ? 8
+        : 12,
+      minHeight: isTablet
+        ? 66
+        : isSmallPhone
+        ? 58
+        : 62,
+      borderRadius: isTablet
+        ? 18
+        : isSmallPhone
+        ? 14
+        : 16,
       backgroundColor: "#4A6FE3",
-      paddingHorizontal: isTablet ? 20 : isSmallPhone ? 14 : 18,
+      paddingHorizontal: isTablet
+        ? 20
+        : isSmallPhone
+        ? 14
+        : 18,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
@@ -801,13 +1306,33 @@ const getStyles = (isTablet: boolean, isSmallPhone: boolean) =>
       elevation: 0,
     },
 
+    startTripTextContainer: {
+      flex: 1,
+      alignItems: "center",
+    },
+
     startTripButtonText: {
       color: "#FFFFFF",
-      fontSize: isTablet ? 18 : isSmallPhone ? 15 : 16,
+      fontSize: isTablet
+        ? 18
+        : isSmallPhone
+        ? 15
+        : 16,
       fontWeight: "700",
     },
 
     startTripButtonTextTracking: {
       color: "#475569",
+    },
+
+    siriHint: {
+      marginTop: 2,
+      color: "#DCE6FF",
+      fontSize: isTablet
+        ? 11
+        : isSmallPhone
+        ? 9
+        : 10,
+      fontWeight: "500",
     },
   });

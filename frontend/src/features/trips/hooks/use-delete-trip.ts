@@ -10,6 +10,9 @@ export function useDeleteTrip() {
       queryClient.invalidateQueries({
         queryKey: ["trips"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["today-report"],
+      });
     },
   });
 }

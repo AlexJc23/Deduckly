@@ -5,6 +5,7 @@ from app.schemas.v1.oauth import OAuthUserCreate
 from fastapi import APIRouter, Depends, HTTPException, Cookie
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
+from urllib.parse import urlencode
 
 from app.db.session import get_db
 from app.schemas.v1.user import (
@@ -55,6 +56,7 @@ from app.services.oauth_service import (
     exchange_google_code_for_tokens,
     get_google_user_info,
     get_or_create_oauth_user,
+    get_google_authorization_url
 )
 from app.services.email_service import send_email
 
@@ -181,16 +183,9 @@ def login(
 
 @router.get("/google/login")
 def google_login():
-
-    url = (
-        "https://accounts.google.com/o/oauth2/v2/auth"
-        "?response_type=code"
-        f"&client_id={settings.google_client_id}"
-        f"&redirect_uri={settings.google_redirect_uri}"
-        "&scope=openid%20email%20profile"
+    return RedirectResponse(
+        url=get_google_authorization_url()
     )
-
-    return RedirectResponse(url)
 
 
 @router.get("/google/callback")
@@ -246,11 +241,18 @@ async def google_callback(
         user_id=user.id,
     )
 
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-    }
+    redirect_url = (
+        "deduckly://oauth/callback?"
+        + urlencode({
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+        })
+    )
+
+    return RedirectResponse(
+        url=redirect_url,
+        status_code=302,
+    )
 
 
 @router.post(

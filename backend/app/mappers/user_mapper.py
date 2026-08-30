@@ -25,7 +25,7 @@ def to_user_response(user: User) -> UserResponse:
 
         # Goals
         monthly_income_goal=user.monthly_income_goal,
-        weekly_income_goal=user.weekly_income_goal,
+        daily_income_goal=user.daily_income_goal,
 
         # Offer Analyzer
         cost_per_mile=user.estimated_vehicle_cost_per_mile,

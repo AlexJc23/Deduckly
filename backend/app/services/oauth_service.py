@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from app.schemas.v1.oauth import OAuthUserCreate
 from sqlalchemy.orm import Session
 from app.core.config import settings
@@ -5,22 +7,50 @@ from app.models.user_oauth import UserOAuth
 from app.models.user import User
 import httpx
 
+
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
+GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 
-def get_or_create_oauth_user(db: Session, data: OAuthUserCreate) -> User:
+
+def get_google_authorization_url() -> str:
+    """
+    Build the Google OAuth authorization URL.
+
+    The frontend/browser is redirected here so the user
+    can authenticate with Google.
+    """
+
+    params = {
+        "response_type": "code",
+        "client_id": settings.google_client_id,
+        "redirect_uri": settings.google_redirect_uri,
+        "scope": "openid email profile",
+        "access_type": "offline",
+        "prompt": "select_account",
+    }
+
+    return f"{GOOGLE_AUTH_URL}?{urlencode(params)}"
+
+
+def get_or_create_oauth_user(
+    db: Session,
+    data: OAuthUserCreate,
+) -> User:
 
     # 1. Check OAuth table first
     oauth = db.query(UserOAuth).filter(
         UserOAuth.provider == data.provider,
-        UserOAuth.provider_user_id == data.provider_user_id
+        UserOAuth.provider_user_id == data.provider_user_id,
     ).first()
 
     if oauth:
         return oauth.user
 
     # 2. Check if user exists by email
-    user = db.query(User).filter(User.email == data.email).first()
+    user = db.query(User).filter(
+        User.email == data.email
+    ).first()
 
     if not user:
         # 3. Create user
@@ -28,10 +58,11 @@ def get_or_create_oauth_user(db: Session, data: OAuthUserCreate) -> User:
             email=data.email,
             first_name=data.first_name,
             last_name=data.last_name,
-            hashed_password= None,  # No password for OAuth users
+            hashed_password=None,
             email_verified=True,
             is_active=True,
         )
+
         db.add(user)
         db.commit()
         db.refresh(user)
@@ -42,16 +73,19 @@ def get_or_create_oauth_user(db: Session, data: OAuthUserCreate) -> User:
         provider=data.provider,
         provider_user_id=data.provider_user_id,
     )
+
     db.add(oauth)
     db.commit()
 
     return user
 
-async def exchange_google_code_for_tokens(code: str):
+
+async def exchange_google_code_for_tokens(
+    code: str,
+):
     async with httpx.AsyncClient() as client:
         response = await client.post(
             GOOGLE_TOKEN_URL,
-
             data={
                 "code": code,
                 "client_id": settings.google_client_id,
@@ -60,14 +94,23 @@ async def exchange_google_code_for_tokens(code: str):
                 "grant_type": "authorization_code",
             },
         )
+
         response.raise_for_status()
+
         return response.json()
 
-async def get_google_user_info(access_token: str):
+
+async def get_google_user_info(
+    access_token: str,
+):
     async with httpx.AsyncClient() as client:
         response = await client.get(
             GOOGLE_USERINFO_URL,
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers={
+                "Authorization": f"Bearer {access_token}",
+            },
         )
+
         response.raise_for_status()
+
         return response.json()

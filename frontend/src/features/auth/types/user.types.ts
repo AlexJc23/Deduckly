@@ -11,7 +11,7 @@ export interface User {
 
   // Goals
   monthly_income_goal: string | null;
-  weekly_income_goal: string | null;
+  daily_income_goal: string | null;
 
   // Offer Analyzer
   minimum_hourly_rate: string | null;
@@ -42,7 +42,7 @@ export interface UserUpdate {
 
   // Goals
   monthly_income_goal?: string | null;
-  weekly_income_goal?: string | null;
+  daily_income_goal?: string | null;
 
   // Offer Analyzer
   minimum_hourly_rate?: string | null;
