@@ -17,6 +17,7 @@ import { router, Link } from "expo-router";
 import { Ionicons, FontAwesome6 } from "@expo/vector-icons";
 
 import Logo from "../../assets/images/logo.svg";
+import { useAuth } from "@/features/auth/context/auth.context";
 
 import { startGoogleLogin } from "@/features/auth/api/google-auth.api";
 import { register } from "@/features/auth/api/auth.api";
@@ -24,19 +25,28 @@ import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function RegisterScreen() {
   const isTablet = useIsTablet();
-
+  
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+  
   const [showPassword, setShowPassword] = useState(false);
-
-  const handleGoogleLogin = async () => {
+  const { signIn } = useAuth();
+  
+  const handleGoogleAuth = async () => {
     try {
-      await startGoogleLogin();
+      const success = await startGoogleLogin();
+
+      if (!success) {
+        return;
+      }
+
+      signIn();
+
+      router.replace("/(tabs)/dashboard");
     } catch (error) {
-      console.error("Google login failed:", error);
+      console.error("Google registration failed:", error);
     }
   };
 
@@ -157,7 +167,7 @@ export default function RegisterScreen() {
                       styles.googleButton,
                       isTablet && styles.googleButtonTablet,
                     ]}
-                    onPress={handleGoogleLogin}
+                    onPress={handleGoogleAuth}
                     disabled={registerMutation.isPending}
                   >
                     <FontAwesome6

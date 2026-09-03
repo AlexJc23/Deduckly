@@ -75,7 +75,7 @@ export default function PrivacyScreen() {
             >
               <View style={styles.iconContainer}>
                 <Text style={styles.iconText}>
-                  O
+                  ◇
                 </Text>
               </View>
 
@@ -91,7 +91,7 @@ export default function PrivacyScreen() {
               </View>
 
               <Text style={styles.chevron}>
-                >
+                ›
               </Text>
             </Pressable>
           </View>
@@ -157,7 +157,7 @@ export default function PrivacyScreen() {
               </View>
 
               <Text style={styles.deleteChevron}>
-                >
+                ›
               </Text>
             </Pressable>
           </View>

@@ -113,7 +113,7 @@ export function ExpensePieChart({
         </Text>
 
         <Text style={styles.arrow}>
-          >
+          ›
         </Text>
       </Pressable>
     </View>

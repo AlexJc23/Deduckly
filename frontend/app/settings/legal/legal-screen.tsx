@@ -41,7 +41,7 @@ export default function LegalScreen() {
               </Text>
             </View>
 
-            <Text style={styles.chevron}>></Text>
+            <Text style={styles.chevron}>›</Text>
           </View>
         </Pressable>
 
@@ -62,7 +62,7 @@ export default function LegalScreen() {
               </Text>
             </View>
 
-            <Text style={styles.chevron}>></Text>
+            <Text style={styles.chevron}>›</Text>
           </View>
         </Pressable>
 
@@ -85,7 +85,7 @@ export default function LegalScreen() {
               </Text>
             </View>
 
-            <Text style={styles.chevron}>></Text>
+            <Text style={styles.chevron}>›</Text>
           </View>
         </Pressable>
 
@@ -108,7 +108,7 @@ export default function LegalScreen() {
               </Text>
             </View>
 
-            <Text style={styles.chevron}>></Text>
+            <Text style={styles.chevron}>›</Text>
           </View>
         </Pressable>
 
@@ -132,7 +132,7 @@ export default function LegalScreen() {
               </Text>
             </View>
 
-            <Text style={styles.chevron}>></Text>
+            <Text style={styles.chevron}>›</Text>
           </View>
         </Pressable>
       </ScrollView>

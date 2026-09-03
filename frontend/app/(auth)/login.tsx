@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Animated,
   Keyboard,
   Pressable,
   SafeAreaView,
@@ -8,7 +9,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { router, Link } from "expo-router";
 import { Ionicons, FontAwesome6 } from "@expo/vector-icons";
@@ -27,17 +28,58 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const keyboardOffset = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener(
+      "keyboardWillShow",
+      (event) => {
+        Animated.spring(keyboardOffset, {
+          toValue: -Math.min(event.endCoordinates.height * 0.45, 260),
+          useNativeDriver: true,
+          tension: 80,
+          friction: 12,
+        }).start();
+      }
+    );
+
+    const hideSubscription = Keyboard.addListener(
+      "keyboardWillHide",
+      () => {
+        Animated.spring(keyboardOffset, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 80,
+          friction: 12,
+        }).start();
+      }
+    );
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, [keyboardOffset]);
+
   const isTablet = useIsTablet();
 
   const { signIn } = useAuth();
 
-  const handleGoogleLogin = async () => {
-    try {
-      await startGoogleLogin();
-    } catch (error) {
-      console.error("Google login failed:", error);
+  const handleGoogleAuth = async () => {
+  try {
+    const success = await startGoogleLogin();
+
+    if (!success) {
+      return;
     }
-  };
+
+    signIn();
+
+    router.replace("/(tabs)/dashboard");
+  } catch (error) {
+    console.error("Google login failed:", error);
+  }
+};
 
   const loginMutation = useMutation({
     mutationFn: login,
@@ -115,10 +157,13 @@ export default function Login() {
           style={styles.flex}
           onPress={Keyboard.dismiss}
         >
-          <View
+          <Animated.View
             style={[
               styles.container,
               isTablet && styles.containerTablet,
+              {
+                transform: [{ translateY: keyboardOffset }],
+              },
             ]}
           >
             <View
@@ -166,7 +211,7 @@ export default function Login() {
                 styles.googleButton,
                 isTablet && styles.googleButtonTablet,
               ]}
-              onPress={handleGoogleLogin}
+              onPress={handleGoogleAuth}
               disabled={loginMutation.isPending}
             >
               <FontAwesome6
@@ -393,7 +438,7 @@ export default function Login() {
                 </Pressable>
               </Link>
             </View>
-          </View>
+          </Animated.View>
         </Pressable>
       </SafeAreaView>
     </View>
@@ -553,7 +598,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 8,
   },
 
   label: {
