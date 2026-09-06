@@ -51,3 +51,16 @@ export async function registerForPushNotifications(): Promise<string> {
 
     return token.data;
 }
+
+// Refresh registration without prompting. The server owns all reminder schedules.
+export async function syncNotificationRegistration(isCurrent: () => boolean = () => true) {
+    if (Platform.OS === "web" || !Device.isDevice) return;
+    const permission = await Notifications.getPermissionsAsync();
+    if (!isCurrent()) return;
+    if (!permission.granted) {
+        await savePushToken(null);
+        return;
+    }
+    const token = await Notifications.getExpoPushTokenAsync();
+    if (isCurrent()) await savePushToken(token.data);
+}

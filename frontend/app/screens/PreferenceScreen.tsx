@@ -207,24 +207,15 @@ export default function PreferenceScreen() {
                     <PreferenceToggle
                         label="Enable Notifications"
                         value={preferences.notificationsEnabled}
-                        onValueChange={(value) => {
-                            updateToggle(
-                                "notificationsEnabled",
-                                value
-                            );
-
-                            if (!value) {
-                                updateToggle(
-                                    "tripRemindersEnabled",
-                                    false
-                                );
-
-                                updateToggle(
-                                    "goalRemindersEnabled",
-                                    false
-                                );
-                            }
-                        }}
+                        disabled={isSaving}
+                        onValueChange={(value) => updateToggle("notificationsEnabled", value)}
+                    />
+                    <PreferenceToggle
+                        label="Income Goal Reminders"
+                        description="Daily at 8 AM, noon, and 4 PM, plus a new-month reminder on the first. Uses your local time."
+                        value={preferences.goalRemindersEnabled}
+                        disabled={isSaving || !preferences.notificationsEnabled}
+                        onValueChange={(value) => updateToggle("goalRemindersEnabled", value)}
                     />
                 </PreferenceSection>
 

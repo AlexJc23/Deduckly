@@ -13,3 +13,4 @@ from .subscription import Subscription
 from .analytics_event import AnalyticsEvent
 from .security_event import SecurityEvent
 from .password_reset import PasswordResetToken
+from .notification_occurrence import NotificationOccurrence
