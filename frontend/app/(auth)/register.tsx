@@ -54,7 +54,7 @@ export default function RegisterScreen() {
     mutationFn: register,
 
     onSuccess: () => {
-      router.replace("/(auth)/verify-email");
+      router.replace({ pathname: "/(auth)/verify-email", params: { email: email.trim() } });
     },
 
     onError: (error) => {
@@ -142,7 +142,7 @@ export default function RegisterScreen() {
                       isTablet && styles.titleTablet,
                     ]}
                   >
-                    Let's get started!
+                    Let&apos;s get started!
                   </Text>
 
                   <Text

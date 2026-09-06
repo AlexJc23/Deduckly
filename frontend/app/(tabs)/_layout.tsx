@@ -1,3 +1,4 @@
+import { OnboardingGate } from "@/features/onboarding/components/onboarding-gate";
 import { Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { StyleSheet } from "react-native";
@@ -7,6 +8,7 @@ export default function TabsLayout() {
   const isTablet = useIsTablet();
 
   return (
+    <OnboardingGate>
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -129,6 +131,7 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+    </OnboardingGate>
   );
 }
 

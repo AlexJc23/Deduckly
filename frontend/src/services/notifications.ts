@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 
@@ -17,6 +18,13 @@ export async function registerForPushNotifications(): Promise<string> {
         throw new Error(
             "Push notifications require a physical device."
         );
+    }
+
+    if (Platform.OS === "android") {
+        await Notifications.setNotificationChannelAsync("default", {
+            name: "Default",
+            importance: Notifications.AndroidImportance.DEFAULT,
+        });
     }
 
     const { status: existingStatus } =
