@@ -12,22 +12,16 @@ import {
   LocationPoint,
   requestLocationPermission,
   watchLocation,
-  toLocationPoint,
+  reverseGeocode,
 } from "../services/location.service";
 
-import {
-  calculateSegmentDistanceMiles,
-} from "../services/distance.service";
-
+import { calculateDistanceMiles } from "../services/distance.service";
 import { createTrip } from "@/features/trips/api/trips.api";
-
 import { buildTripPayload } from "../services/tracking.service";
-
 import {
   savePendingTrip,
-  removePendingTrip,
 } from "@/features/trips/services/offline-trip.service";
-
+import { debugPendingTrips } from "@/features/trips/services/offline-trip.service";
 type TrackingMethod =
   | "automatic"
   | "manual"
@@ -109,29 +103,22 @@ export function TrackingProvider({
   const [currentLongitude, setCurrentLongitude] =
     useState<number | null>(null);
 
+  const [route, setRoute] =
+    useState<LocationPoint[]>([]);
+
   const [distanceMiles, setDistanceMiles] =
     useState(0);
+
+  useEffect(() => {
+    setDistanceMiles(
+      calculateDistanceMiles(route)
+    );
+  }, [route]);
 
   const locationSubscription =
     useRef<Location.LocationSubscription | null>(
       null
     );
-
-  // These stay outside React so tracking doesn't depend on rerenders.
-  const lastValidPointRef =
-    useRef<LocationPoint | null>(null);
-
-  const distanceMilesRef =
-    useRef(0);
-
-  const currentPointRef =
-    useRef<LocationPoint | null>(null);
-
-  const resetTrackingRefs = () => {
-    lastValidPointRef.current = null;
-    currentPointRef.current = null;
-    distanceMilesRef.current = 0;
-  };
 
   const startTracking = async ({
     category,
@@ -148,87 +135,48 @@ export function TrackingProvider({
     const location =
       await getCurrentLocation();
 
-    const startingPoint =
-      toLocationPoint(location);
+    const {
+      latitude,
+      longitude,
+    } = location.coords;
 
-    resetTrackingRefs();
-
-    lastValidPointRef.current =
-      startingPoint;
-
-    currentPointRef.current =
-      startingPoint;
-
-    setDistanceMiles(0);
-
-    setRoutePlaceholder();
+    setRoute([
+      {
+        latitude,
+        longitude,
+        timestamp: Date.now(),
+      },
+    ]);
 
     locationSubscription.current =
       await watchLocation((location) => {
-        const point =
-          toLocationPoint(location);
+        const {
+          latitude,
+          longitude,
+        } = location.coords;
 
-        const lastValidPoint =
-          lastValidPointRef.current;
+        setCurrentLatitude(latitude);
+        setCurrentLongitude(longitude);
 
-        currentPointRef.current =
-          point;
-
-        setCurrentLatitude(
-          point.latitude
-        );
-
-        setCurrentLongitude(
-          point.longitude
-        );
-
-        if (!lastValidPoint) {
-          lastValidPointRef.current =
-            point;
-
-          return;
-        }
-
-        const segmentMiles =
-          calculateSegmentDistanceMiles(
-            lastValidPoint,
-            point
-          );
-
-        if (segmentMiles === null) {
-          return;
-        }
-
-        distanceMilesRef.current +=
-          segmentMiles;
-
-        lastValidPointRef.current =
-          point;
-
-        setDistanceMiles(
-          distanceMilesRef.current
-        );
+        setRoute((previous) => [
+          ...previous,
+          {
+            latitude,
+            longitude,
+            timestamp: Date.now(),
+          },
+        ]);
       });
 
     setCategory(category);
     setPlatform(platform);
     setTrackingMethod(trackingMethod);
 
-    setStartLatitude(
-      startingPoint.latitude
-    );
+    setStartLatitude(latitude);
+    setStartLongitude(longitude);
 
-    setStartLongitude(
-      startingPoint.longitude
-    );
-
-    setCurrentLatitude(
-      startingPoint.latitude
-    );
-
-    setCurrentLongitude(
-      startingPoint.longitude
-    );
+    setCurrentLatitude(latitude);
+    setCurrentLongitude(longitude);
 
     setStartTime(new Date());
 
@@ -263,9 +211,8 @@ export function TrackingProvider({
     setCurrentLatitude(null);
     setCurrentLongitude(null);
 
+    setRoute([]);
     setDistanceMiles(0);
-
-    resetTrackingRefs();
   };
 
   const stopTracking = async (
@@ -274,17 +221,12 @@ export function TrackingProvider({
     locationSubscription.current?.remove();
     locationSubscription.current = null;
 
-    const finalDistanceMiles =
-      distanceMilesRef.current;
-
-    const finalPoint =
-      currentPointRef.current;
-
     if (
       !startTime ||
       startLatitude === null ||
       startLongitude === null ||
-      !finalPoint ||
+      currentLatitude === null ||
+      currentLongitude === null ||
       !category
     ) {
       return false;
@@ -292,36 +234,41 @@ export function TrackingProvider({
 
     const MIN_DISTANCE_MILES = 0.02;
 
-    if (
-      finalDistanceMiles <
-      MIN_DISTANCE_MILES
-    ) {
+    if (distanceMiles < MIN_DISTANCE_MILES) {
       cancelTracking();
       return "discarded";
     }
 
+    let startAddress: string | null = null;
+    let endAddress: string | null = null;
+
     try {
+      startAddress = await reverseGeocode(
+        startLatitude,
+        startLongitude
+      );
+
+      endAddress = await reverseGeocode(
+        currentLatitude,
+        currentLongitude
+      );
+
       const payload = buildTripPayload({
         startTime,
         endTime: new Date(),
 
-        distanceMiles:
-          finalDistanceMiles,
+        distanceMiles,
 
         startLatitude,
         startLongitude,
 
-        endLatitude:
-          finalPoint.latitude,
+        endLatitude: currentLatitude,
+        endLongitude: currentLongitude,
 
-        endLongitude:
-          finalPoint.longitude,
-
-        start_address: null,
-        end_address: null,
+        start_address: startAddress,
+        end_address: endAddress,
 
         category,
-
         platform:
           category === "personal"
             ? "personal"
@@ -330,13 +277,17 @@ export function TrackingProvider({
         incomeAmount,
       });
 
-      const pendingTripId =
+      // Save the trip locally first.
+      // This guarantees we don't lose the trip
+      // if the device is offline.
+      try {
+      await createTrip(payload);
+      } catch {
+        // Server unavailable or device is offline.
+        // Keep the trip locally so it can sync later.
         await savePendingTrip(payload);
-
-      console.log(
-        "TRIP SAVED LOCALLY:",
-        pendingTripId
-      );
+        await debugPendingTrips();
+      }
 
       setIsTracking(false);
 
@@ -352,25 +303,8 @@ export function TrackingProvider({
       setCurrentLatitude(null);
       setCurrentLongitude(null);
 
+      setRoute([]);
       setDistanceMiles(0);
-
-      resetTrackingRefs();
-
-      try {
-        await createTrip(payload);
-
-        await removePendingTrip(
-          pendingTripId
-        );
-
-        console.log(
-          "TRIP SYNCED IMMEDIATELY"
-        );
-      } catch {
-        console.log(
-          "TRIP PENDING SYNC - OFFLINE"
-        );
-      }
 
       return true;
     } catch (error: any) {
@@ -387,6 +321,7 @@ export function TrackingProvider({
     <TrackingContext.Provider
       value={{
         isTracking,
+
         trackingMethod,
 
         category,
@@ -403,10 +338,8 @@ export function TrackingProvider({
         distanceMiles,
 
         cancelTracking,
-
         startTracking,
         startTrackingFromSiri,
-
         stopTracking,
       }}
     >
@@ -415,18 +348,13 @@ export function TrackingProvider({
   );
 }
 
-function setRoutePlaceholder() {
-  // Route points are no longer used for mileage calculation.
-  // Keep this function temporarily so the tracking flow stays simple.
-}
-
 export function useTracking() {
   const context =
     useContext(TrackingContext);
 
   if (!context) {
     throw new Error(
-      "useTracking must be used inside TrackingProvider"
+      "TrackingContext missing"
     );
   }
 

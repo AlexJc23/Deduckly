@@ -495,7 +495,7 @@ export default function DashboardScreen() {
             >
               {isTracking
                 ? "Trip in Progress"
-                : "Start Trip"}
+                : "Start a Trip"}
             </Text>
 
             {!isTracking && (
