@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { Alert } from "react-native";
+import { updateCurrentUser } from "@/features/auth/api/user.api";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useUpdateUser } from "@/features/auth/hooks/use-update-user";
 import { registerForPushNotifications } from "@/services/notifications";
@@ -7,6 +9,8 @@ import { registerForPushNotifications } from "@/services/notifications";
 export function usePreferences() {
     const { data: user } = useCurrentUser();
     const updateUser = useUpdateUser();
+    const notificationLock = useRef(false);
+    const [notificationSaving, setNotificationSaving] = useState(false);
 
     const [preferences, setPreferences] = useState({
         monthlyIncomeGoal: "",
@@ -76,19 +80,28 @@ export function usePreferences() {
         key: keyof typeof preferences,
         value: boolean
     ) {
-        if (key === "notificationsEnabled" && value) {
+        const notificationField = key === "notificationsEnabled" ? "notifications_enabled"
+            : key === "goalRemindersEnabled" ? "goal_reminders_enabled" : null;
+        if (notificationField) {
+            if (notificationLock.current) return;
+            notificationLock.current = true;
+            setNotificationSaving(true);
             try {
-                await registerForPushNotifications();
-            } catch (error) {
-                console.error(error);
-                value = false;
+                if (key === "notificationsEnabled" && value) {
+                    await registerForPushNotifications();
+                }
+                // Notification opt-outs take effect immediately, without waiting for Save.
+                await updateCurrentUser({ [notificationField]: value });
+                setPreferences(prev => ({ ...prev, [key]: value }));
+            } catch {
+                Alert.alert("Couldn’t update notifications", "Check your connection and device permissions, then try again.");
+            } finally {
+                notificationLock.current = false;
+                setNotificationSaving(false);
             }
+            return;
         }
-
-        setPreferences((prev) => ({
-            ...prev,
-            [key]: value,
-        }));
+        setPreferences(prev => ({ ...prev, [key]: value }));
     }
 
     function updateSelect(
@@ -149,6 +162,6 @@ export function usePreferences() {
         updateToggle,
         updateSelect,
         savePreferences,
-        isSaving: updateUser.isPending,
+        isSaving: updateUser.isPending || notificationSaving,
     };
 }

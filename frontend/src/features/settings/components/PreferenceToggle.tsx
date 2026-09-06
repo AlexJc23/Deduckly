@@ -14,6 +14,7 @@ export function PreferenceToggle({
   description,
   value,
   onValueChange,
+  disabled,
 }: PreferenceToggleProps) {
   return (
     <View style={styles.container}>
@@ -30,6 +31,7 @@ export function PreferenceToggle({
       </View>
 
       <Switch
+        disabled={disabled}
         value={value}
         onValueChange={onValueChange}
       />

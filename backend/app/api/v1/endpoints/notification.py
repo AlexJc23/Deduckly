@@ -25,13 +25,9 @@ async def save_push_token(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if not payload.expo_push_token:
-        raise HTTPException(
-            status_code=400,
-            detail="Expo push token is required.",
-        )
-
-    current_user.expo_push_token = payload.expo_push_token
+    current_user.expo_push_token = payload.expo_push_token or None
+    if payload.timezone is not None:
+        current_user.timezone = payload.timezone
 
     db.commit()
 
@@ -48,6 +44,8 @@ async def send_test_push_notification(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if not current_user.notifications_enabled:
+        raise HTTPException(status_code=403, detail="Notifications are disabled.")
     if not current_user.expo_push_token:
         raise HTTPException(
             status_code=400,
