@@ -1,13 +1,6 @@
+import { Pressable, ScrollView, Text, TextInput } from "@/theme/components";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 import { useState } from "react";
 
 import { BackHeader } from "@/components/ui/BackButton";

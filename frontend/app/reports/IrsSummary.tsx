@@ -1,15 +1,12 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Text, View } from "@/theme/components";
+import { StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 
 import { BackHeader } from "@/components/ui/BackButton";
 import { useCurrentReport } from "@/features/reports/hooks/use-current-report";
 
-function money(value: number) {
-  return value.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-  });
-}
+import { money, reportPeriodLabel, reportImpact } from "@/features/reports/utils/report-display";
+import { ReportLoadState } from "@/features/reports/components/ReportPresentation";
 
 function formatLabel(value: string) {
   return value
@@ -36,10 +33,12 @@ function SummaryRow({
   label,
   value,
   bold = false,
+  color,
 }: {
   label: string;
   value: string;
   bold?: boolean;
+  color?: string;
 }) {
   return (
     <View style={styles.row}>
@@ -47,7 +46,7 @@ function SummaryRow({
         {label}
       </Text>
 
-      <Text style={[styles.value, bold && styles.bold]}>
+      <Text style={[styles.value, bold && styles.bold, color ? { color } : undefined]}>
         {value}
       </Text>
     </View>
@@ -55,27 +54,22 @@ function SummaryRow({
 }
 
 export default function IrsSummaryScreen() {
-  const { year, month, day } = useLocalSearchParams();
-
-  const { data, isLoading } = useCurrentReport({
+  const { year, month, day, startDate, endDate } = useLocalSearchParams<{
+    year?: string; month?: string; day?: string; startDate?: string; endDate?: string;
+  }>();
+  const params = {
     year: year ? Number(year) : undefined,
     month: month ? Number(month) : undefined,
     day: day ? Number(day) : undefined,
-  });
+    startDate: startDate ? new Date(`${startDate}T00:00:00`) : undefined,
+    endDate: endDate ? new Date(`${endDate}T00:00:00`) : undefined,
+  };
 
-  if (isLoading || !data) {
-    return (
-      <View style={styles.container}>
-        <BackHeader />
-      </View>
-    );
+  const { data, isLoading, isError, refetch } = useCurrentReport(params);
+  if (isLoading || isError || !data) {
+    return <View style={styles.container}><BackHeader /><ReportLoadState loading={isLoading} retry={() => void refetch()} /></View>;
   }
-
-  const reportPeriod = data.day
-    ? `${data.month}/${data.day}/${data.year}`
-    : data.month
-    ? `${data.month}/${data.year}`
-    : `${data.year}`;
+  const reportPeriod = reportPeriodLabel(startDate && endDate ? params : { year: data.year, month: data.month, day: data.day });
 
   return (
     <View style={styles.container}>
@@ -85,10 +79,10 @@ export default function IrsSummaryScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>IRS Summary</Text>
+        <Text style={styles.title}>Tax summary</Text>
 
         <Text style={styles.subtitle}>
-          A simplified summary of your tax information.
+          {reportPeriod} · Estimates from your recorded activity.
         </Text>
 
         <SummaryCard title="Business Information">
@@ -116,6 +110,7 @@ export default function IrsSummaryScreen() {
         <SummaryCard title="Income">
           <SummaryRow
             label="Gross Income"
+            color={reportImpact(data.total_income).color}
             value={money(data.total_income)}
           />
         </SummaryCard>
@@ -129,13 +124,13 @@ export default function IrsSummaryScreen() {
               />
 
               <SummaryRow
-                label="Business Expenses"
+                label="Deductible expenses"
                 value={money(data.deductible_expense_total)}
               />
             </>
           ) : (
             <>
-              {Object.entries(data.deductible_breakdown).map(
+              {Object.entries(data.deductible_breakdown ?? {}).map(
                 ([category, details]: [string, any]) => (
                   <SummaryRow
                     key={category}
@@ -154,9 +149,11 @@ export default function IrsSummaryScreen() {
           />
         </SummaryCard>
 
-        <SummaryCard title="Tax Summary">
+        <SummaryCard title="Tax estimate">
+          <Text style={styles.note}>Income after deductions is recorded income minus total deductions. The estimate does not represent a refund or a final payment due.</Text>
           <SummaryRow
-            label="Net Profit"
+            label="Income after deductions"
+            color={reportImpact(data.net_profit).color}
             value={money(data.net_profit)}
           />
 
@@ -166,12 +163,14 @@ export default function IrsSummaryScreen() {
           />
 
           <SummaryRow
-            label="Estimated Tax Owed"
+            label="Estimated income tax"
+            color={reportImpact(data.estimated_tax_owed, true).color}
             value={money(data.estimated_tax_owed)}
           />
 
           <SummaryRow
-            label="Estimated Tax Savings"
+            label="Estimated reduction from deductions"
+            color={reportImpact(data.estimated_tax_savings).color}
             value={money(data.estimated_tax_savings)}
             bold
           />
@@ -186,7 +185,7 @@ export default function IrsSummaryScreen() {
                 Standard Mileage deduction and are not deductible separately.
               </Text>
 
-              {Object.keys(data.non_deductible_breakdown).length > 0 && (
+              {Object.keys(data.non_deductible_breakdown ?? {}).length > 0 && (
                 <Text style={styles.note}>
                   • Non-deductible vehicle expenses have been excluded from your
                   deductible business expenses.
@@ -217,6 +216,9 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+    width: "100%",
+    maxWidth: 1000,
+    alignSelf: "center",
     paddingBottom: 40,
     gap: 16,
   },
@@ -253,10 +255,13 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
+    flexWrap: "wrap",
+    gap: 8,
   },
   label: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: 170,
     fontSize: 15,
     color: "#6B7280",
   },
@@ -265,7 +270,7 @@ const styles = StyleSheet.create({
     color: "#111827",
     fontWeight: "500",
     textAlign: "right",
-    marginLeft: 12,
+    flexShrink: 1,
   },
   bold: {
     fontWeight: "700",

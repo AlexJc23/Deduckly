@@ -1,11 +1,6 @@
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Text, View } from "@/theme/components";
+import { ActivityIndicator, FlatList, StyleSheet } from "react-native";
+import { Ionicons } from "@/theme/icons";
 
 import { IncomeCard } from "./IncomeCard";
 import { useIncome } from "../hooks/use-income";

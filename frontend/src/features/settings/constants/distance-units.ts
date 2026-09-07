@@ -1,11 +1,1 @@
-export const distanceUnits = [
-    {
-        label: "Miles",
-        value: "mi",
-    },
-    {
-        label: "Kilometers",
-        value: "km",
-    },
-];
-
+export const distanceUnits = [{ label: "Miles", value: "mi" }];

@@ -1,18 +1,14 @@
+import { View, Text, Pressable, ScrollView } from "@/theme/components";
 import React, { useEffect } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  ScrollView,
-  Image,
-} from "react-native";
+import { StyleSheet, Image } from "react-native";
 
 import { NativeModules } from "react-native";
 import { router } from "expo-router";
 import { BackHeader } from "@/components/ui/BackButton";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useIsTablet } from "@/hooks/use-is-tablet";
+import { Ionicons } from "@/theme/icons";
+
 
 const APP_ICONS = [
   {
@@ -261,7 +257,8 @@ export default function AppIconScreen() {
                               styles.lockTextTablet,
                           ]}
                         >
-                          Lock
+
+                          <Ionicons name="lock-closed-outline" size={16} color="#121111" />
                         </Text>
                       </View>
                     )}

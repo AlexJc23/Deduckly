@@ -1,16 +1,5 @@
-import {
-  ActivityIndicator,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, SafeAreaView, ScrollView, Text, TextInput, View } from "@/theme/components";
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { router, Link } from "expo-router";

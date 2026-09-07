@@ -1,9 +1,6 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { View, Text } from "@/theme/components";
+import { StyleSheet } from "react-native";
+import { Ionicons } from "@/theme/icons";
 import {
   OfferResult,
   PremiumOfferResult,

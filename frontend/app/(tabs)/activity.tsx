@@ -1,14 +1,8 @@
+import { Pressable, Text, View } from "@/theme/components";
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { ActivityIndicator, FlatList, StyleSheet } from "react-native";
+import { Ionicons } from "@/theme/icons";
 
 import { SortTripsModal } from "@/features/trips/components/SortTripsModal";
 import { useTrips } from "@/features/trips/hooks/use-trips";

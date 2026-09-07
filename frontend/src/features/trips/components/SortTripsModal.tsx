@@ -1,12 +1,5 @@
-import {
-  Modal,
-  View,
-  Text,
-  Pressable,
-  Animated,
-  Easing,
-  StyleSheet,
-} from "react-native";
+import { View, Text, Pressable, AnimatedView } from "@/theme/components";
+import { Modal, Animated, Easing, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
 
 const options = [
@@ -82,7 +75,7 @@ export function SortTripsModal({
           onPress={onClose}
         />
 
-        <Animated.View
+        <AnimatedView
           style={{
             transform: [{ translateY }],
             backgroundColor: "white",
@@ -142,7 +135,7 @@ export function SortTripsModal({
           >
             <Text>Cancel</Text>
           </Pressable>
-        </Animated.View>
+        </AnimatedView>
       </View>
     </Modal>
   );

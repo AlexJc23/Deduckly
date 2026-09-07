@@ -1,14 +1,10 @@
+import { View, Text } from "@/theme/components";
 import { useEffect } from "react";
 import { MonthlyGoal } from "@/features/users/types/user.types";
-import {
-  View,
-  StyleSheet,
-  Text,
-} from "react-native";
+import { StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  useAnimatedProps,
   withTiming,
 } from "react-native-reanimated";
 
@@ -16,43 +12,24 @@ type MonthlyIncomeGoalCardProps = {
   monthlyGoal: MonthlyGoal;
 };
 
-const AnimatedText =
-  Animated.createAnimatedComponent(Text);
-
 export function MonthlyIncomeGoalCard({
   monthlyGoal,
 }: MonthlyIncomeGoalCardProps) {
   const progress = useSharedValue(0);
-  const percentage = useSharedValue(0);
 
   useEffect(() => {
     progress.value = withTiming(
-      monthlyGoal.progress,
+      Math.max(0, Math.min(1, monthlyGoal.progress)),
       {
         duration: 1200,
       }
     );
 
-    percentage.value = withTiming(
-      monthlyGoal.percentage,
-      {
-        duration: 1200,
-      }
-    );
-  }, [monthlyGoal]);
+  }, [monthlyGoal, progress]);
 
   const progressStyle = useAnimatedStyle(() => ({
     width: `${progress.value * 100}%`,
   }));
-
-  const animatedProps = useAnimatedProps(
-    () =>
-      ({
-        text: `${Math.round(
-          percentage.value
-        )}%`,
-      }) as any
-  );
 
   return (
     <View style={styles.container}>
@@ -84,14 +61,13 @@ export function MonthlyIncomeGoalCard({
         </View>
 
         <View style={styles.orb}>
-          <AnimatedText
-            animatedProps={animatedProps}
+          <Text
             style={styles.percentage}
           >
             {`${Math.round(
               monthlyGoal.percentage
             )}%`}
-          </AnimatedText>
+          </Text>
         </View>
       </View>
 
@@ -109,7 +85,7 @@ export function MonthlyIncomeGoalCard({
           {monthlyGoal.percentage >= 100
             ? "GOAL REACHED"
             : monthlyGoal.percentage >= 80
-            ? "ON TRACK"
+            ? "80% OR MORE REACHED"
             : "IN PROGRESS"}
         </Text>
 

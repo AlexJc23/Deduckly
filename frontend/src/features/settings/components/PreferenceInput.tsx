@@ -1,10 +1,5 @@
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  TextInputProps,
-} from "react-native";
+import { View, Text, TextInput } from "@/theme/components";
+import { StyleSheet, TextInputProps } from "react-native";
 
 type PreferenceInputProps = {
   label: string;

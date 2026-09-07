@@ -1,15 +1,7 @@
-import {
-  Modal,
-  View,
-  Text,
-  Pressable,
-  Animated,
-  Easing,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
+import { View, Text, Pressable, ScrollView, AnimatedView } from "@/theme/components";
+import { Modal, Animated, Easing, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 import { useTracking } from "../context/tracking.context";
 import { router } from "expo-router";
 
@@ -175,7 +167,7 @@ export function StartTripModal({
           onPress={handleClose}
         />
 
-        <Animated.View
+        <AnimatedView
           style={[
             styles.sheet,
             {
@@ -470,7 +462,7 @@ export function StartTripModal({
               </Pressable>
             </>
           )}
-        </Animated.View>
+        </AnimatedView>
       </View>
     </Modal>
   );

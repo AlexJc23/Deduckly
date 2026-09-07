@@ -1,5 +1,6 @@
+import { View, Text, Pressable } from "@/theme/components";
 import { BackHeader } from "@/components/ui/BackButton";
-import { View, Text, Pressable } from "react-native";
+
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 

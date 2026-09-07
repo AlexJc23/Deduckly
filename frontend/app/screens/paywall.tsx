@@ -1,14 +1,7 @@
-import {
-  Animated,
-  Dimensions,
-  Easing,
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { View, Text, Pressable, SafeAreaView, AnimatedView } from "@/theme/components";
+import { Animated, Dimensions, Easing, StyleSheet } from "react-native";
+
+import { Ionicons } from "@/theme/icons";
 import { useState, useEffect, useRef } from "react";
 import { router } from "expo-router";
 
@@ -160,7 +153,7 @@ function Confetti({
         const animation = animations[index];
 
         return (
-          <Animated.View
+          <AnimatedView
             key={piece.id}
             style={[
               styles.confettiPiece,

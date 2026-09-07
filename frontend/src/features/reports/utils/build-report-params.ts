@@ -4,7 +4,7 @@ import { getCurrentMonthAndYear } from "./date";
 export function buildReportParams(
   period: ReportPeriod
 ) {
-  const { year, month, day } = getCurrentMonthAndYear();
+  const { year, month } = getCurrentMonthAndYear();
 
   switch (period) {
     case "month":
@@ -15,8 +15,8 @@ export function buildReportParams(
 
     case "last-month":
       return {
-        year,
-        month: month - 1,
+        year: month === 1 ? year - 1 : year,
+        month: month === 1 ? 12 : month - 1,
       };
 
     case "year":

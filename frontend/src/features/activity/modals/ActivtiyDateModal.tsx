@@ -1,15 +1,8 @@
+import { Pressable, Text, View, AnimatedView } from "@/theme/components";
 import { useState } from "react";
-import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  Animated,
-  Easing,
-} from "react-native";
+import { Modal, StyleSheet, Animated, Easing } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 import { router } from "expo-router";
 
 export type ActivityDateOption =
@@ -149,7 +142,7 @@ export function ActivityDateModal({
       onRequestClose={closeModal}
     >
       <View style={styles.backdrop}>
-        <Animated.View
+        <AnimatedView
           pointerEvents="none"
           style={[
             StyleSheet.absoluteFill,
@@ -166,7 +159,7 @@ export function ActivityDateModal({
           onPress={closeModal}
         />
 
-        <Animated.View
+        <AnimatedView
           style={[
             styles.sheet,
             {
@@ -448,7 +441,7 @@ export function ActivityDateModal({
               </Pressable>
             </>
           )}
-        </Animated.View>
+        </AnimatedView>
       </View>
     </Modal>
   );

@@ -1,10 +1,5 @@
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Text, View } from "@/theme/components";
+import { ActivityIndicator, FlatList, StyleSheet } from "react-native";
 import { useState } from "react";
 
 import { ExpenseCard } from "./ExpenseCard";

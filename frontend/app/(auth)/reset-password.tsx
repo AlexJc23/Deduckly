@@ -1,17 +1,10 @@
-import {
-  ActivityIndicator,
-  Keyboard,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { SafeAreaView, Pressable, ScrollView, Text, TextInput, View } from "@/theme/components";
+
+import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 
 import Logo from "../../assets/images/logo.svg";
 
@@ -22,6 +15,8 @@ export default function ResetPassword() {
     token?: string;
   }>();
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] =
     useState("");
@@ -69,7 +64,8 @@ export default function ResetPassword() {
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
+        <KeyboardAvoidingView style={styles.safeArea} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
           <Pressable
             style={styles.backButton}
             onPress={() => router.back()}
@@ -125,7 +121,7 @@ export default function ResetPassword() {
                   <TextInput
                     value={password}
                     onChangeText={setPassword}
-                    secureTextEntry
+                    secureTextEntry={!showPassword}
                     textContentType="newPassword"
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -136,6 +132,14 @@ export default function ResetPassword() {
                     }
                     style={styles.input}
                   />
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={showPassword ? "Hide new password" : "Show new password"}
+                    onPress={() => setShowPassword(value => !value)}
+                    style={{ width: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}
+                  >
+                    <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={22} color="#64748B" />
+                  </Pressable>
                 </View>
               </View>
 
@@ -160,7 +164,7 @@ export default function ResetPassword() {
                   <TextInput
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
-                    secureTextEntry
+                    secureTextEntry={!showConfirmation}
                     textContentType="newPassword"
                     autoCapitalize="none"
                     autoCorrect={false}
@@ -175,6 +179,14 @@ export default function ResetPassword() {
                     }
                     style={styles.input}
                   />
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={showConfirmation ? "Hide confirm password" : "Show confirm password"}
+                    onPress={() => setShowConfirmation(value => !value)}
+                    style={{ width: 44, minHeight: 44, alignItems: "center", justifyContent: "center" }}
+                  >
+                    <Ionicons name={showConfirmation ? "eye-off-outline" : "eye-outline"} size={22} color="#64748B" />
+                  </Pressable>
                 </View>
 
                 {passwordsDoNotMatch && (
@@ -247,7 +259,8 @@ export default function ResetPassword() {
               Your information is securely encrypted.
             </Text>
           </View>
-        </View>
+        </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
   );
@@ -264,7 +277,10 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    flex: 1,
+    flexGrow: 1,
+    width: "100%",
+    maxWidth: 560,
+    alignSelf: "center",
     paddingHorizontal: 24,
     paddingTop: 12,
     paddingBottom: 20,
@@ -341,7 +357,7 @@ const styles = StyleSheet.create({
   },
 
   inputContainer: {
-    height: 54,
+    minHeight: 54,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 15,
@@ -357,7 +373,8 @@ const styles = StyleSheet.create({
 
   input: {
     flex: 1,
-    height: "100%",
+    minHeight: 54,
+    minWidth: 0,
     marginLeft: 10,
     fontSize: 15,
     color: "#273449",

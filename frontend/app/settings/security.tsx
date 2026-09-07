@@ -1,11 +1,6 @@
+import { View, Text, Pressable, ScrollView } from "@/theme/components";
 import React from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-} from "react-native";
+import { StyleSheet } from "react-native";
 
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { router } from "expo-router";

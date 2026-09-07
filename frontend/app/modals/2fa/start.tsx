@@ -1,14 +1,7 @@
-import {
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-  ViewStyle,
-  TextStyle,
-} from "react-native";
+import { Pressable, SafeAreaView, Text, View } from "@/theme/components";
+import { StyleSheet, ViewStyle, TextStyle } from "react-native";
 import { router } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 
 export default function TwoFAStartScreen() {
   return (

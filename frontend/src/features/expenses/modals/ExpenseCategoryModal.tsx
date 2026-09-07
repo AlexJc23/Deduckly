@@ -1,13 +1,6 @@
+import { Pressable, ScrollView, Text, View, AnimatedView } from "@/theme/components";
 import React, { useEffect } from "react";
-import {
-  Animated,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Animated, Modal, StyleSheet } from "react-native";
 
 import { ExpenseCategory } from "../types/expense";
 import { EXPENSE_CATEGORY_LABELS } from "@/constants/expense-category-labels";
@@ -59,7 +52,7 @@ export function ExpenseCategoryModal({
       onRequestClose={handleClose}
     >
       <View style={styles.backdrop}>
-        <Animated.View
+        <AnimatedView
           style={[
             styles.sheet,
             {
@@ -159,7 +152,7 @@ export function ExpenseCategoryModal({
               Cancel
             </Text>
           </Pressable>
-        </Animated.View>
+        </AnimatedView>
       </View>
     </Modal>
   );

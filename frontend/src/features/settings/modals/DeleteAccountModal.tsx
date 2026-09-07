@@ -1,13 +1,5 @@
-import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  Animated,
-  Easing,
-  StyleSheet,
-} from "react-native";
+import { View, Text, TextInput, Pressable, AnimatedView } from "@/theme/components";
+import { Modal, Animated, Easing, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
 
 type DeleteAccountModalProps = {
@@ -75,7 +67,7 @@ export default function DeleteAccountModal({
           onPress={onClose}
         />
 
-        <Animated.View
+        <AnimatedView
           style={{
             transform: [{ translateY }],
             backgroundColor: "white",
@@ -153,7 +145,7 @@ export default function DeleteAccountModal({
           >
             <Text>Cancel</Text>
           </Pressable>
-        </Animated.View>
+        </AnimatedView>
       </View>
     </Modal>
   );

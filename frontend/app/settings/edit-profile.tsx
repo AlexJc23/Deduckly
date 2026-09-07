@@ -1,15 +1,5 @@
-import {
-  ActivityIndicator,
-  Animated,
-  Keyboard,
-  Modal,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, SafeAreaView, Text, TextInput, View, AnimatedView } from "@/theme/components";
+import { ActivityIndicator, Animated, Keyboard, Modal, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { router } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -313,7 +303,7 @@ export default function UserUpdateScreen() {
               }
             />
 
-            <Animated.View
+            <AnimatedView
               style={[
                 styles.bottomSheet,
                 {
@@ -409,7 +399,7 @@ export default function UserUpdateScreen() {
                   Cancel
                 </Text>
               </Pressable>
-            </Animated.View>
+            </AnimatedView>
           </View>
         </Modal>
 

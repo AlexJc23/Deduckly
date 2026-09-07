@@ -1,7 +1,7 @@
-import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { AppThemeProvider } from "@/theme/theme";
 import { Stack } from "expo-router";
 import { NotificationSync } from "@/features/notifications/components/notification-sync";
-import { StatusBar } from "expo-status-bar";
+
 import {
   AuthProvider,
 } from "@features/auth/context/auth.context";
@@ -30,7 +30,7 @@ export default function RootLayout() {
 
         <TrackingProvider>
           <SubscriptionProvider>
-            <ThemeProvider value={DefaultTheme}>
+            <AppThemeProvider>
               <SiriStartup />
 
               <Stack
@@ -49,8 +49,8 @@ export default function RootLayout() {
                 />
               </Stack>
 
-              <StatusBar style="auto" />
-            </ThemeProvider>
+
+            </AppThemeProvider>
           </SubscriptionProvider>
         </TrackingProvider>
       </AuthProvider>

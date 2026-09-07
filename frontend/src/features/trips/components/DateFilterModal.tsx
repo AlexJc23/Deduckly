@@ -1,12 +1,5 @@
-import {
-  Modal,
-  View,
-  Text,
-  Pressable,
-  Animated,
-  Easing,
-  StyleSheet,
-} from "react-native";
+import { View, Text, Pressable, AnimatedView } from "@/theme/components";
+import { Modal, Animated, Easing, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
@@ -81,7 +74,7 @@ export function DateFilterModal({
           onPress={onClose}
         />
 
-        <Animated.View
+        <AnimatedView
           style={{
             transform: [{ translateY }],
             backgroundColor: "white",
@@ -153,7 +146,7 @@ export function DateFilterModal({
           >
             <Text>Done</Text>
           </Pressable>
-        </Animated.View>
+        </AnimatedView>
       </View>
     </Modal>
   );

@@ -1,11 +1,6 @@
-import {
-  Modal,
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { View, Text, Pressable } from "@/theme/components";
+import { Modal, StyleSheet } from "react-native";
+import { Ionicons } from "@/theme/icons";
 
 type CancelTripModalProps = {
   visible: boolean;

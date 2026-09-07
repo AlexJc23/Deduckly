@@ -1,17 +1,10 @@
+import { Pressable, ScrollView, Text, View } from "@/theme/components";
 import {
   Stack,
   useLocalSearchParams,
   router,
 } from "expo-router";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, Image } from "react-native";
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 

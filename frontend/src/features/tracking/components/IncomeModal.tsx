@@ -1,19 +1,7 @@
-import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  Animated,
-  Easing,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
-  InputAccessoryView,
-} from "react-native";
+import { View, Text, TextInput, Pressable, AnimatedView } from "@/theme/components";
+import { Modal, Animated, Easing, StyleSheet, KeyboardAvoidingView, Platform, Keyboard, InputAccessoryView } from "react-native";
 import { useEffect, useRef, useState } from "react";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 
 type IncomeModalProps = {
   visible: boolean;
@@ -75,7 +63,7 @@ export function IncomeModal({
           onPress={onSkip}
         />
 
-        <Animated.View
+        <AnimatedView
           style={[
             styles.sheet,
             {
@@ -187,7 +175,7 @@ export function IncomeModal({
               Skip
             </Text>
           </Pressable>
-        </Animated.View>
+        </AnimatedView>
       </KeyboardAvoidingView>
     </Modal>
   );

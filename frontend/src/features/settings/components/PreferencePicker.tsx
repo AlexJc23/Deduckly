@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Pressable, Text, View } from "@/theme/components";
+import { StyleSheet } from "react-native";
+import { Ionicons } from "@/theme/icons";
 
 interface PreferencePickerProps {
     label: string;

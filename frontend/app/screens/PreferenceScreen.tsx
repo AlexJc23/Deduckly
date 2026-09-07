@@ -1,4 +1,6 @@
-import { ScrollView, StyleSheet, Pressable, Text, View } from "react-native";
+import { useAppTheme, type AppearancePreference } from "@/theme/theme";
+import { ScrollView, Pressable, Text, View } from "@/theme/components";
+import { StyleSheet } from "react-native";
 import { useState } from "react";
 
 import { BackHeader } from "@/components/ui/BackButton";
@@ -20,6 +22,8 @@ import { weekStarts } from "../../src/features/settings/constants/week-starts";
 import { usePremium } from "@/features/subscriptions/hooks/use-premium";
 
 export default function PreferenceScreen() {
+    const { preference, setPreference } = useAppTheme();
+    const [appearanceVisible, setAppearanceVisible] = useState(false);
     const {
         preferences,
         updateField,
@@ -163,10 +167,10 @@ export default function PreferenceScreen() {
                                     title="Unlock Offer Analyzer"
                                     message="Customize your offer analyzer with your own business goals and receive smarter recommendations."
                                     features={[
-                                        "✓ Minimum Hourly Rate",
-                                        "✓ Minimum Profit",
-                                        "✓ Minimum $ per Mile",
-                                        "✓ Maximum Delivery Distance",
+                                        "Minimum Hourly Rate",
+                                        "Minimum Profit",
+                                        "Minimum $ per Mile",
+                                        "Maximum Delivery Distance",
                                     ]}
                                     onPress={() =>
                                         // router.push("/paywall")
@@ -178,10 +182,14 @@ export default function PreferenceScreen() {
                     )}
                 </PreferenceSection>
 
+                <PreferenceSection title="Appearance">
+                    <PreferencePicker label="Theme" value={preference === "system" ? "System" : preference === "dark" ? "Dark" : "Light"} helperText="Applies immediately on this device. System follows your device’s appearance." onPress={() => setAppearanceVisible(true)} />
+                </PreferenceSection>
+
                 <PreferenceSection title="Units">
                     <PreferencePicker
                         label="Distance Unit"
-                        value={preferences.distanceUnit}
+                        value="Miles"
                         onPress={() =>
                             setDistanceUnitModalVisible(true)
                         }
@@ -235,6 +243,8 @@ export default function PreferenceScreen() {
                     </Text>
                 </Pressable>
             </ScrollView>
+
+            <PreferenceSelectedModal visible={appearanceVisible} title="Appearance" options={[{ label: "System", value: "system" }, { label: "Light", value: "light" }, { label: "Dark", value: "dark" }]} selectedValue={preference} onClose={() => setAppearanceVisible(false)} onSelect={value => setPreference(value as AppearancePreference)} />
 
             <PreferenceSelectedModal
                 visible={currencyModalVisible}
@@ -313,6 +323,9 @@ const styles = StyleSheet.create({
     },
 
     content: {
+        width: "100%",
+        maxWidth: 760,
+        alignSelf: "center",
         padding: 20,
         paddingBottom: 40,
         gap: 20,

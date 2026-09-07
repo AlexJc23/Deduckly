@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "@/theme/components";
+import { StyleSheet } from "react-native";
 
 type PreferenceSectionProps = {
   title: string;

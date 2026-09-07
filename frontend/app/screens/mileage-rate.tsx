@@ -1,4 +1,5 @@
-import { View, Text, ActivityIndicator, Linking, Pressable } from 'react-native'
+import { View, Text, Pressable } from "@/theme/components";
+import { ActivityIndicator, Linking } from 'react-native';
 import { BackHeader } from '@/components/ui/BackButton'
 import React from 'react'
 

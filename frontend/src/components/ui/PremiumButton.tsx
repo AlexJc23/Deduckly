@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import { Pressable, Text, View } from "react-native";
+import { StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 
 type PremiumButtonProps = {
@@ -10,189 +11,36 @@ type PremiumButtonProps = {
   onPress?: () => void;
 };
 
-export default function PremiumButton({
-  title,
-  message,
-  features,
-  onPress,
-}: PremiumButtonProps) {
-  return (
-    <Pressable
-      onPress={() => router.push("/screens/paywall")}
-      style={({ pressed }) => [
-        styles.button,
-        pressed && styles.buttonPressed,
-      ]}
-    >
-      <View style={styles.iconContainer}>
-        <Ionicons
-          name="sparkles-outline"
-          size={21}
-          color="#4A6FE3"
-        />
-      </View>
-
-      <View style={styles.textContainer}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>{title}</Text>
-
-          <View style={styles.proBadge}>
-            <Text style={styles.proBadgeText}>
-              PRO
-            </Text>
-          </View>
-        </View>
-
-        <Text style={styles.message}>
-          {message}
-        </Text>
-
-        {features && (
-          <View style={styles.featuresContainer}>
-            {features.map((feature) => (
-              <View
-                key={feature}
-                style={styles.featureRow}
-              >
-                <View style={styles.featureIcon}>
-                  <Ionicons
-                    name="checkmark"
-                    size={12}
-                    color="#4A6FE3"
-                  />
-                </View>
-
-                <Text style={styles.feature}>
-                  {feature}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-
-      <View style={styles.chevronContainer}>
-        <AntDesign
-          name="right"
-          size={15}
-          color="#4A6FE3"
-        />
-      </View>
-    </Pressable>
-  );
+export default function PremiumButton({ title, message, onPress }: PremiumButtonProps) {
+  return <Pressable
+    accessibilityRole="button"
+    accessibilityLabel={`${title} ${message} Upgrade to Deduckly Pro.`}
+    accessibilityHint="Opens subscription plans and pricing"
+    onPress={onPress ?? (() => router.push("/screens/paywall"))}
+    style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
+    <LinearGradient colors={["#173F5C", "#0D608D"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.content}>
+    <View style={styles.header}>
+      <Text style={styles.title}>{title}</Text>
+      <View style={styles.badge}><Text style={styles.badgeText}>PRO</Text></View>
+    </View>
+    <Text style={styles.message}>{message}</Text>
+    <View style={styles.cta}>
+      <Text style={styles.ctaText}>Upgrade to Pro</Text>
+      <Ionicons name="arrow-forward" size={18} color="#124B70" />
+    </View>
+    </LinearGradient>
+  </Pressable>;
 }
 
 const styles = StyleSheet.create({
-  button: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    paddingVertical: 16,
-    paddingHorizontal: 15,
-    borderWidth: 1,
-    borderColor: "#C9D6FF",
-
-    shadowColor: "#111827",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-
-    elevation: 2,
-  },
-
-  buttonPressed: {
-    backgroundColor: "#F8FAFC",
-    borderColor: "#4A6FE3",
-    transform: [{ scale: 0.985 }],
-  },
-
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "#DCE6FF",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-
-  textContainer: {
-    flex: 1,
-    paddingRight: 8,
-  },
-
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 7,
-  },
-
-  title: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#111827",
-    letterSpacing: -0.2,
-  },
-
-  proBadge: {
-    backgroundColor: "#4A6FE3",
-    borderRadius: 5,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-
-  proBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 0.7,
-  },
-
-  message: {
-    marginTop: 5,
-    fontSize: 12,
-    lineHeight: 18,
-    color: "#64748B",
-  },
-
-  featuresContainer: {
-    marginTop: 12,
-    gap: 7,
-  },
-
-  featureRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  featureIcon: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: "#DCE6FF",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
-  },
-
-  feature: {
-    flex: 1,
-    fontSize: 12,
-    lineHeight: 17,
-    color: "#334155",
-    fontWeight: "600",
-  },
-
-  chevronContainer: {
-    width: 28,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 2,
-  },
+  card: { width: "100%", borderRadius: 18, backgroundColor: "#173F5C" },
+  content: { padding: 20, borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  pressed: { opacity: 0.88 },
+  header: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
+  title: { flex: 1, color: "#FFFFFF", fontSize: 20, lineHeight: 26, fontWeight: "700", letterSpacing: -0.4 },
+  badge: { backgroundColor: "#ECD8A2", paddingHorizontal: 7, paddingVertical: 4, borderRadius: 5, marginTop: 2 },
+  badgeText: { fontSize: 9, lineHeight: 13, fontWeight: "700", letterSpacing: 0.6, color: "#493D20" },
+  message: { color: "#D7E8F3", fontSize: 13, lineHeight: 21, marginTop: 10 },
+  cta: { minHeight: 48, backgroundColor: "#FFFFFF", borderRadius: 11, paddingVertical: 12, paddingHorizontal: 16, flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 18 },
+  ctaText: { color: "#124B70", fontSize: 15, lineHeight: 21, fontWeight: "600", flexShrink: 1, textAlign: "center" },
 });
