@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, Text } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Pressable, Text } from "@/theme/components";
+import { StyleSheet } from "react-native";
+import { Ionicons } from "@/theme/icons";
 
 type Props = {
   label: string;

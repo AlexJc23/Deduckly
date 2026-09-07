@@ -1,14 +1,7 @@
+import { View, Text, Pressable, AnimatedView } from "@/theme/components";
 import { useState, useRef, useEffect } from "react";
-import {
-  Modal,
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  Animated,
-  Easing,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Modal, StyleSheet, Animated, Easing } from "react-native";
+import { Ionicons } from "@/theme/icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 type Props = {
@@ -79,7 +72,7 @@ export function CustomReportModal({
           onPress={onClose}
         />
 
-        <Animated.View
+        <AnimatedView
           style={[
             styles.sheet,
             {
@@ -207,7 +200,7 @@ export function CustomReportModal({
               Cancel
             </Text>
           </Pressable>
-        </Animated.View>
+        </AnimatedView>
       </View>
     </Modal>
   );

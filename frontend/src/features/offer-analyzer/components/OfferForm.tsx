@@ -1,12 +1,7 @@
+import { View, Text, TextInput, Pressable } from "@/theme/components";
 import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  StyleSheet,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { StyleSheet } from "react-native";
+import { Ionicons } from "@/theme/icons";
 import { OfferInput } from "../types/offer.types";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 

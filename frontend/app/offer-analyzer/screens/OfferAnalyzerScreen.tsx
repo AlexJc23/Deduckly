@@ -1,13 +1,6 @@
+import { View, ScrollView } from "@/theme/components";
 import { useState } from "react";
-import {
-  View,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
+import { Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, StyleSheet } from "react-native";
 
 import { BackHeader } from "@/components/ui/BackButton";
 import PremiumButton from "@/components/ui/PremiumButton";
@@ -124,14 +117,12 @@ export default function OfferAnalyzerScreen() {
             {!isPremium && (
               <View style={styles.premiumContainer}>
                 <PremiumButton
-                  title="Unlock Deduckly Pro"
-                  message="See personalized profit estimates, hourly earnings, vehicle costs, and smart recommendations tailored to your preferences."
+                  title="See beyond the payout."
+                  message="Know what an offer could mean for your bottom line before you take it."
                   features={[
-                    "Personalized Offer Analysis",
-                    "Profit After Vehicle Costs",
-                    "Hourly Earnings",
-                    "Custom Acceptance Rules",
-                    "Smart Recommendations",
+                    "Estimated profit after vehicle costs",
+                    "See what your time could earn per hour",
+                    "Recommendations based on your preferences",
                   ]}
                 />
               </View>

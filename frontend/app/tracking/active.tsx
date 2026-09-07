@@ -1,12 +1,8 @@
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-} from "react-native";
+import { View, Text, Pressable } from "@/theme/components";
+import { StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useState, useEffect } from "react";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 
 import { EndTripModal } from "@/features/tracking/components/EndTripModal";
 import { useTracking } from "@/features/tracking/context/tracking.context";

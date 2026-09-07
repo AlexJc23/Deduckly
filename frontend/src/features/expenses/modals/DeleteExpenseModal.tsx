@@ -1,11 +1,5 @@
-import {
-  ActivityIndicator,
-  Modal,
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-} from "react-native";
+import { View, Text, Pressable } from "@/theme/components";
+import { ActivityIndicator, Modal, StyleSheet } from "react-native";
 import { useState } from "react";
 
 type DeleteExpenseModalProps = {

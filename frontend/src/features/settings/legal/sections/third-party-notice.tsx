@@ -1,12 +1,6 @@
+import { View, ScrollView, Text, TouchableOpacity } from "@/theme/components";
 import React from 'react';
-import {
-  Linking,
-  View,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import { BackHeader } from '@/components/ui/BackButton';
 
 export default function ThirdPartyServicesNoticeScreen() {

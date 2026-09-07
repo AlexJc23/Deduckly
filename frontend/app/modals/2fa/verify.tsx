@@ -1,16 +1,8 @@
-import {
-  ActivityIndicator,
-  Keyboard,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, SafeAreaView, Text, TextInput, View } from "@/theme/components";
+import { ActivityIndicator, Keyboard, StyleSheet } from "react-native";
 import { useState } from "react";
 import { router } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { verify2FA } from "@/features/auth/api/auth.api";

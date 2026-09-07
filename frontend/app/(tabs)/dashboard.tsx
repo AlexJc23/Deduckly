@@ -1,16 +1,9 @@
+import { Pressable, Text, View, SafeAreaView } from "@/theme/components";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  useWindowDimensions,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ActivityIndicator, StyleSheet, Image, useWindowDimensions } from "react-native";
+
 import { router, useLocalSearchParams } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { DailyIncomeGoalCard } from "@/features/reports/components/DailyIncomeGoal";

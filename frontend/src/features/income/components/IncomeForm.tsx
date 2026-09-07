@@ -1,12 +1,6 @@
+import { Pressable, ScrollView, Text, TextInput, View } from "@/theme/components";
 import { useEffect, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { StyleSheet } from "react-native";
 
 import {
   CreateIncomeRequest,

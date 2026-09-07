@@ -1,10 +1,5 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "@/theme/components";
+import { StyleSheet } from "react-native";
 import React from "react";
 import * as Linking from "expo-linking";
 

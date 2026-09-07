@@ -1,15 +1,7 @@
+import { Pressable, ScrollView, Text, TextInput, View } from "@/theme/components";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  Image,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-  StyleSheet,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Alert, Image, StyleSheet } from "react-native";
+import { Ionicons } from "@/theme/icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
 

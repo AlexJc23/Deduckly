@@ -1,10 +1,5 @@
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-} from "react-native";
+import { View, Text, Pressable } from "@/theme/components";
+import { ActivityIndicator, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 

@@ -1,14 +1,10 @@
+import { View, Text } from "@/theme/components";
 import { useEffect } from "react";
 import { DailyGoal } from "@/features/users/types/user.types";
-import {
-  View,
-  StyleSheet,
-  Text,
-} from "react-native";
+import { StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  useAnimatedProps,
   withTiming,
 } from "react-native-reanimated";
 
@@ -16,50 +12,31 @@ type DailyIncomeGoalCardProps = {
   dailyGoal: DailyGoal;
 };
 
-const AnimatedText =
-  Animated.createAnimatedComponent(Text);
-
 export function DailyIncomeGoalCard({
   dailyGoal,
 }: DailyIncomeGoalCardProps) {
   const progress = useSharedValue(0);
-  const percentage = useSharedValue(0);
 
   useEffect(() => {
     progress.value = withTiming(
-      dailyGoal.progress,
+      Math.max(0, Math.min(1, dailyGoal.progress)),
       {
         duration: 1200,
       }
     );
 
-    percentage.value = withTiming(
-      dailyGoal.percentage,
-      {
-        duration: 1200,
-      }
-    );
-  }, [dailyGoal]);
+  }, [dailyGoal, progress]);
 
   const progressStyle = useAnimatedStyle(() => ({
     width: `${progress.value * 100}%`,
   }));
-
-  const animatedProps = useAnimatedProps(
-    () =>
-      ({
-        text: `${Math.round(
-          percentage.value
-        )}%`,
-      }) as any
-  );
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.left}>
           <Text style={styles.eyebrow}>
-            TODAY'S INCOME
+            TODAY&apos;S INCOME
           </Text>
 
           <Text style={styles.current}>
@@ -84,14 +61,13 @@ export function DailyIncomeGoalCard({
         </View>
 
         <View style={styles.orb}>
-          <AnimatedText
-            animatedProps={animatedProps}
+          <Text
             style={styles.percentage}
           >
             {`${Math.round(
               dailyGoal.percentage
             )}%`}
-          </AnimatedText>
+          </Text>
         </View>
       </View>
 

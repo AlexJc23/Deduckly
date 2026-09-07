@@ -1,12 +1,7 @@
+import { ScrollView, View, Text, Pressable } from "@/theme/components";
 import { router } from "expo-router";
-import {
-    ScrollView,
-    View,
-    Text,
-    Pressable,
-    StyleSheet,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet } from "react-native";
+import { Ionicons } from "@/theme/icons";
 
 import { useAuth } from "@/features/auth/context/auth.context";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
@@ -56,8 +51,9 @@ export default function SettingsScreen() {
                 {!isPremium && (
                     <View style={styles.premiumWrapper}>
                         <PremiumButton
-                            title="Upgrade to Premium"
-                            message="From smarter offer analysis to detailed reports and business insights, Deduckly Pro gives you the tools to maximize every shift."
+                            title="Make more of your workday."
+                            message="Bring more clarity to the offers you take and the business you’re building."
+                            features={["Personalized offer analysis", "Custom reports and previous periods", "PDF and CSV exports to keep or share"]}
                             onPress={() =>
                                 router.push("/screens/paywall")
                             }

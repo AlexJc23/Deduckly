@@ -1,45 +1,26 @@
-import {
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { View } from "@/theme/components";
+import { StyleSheet } from "react-native";
+
 import { router } from "expo-router";
 
 import { QuickActionButton } from "./QuickActionButton";
+import { UseCurrentReportParams } from "../hooks/use-current-report";
+import { localDateString } from "../utils/report-display";
 import { CurrentReport } from "../types/report.types";
 
 type QuickActionCardProps = {
   report: CurrentReport;
+  reportParams?: UseCurrentReportParams;
   onExport: () => void;
 };
 
 export function QuickActionsCard({
   report,
   onExport,
+  reportParams,
 }: QuickActionCardProps) {
   return (
     <View style={styles.card}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.eyebrow}>
-            TOOLS
-          </Text>
-
-          <Text style={styles.title}>
-            Quick Actions
-          </Text>
-        </View>
-
-        <View style={styles.headerIcon}>
-          <Ionicons
-            name="flash-outline"
-            size={17}
-            color="#4A6FE3"
-          />
-        </View>
-      </View>
-
       <View style={styles.row}>
         <QuickActionButton
           icon="download-outline"
@@ -52,16 +33,15 @@ export function QuickActionsCard({
 
         <QuickActionButton
           icon="document-text-outline"
-          title="IRS Summary"
+          title="Tax summary"
           subtitle="Tax details"
           onPress={() =>
             router.push({
               pathname: "/reports/IrsSummary",
-              params: {
-                year: report.year,
-                month: report.month,
-                day: report.day,
-              },
+              params: reportParams?.startDate && reportParams?.endDate ? {
+                startDate: localDateString(reportParams.startDate),
+                endDate: localDateString(reportParams.endDate),
+              } : { year: report.year, month: report.month, day: report.day },
             })
           }
         />

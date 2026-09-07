@@ -1,4 +1,5 @@
-import { Switch, StyleSheet, Text, View } from "react-native";
+import { Text, View } from "@/theme/components";
+import { Switch, StyleSheet } from "react-native";
 
 type PreferenceToggleProps = {
     label: string;

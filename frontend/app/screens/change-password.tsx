@@ -1,18 +1,11 @@
+import { View, Text, TextInput, Pressable, ScrollView } from "@/theme/components";
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-} from "react-native";
+import { ActivityIndicator, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useUpdatePassword } from "@/features/auth/hooks/use-update-password";
 import { clearTokens } from "@/features/auth/services/auth-service.service";
 import { useQueryClient } from "@tanstack/react-query";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@/theme/icons";
 import { BackHeader } from "@/components/ui/BackButton";
 
 export default function UserUpdatePassword() {

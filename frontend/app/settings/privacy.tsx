@@ -1,11 +1,5 @@
-import {
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, SafeAreaView, ScrollView, Text, View } from "@/theme/components";
+import { StyleSheet } from "react-native";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";

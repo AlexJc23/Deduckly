@@ -1,5 +1,6 @@
+import { Pressable, Text, View } from "@/theme/components";
 import { PropsWithChildren, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator } from "react-native";
 import { Redirect } from "expo-router";
 import { useAuth } from "@/features/auth/context/auth.context";
 import { getCurrentUser } from "@/features/auth/api/auth.api";

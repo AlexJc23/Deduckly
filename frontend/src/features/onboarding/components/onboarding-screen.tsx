@@ -1,7 +1,8 @@
+import { Pressable, ScrollView, Text, View, SafeAreaView } from "@/theme/components";
 import { ComponentProps } from "react";
-import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import { ActivityIndicator, Linking, StyleSheet, useWindowDimensions } from "react-native";
+
+import { Ionicons } from "@/theme/icons";
 import { SymbolView } from "expo-symbols";
 import Logo from "../../../../assets/images/logo.svg";
 import { useIsTablet } from "@/hooks/use-is-tablet";

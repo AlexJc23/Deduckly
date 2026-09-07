@@ -1,260 +1,32 @@
+import { View, Text, Pressable } from "@/theme/components";
+import { StyleSheet } from "react-native";
+import { router } from "expo-router";
 import { CurrentReport } from "../types/report.types";
 import { buildExpenseChartData } from "../utils/build-expense-chart";
-import { PieChart } from "react-native-gifted-charts";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Pressable,
-} from "react-native";
-import { router } from "expo-router";
+import { money } from "../utils/report-display";
 
-type ExpensePieChartProps = {
-  expenseBreakdown: CurrentReport["expense_breakdown"];
-};
-
-export function ExpensePieChart({
-  expenseBreakdown,
-}: ExpensePieChartProps) {
-  const pieData =
-    buildExpenseChartData(expenseBreakdown);
-
-  return (
-    <View style={styles.wrapper}>
-      <View style={styles.chartArea}>
-        {pieData.length > 0 ? (
-          <View style={styles.container}>
-            <View style={styles.chartContainer}>
-              <PieChart
-                data={pieData}
-                donut
-                radius={58}
-                innerRadius={0}
-                centerLabelComponent={() => null}
-              />
-            </View>
-
-            <View style={styles.legend}>
-              {pieData.map((item) => (
-                <View
-                  key={item.category}
-                  style={styles.legendRow}
-                >
-                  <View
-                    style={[
-                      styles.colorDot,
-                      {
-                        backgroundColor:
-                          item.color,
-                      },
-                    ]}
-                  />
-
-                  <View style={styles.info}>
-                    <View style={styles.left}>
-                      <Text
-                        style={styles.category}
-                        numberOfLines={2}
-                      >
-                        {item.category}
-                      </Text>
-
-                      <Text style={styles.percent}>
-                        {item.percent.toFixed(1)}%
-                      </Text>
-                    </View>
-
-                    <Text style={styles.amount}>
-                      {item.value.toLocaleString(
-                        "en-US",
-                        {
-                          style: "currency",
-                          currency: "USD",
-                        },
-                      )}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-        ) : (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIcon}>
-              <Text style={styles.emptyIconText}>
-                $
-              </Text>
-            </View>
-
-            <Text style={styles.emptyTitle}>
-              No expenses yet
-            </Text>
-
-            <Text style={styles.emptyText}>
-              Your expense breakdown will appear
-              here once you start tracking expenses.
-            </Text>
-          </View>
-        )}
-      </View>
-
-      <Pressable
-        style={({ pressed }) => [
-          styles.allExpenseButton,
-          pressed &&
-            styles.allExpenseButtonPressed,
-        ]}
-        onPress={() =>
-          router.push("/activity")
-        }
-      >
-        <Text style={styles.allExpenseButtonText}>
-          View All Expenses
-        </Text>
-
-        <Text style={styles.arrow}>
-          ›
-        </Text>
-      </Pressable>
-    </View>
-  );
+export function ExpensePieChart({ expenseBreakdown }: { expenseBreakdown: CurrentReport["expense_breakdown"] }) {
+  const items = buildExpenseChartData(expenseBreakdown ?? {});
+  const hasAdjustments = items.some(item => item.value < 0);
+  return <View style={s.card}>
+    <Text style={s.description}>{hasAdjustments ? "Recorded spending by category, including negative adjustments. Percentages are hidden when categories include negative amounts." : "Categories ranked by recorded spending. Percentages show each category’s share of the total below, before tax adjustments."}</Text>
+    {items.length ? <>
+      <Text style={s.total}>Category total · {money(items.reduce((sum, item) => sum + item.value, 0))}</Text>
+      {items.map((item, index) => <View key={`${item.category}-${index}`} style={s.item} accessible accessibilityLabel={`${item.category}, ${money(item.value)}${hasAdjustments ? "" : `, ${item.percent.toFixed(1)} percent of expenses`}`}>
+        <View style={s.row}><Text style={s.category}>{item.category}</Text><Text selectable style={s.amount}>{money(item.value)}</Text></View>
+        {!hasAdjustments && <><View style={s.track}><View style={[s.fill, { backgroundColor: item.color, width: `${Math.min(100, Math.max(0, item.percent))}%` }]} /></View>
+        <Text style={s.percent}>{item.percent.toFixed(1)}% of category total</Text></>}
+      </View>)}
+      {items.some(item => item.category.startsWith("Other (")) && <Text style={s.description}>Other combines the remaining smaller categories.</Text>}
+    </> : <View style={s.empty}><Text style={s.category}>No expenses in this period</Text><Text style={s.description}>Recorded expenses will appear here when they fall within the selected dates.</Text></View>}
+    <Pressable accessibilityRole="button" onPress={() => router.push("/activity")} style={s.link}><Text style={s.linkText}>View activity</Text><Text style={s.description}>Browse your income, expenses, and trips</Text></Pressable>
+  </View>;
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    width: "100%",
-  },
-
-  chartArea: {
-    minHeight: 180,
-    justifyContent: "center",
-  },
-
-  container: {
-    minHeight: 180,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  chartContainer: {
-    width: 135,
-    height: 135,
-    alignItems: "center",
-    justifyContent: "center",
-    transform: [{ rotate: "90deg" }],
-  },
-
-  legend: {
-    flex: 1,
-    marginLeft: 14,
-  },
-
-  legendRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 8,
-  },
-
-  colorDot: {
-    width: 11,
-    height: 11,
-    borderRadius: 6,
-    marginTop: 4,
-    marginRight: 10,
-  },
-
-  info: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-
-  left: {
-    flex: 1,
-    paddingRight: 8,
-  },
-
-  category: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#111827",
-  },
-
-  percent: {
-    fontSize: 11,
-    color: "#9CA3AF",
-    marginTop: 1,
-  },
-
-  amount: {
-    width: 82,
-    textAlign: "right",
-    fontSize: 12,
-    fontWeight: "700",
-    color: "#4B5563",
-  },
-
-  emptyState: {
-    minHeight: 180,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 30,
-  },
-
-  emptyIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "#F1F5F9",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 8,
-  },
-
-  emptyIconText: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#94A3B8",
-  },
-
-  emptyTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#334155",
-  },
-
-  emptyText: {
-    marginTop: 4,
-    fontSize: 11,
-    lineHeight: 16,
-    textAlign: "center",
-    color: "#94A3B8",
-  },
-
-  allExpenseButton: {
-    minHeight: 40,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 5,
-    marginTop: 4,
-  },
-
-  allExpenseButtonPressed: {
-    opacity: 0.6,
-  },
-
-  allExpenseButtonText: {
-    color: "#4A6FE3",
-    fontWeight: "700",
-    fontSize: 12,
-  },
-
-  arrow: {
-    color: "#4A6FE3",
-    fontSize: 18,
-    lineHeight: 18,
-    marginTop: -1,
-  },
+const s = StyleSheet.create({
+  card: { backgroundColor: "white", borderRadius: 18, borderWidth: 1, borderColor: "#E1E7EF", padding: 20 },
+  description: { fontSize: 13, lineHeight: 20, color: "#64748B" }, total: { fontSize: 16, fontWeight: "600", color: "#273449", marginTop: 16 },
+  item: { marginTop: 20, gap: 8 }, row: { flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "space-between" },
+  category: { fontSize: 15, fontWeight: "600", color: "#273449", flexShrink: 1 }, amount: { fontSize: 15, color: "#273449", fontVariant: ["tabular-nums"] },
+  track: { height: 7, borderRadius: 4, backgroundColor: "#EDF2F7", overflow: "hidden" }, fill: { height: "100%", borderRadius: 4 }, percent: { fontSize: 12, color: "#64748B" },
+  empty: { paddingVertical: 24, gap: 8 }, link: { paddingTop: 20, marginTop: 16, gap: 5, borderTopColor: "#E1E7EF", borderTopWidth: StyleSheet.hairlineWidth, minHeight: 48 }, linkText: { color: "#0072B5", fontSize: 15, fontWeight: "600" },
 });

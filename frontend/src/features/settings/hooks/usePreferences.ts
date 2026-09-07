@@ -23,7 +23,7 @@ export function usePreferences() {
         preferredMaxDistance: "",
 
         currency: "USD",
-        distanceUnit: "miles",
+        distanceUnit: "mi",
         weekStartsOn: "sunday",
 
         notificationsEnabled: false,
@@ -49,7 +49,7 @@ export function usePreferences() {
                 user.preferred_max_distance ?? "",
 
             currency: user.currency,
-            distanceUnit: user.distance_unit,
+            distanceUnit: "mi",
             weekStartsOn: user.week_starts_on,
 
             notificationsEnabled:

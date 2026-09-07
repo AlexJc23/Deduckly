@@ -1,10 +1,6 @@
+import { Text, View } from "@/theme/components";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet } from "react-native";
 
 import { IncomeForm } from "@/features/income/components/IncomeForm";
 import { useIncomeDetail } from "@/features/income/hooks/use-income-detail";

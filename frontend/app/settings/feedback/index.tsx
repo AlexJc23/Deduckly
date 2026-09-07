@@ -1,13 +1,8 @@
+import { Pressable, ScrollView, Text, View } from "@/theme/components";
 import { router } from "expo-router";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { StyleSheet } from "react-native";
 
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@/theme/icons";
 import { BackHeader } from "@/components/ui/BackButton";
 
 export default function FeedbackScreen() {

@@ -1,15 +1,9 @@
-import {
-  ActivityIndicator,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, SafeAreaView, Text, View } from "@/theme/components";
+import { ActivityIndicator, StyleSheet } from "react-native";
 import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 
 import Logo from "../../assets/images/logo.svg";
 

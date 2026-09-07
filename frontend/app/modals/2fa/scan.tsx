@@ -1,14 +1,8 @@
+import { Pressable, SafeAreaView, Text, View } from "@/theme/components";
 import QRCode from "react-native-qrcode-svg";
-import {
-  ActivityIndicator,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet } from "react-native";
 import { router } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 import { useEffect } from "react";
 import * as Clipboard from "expo-clipboard";
 

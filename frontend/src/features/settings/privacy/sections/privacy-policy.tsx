@@ -1,4 +1,5 @@
-import { Pressable, View, Text, StyleSheet, ScrollView, SafeAreaView, StatusBar, TouchableOpacity } from "react-native"
+import { Pressable, View, Text, ScrollView, SafeAreaView, TouchableOpacity } from "@/theme/components";
+import { StyleSheet, StatusBar } from "react-native";
 import { BackHeader } from "@/components/ui/BackButton";
 import { router } from "expo-router"
 import React from "react";

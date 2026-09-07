@@ -1,7 +1,7 @@
 import { CurrentReport } from "../types/report.types";
 
 const COLORS = [
-  "#4A6FE3", // Deduckly blue
+  "#0072B5", // Deduckly blue
   "#6B8BEA", // lighter blue
   "#8FA7F0", // soft blue
   "#B8C7F5", // pale blue
@@ -14,7 +14,7 @@ const MAX_CATEGORIES = 4;
 export function buildExpenseChartData(
   expenseBreakdown: CurrentReport["expense_breakdown"]
 ) {
-  const entries = Object.entries(expenseBreakdown).map(
+  const entries = Object.entries(expenseBreakdown ?? {}).map(
     ([category, value]) => ({
       category: category
         .replace(/_/g, " ")
@@ -22,7 +22,7 @@ export function buildExpenseChartData(
       value: Number(value.amount),
       count: value.count,
     })
-  );
+  ).filter(item => Number.isFinite(item.value) && item.value !== 0);
 
   // Sort largest → smallest
   entries.sort((a, b) => b.value - a.value);
@@ -57,7 +57,7 @@ export function buildExpenseChartData(
       percent:
         total === 0
           ? 0
-          : Math.round((item.value / total) * 100),
+          : (item.value / total) * 100,
     };
   });
 }

@@ -1,5 +1,6 @@
-import { View, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { View, Pressable } from "@/theme/components";
+
+import { Ionicons } from "@/theme/icons";
 import { router } from "expo-router";
 
 export function BackHeader() {

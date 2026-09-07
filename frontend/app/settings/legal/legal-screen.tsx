@@ -1,13 +1,7 @@
+import { View, Text, Pressable, SafeAreaView, ScrollView } from "@/theme/components";
 import React from "react";
 import { BackHeader } from "@/components/ui/BackButton";
-import {
-  View,
-  Text,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-} from "react-native";
+import { StyleSheet } from "react-native";
 import { router } from "expo-router";
 
 export default function LegalScreen() {

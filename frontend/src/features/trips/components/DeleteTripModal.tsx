@@ -1,10 +1,5 @@
-import {
-  Modal,
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-} from "react-native";
+import { View, Text, Pressable } from "@/theme/components";
+import { Modal, StyleSheet } from "react-native";
 
 type DeleteTripModalProps = {
   visible: boolean;

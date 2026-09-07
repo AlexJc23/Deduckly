@@ -1,13 +1,8 @@
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  Pressable,
-  View,
-} from "react-native";
+import { Text, Pressable, View } from "@/theme/components";
+import { ActivityIndicator, StyleSheet } from "react-native";
 import { useState } from "react";
 import { router } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { disable2FA } from "@/features/auth/api/auth.api";

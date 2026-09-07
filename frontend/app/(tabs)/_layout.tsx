@@ -1,11 +1,14 @@
+import { useAppTheme } from "@/theme/theme";
+import { themedStyle } from "@/theme/components";
 import { OnboardingGate } from "@/features/onboarding/components/onboarding-gate";
 import { Tabs } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 import { StyleSheet } from "react-native";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function TabsLayout() {
   const isTablet = useIsTablet();
+  const { dark } = useAppTheme();
 
   return (
     <OnboardingGate>
@@ -13,11 +16,11 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
 
-        tabBarActiveTintColor: "#4A6FE3",
-        tabBarInactiveTintColor: "#64748B",
+        tabBarActiveTintColor: dark ? "#71C7F2" : "#4A6FE3",
+        tabBarInactiveTintColor: dark ? "#ACBACD" : "#64748B",
 
         tabBarActiveBackgroundColor: isTablet
-          ? "#E8EEFF"
+          ? (dark ? "#203449" : "#E8EEFF")
           : undefined,
 
         // iPhone: bottom navigation
@@ -26,9 +29,7 @@ export default function TabsLayout() {
           ? "left"
           : "bottom",
 
-        tabBarStyle: isTablet
-          ? styles.tabletTabBar
-          : styles.tabBar,
+        tabBarStyle: themedStyle(isTablet ? styles.tabletTabBar : styles.tabBar, dark),
 
         tabBarItemStyle: isTablet
           ? styles.tabletTabBarItem

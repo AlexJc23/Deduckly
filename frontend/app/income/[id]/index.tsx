@@ -1,13 +1,7 @@
+import { Pressable, ScrollView, Text, View } from "@/theme/components";
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { ActivityIndicator, StyleSheet } from "react-native";
+import { Ionicons } from "@/theme/icons";
 
 import { useIncomeDetail } from "@/features/income/hooks/use-income-detail";
 import {

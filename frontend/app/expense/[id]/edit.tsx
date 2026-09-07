@@ -1,10 +1,6 @@
+import { Text, View } from "@/theme/components";
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert } from "react-native";
 
 import { BackHeader } from "@/components/ui/BackButton";
 

@@ -1,14 +1,5 @@
-import {
-  ActivityIndicator,
-  Animated,
-  Keyboard,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Pressable, SafeAreaView, Text, TextInput, View, AnimatedView } from "@/theme/components";
+import { ActivityIndicator, Animated, Keyboard, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { router, Link } from "expo-router";
@@ -157,7 +148,7 @@ export default function Login() {
           style={styles.flex}
           onPress={Keyboard.dismiss}
         >
-          <Animated.View
+          <AnimatedView
             style={[
               styles.container,
               isTablet && styles.containerTablet,
@@ -438,7 +429,7 @@ export default function Login() {
                 </Pressable>
               </Link>
             </View>
-          </Animated.View>
+          </AnimatedView>
         </Pressable>
       </SafeAreaView>
     </View>

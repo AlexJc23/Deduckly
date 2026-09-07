@@ -1,11 +1,7 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, Text, View } from "@/theme/components";
+import { StyleSheet } from "react-native";
 import { router } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 
 import { Expense } from "../types/expense";
 import { EXPENSE_CATEGORY_LABELS } from "@/constants/expense-category-labels";

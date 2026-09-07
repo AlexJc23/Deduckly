@@ -1,10 +1,6 @@
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Pressable, Text, View } from "@/theme/components";
+import { StyleSheet } from "react-native";
+import { Ionicons } from "@/theme/icons";
 
 type QuickActionButtonProps = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -21,6 +17,7 @@ export function QuickActionButton({
 }: QuickActionButtonProps) {
   return (
     <Pressable
+      accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
         styles.container,
@@ -41,14 +38,12 @@ export function QuickActionButton({
       <View style={styles.textContainer}>
         <Text
           style={styles.title}
-          numberOfLines={1}
         >
           {title}
         </Text>
 
         <Text
           style={styles.subtitle}
-          numberOfLines={1}
         >
           {subtitle}
         </Text>

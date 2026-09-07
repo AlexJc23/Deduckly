@@ -1,13 +1,5 @@
-import {
-  ActivityIndicator,
-  Linking,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, SafeAreaView, ScrollView, Text, View } from "@/theme/components";
+import { ActivityIndicator, Linking, StyleSheet } from "react-native";
 
 import React from "react";
 

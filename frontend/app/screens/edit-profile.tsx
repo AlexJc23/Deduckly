@@ -1,12 +1,5 @@
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  ActivityIndicator,
-  Modal,
-  Animated,
-} from "react-native";
+import { View, Text, TextInput, Pressable, AnimatedView } from "@/theme/components";
+import { ActivityIndicator, Modal, Animated } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { router } from "expo-router";
 
@@ -146,7 +139,7 @@ export default function UserUpdateScreen() {
             backgroundColor: "rgba(0, 0, 0, 0.28)",
           }}
         >
-          <Animated.View
+          <AnimatedView
             style={{
               backgroundColor: "#fff",
               borderTopLeftRadius: 16,
@@ -199,7 +192,7 @@ export default function UserUpdateScreen() {
                 Cancel
               </Text>
             </Pressable>
-          </Animated.View>
+          </AnimatedView>
         </View>
       </Modal>
       <DeleteAccountModal

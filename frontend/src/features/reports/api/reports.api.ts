@@ -1,4 +1,5 @@
 import { api } from "@/api/client";
+import { localDateString } from "../utils/report-display";
 import { CurrentReport } from "../types/report.types";
 
 export type GetReportParams = {
@@ -18,12 +19,8 @@ export async function getReport(
         year: params.year,
         month: params.month,
         day: params.day,
-        start_date: params.startDate
-          ?.toISOString()
-          .split("T")[0],
-        end_date: params.endDate
-          ?.toISOString()
-          .split("T")[0],
+        start_date: params.startDate ? localDateString(params.startDate) : undefined,
+        end_date: params.endDate ? localDateString(params.endDate) : undefined,
       },
     });
 

@@ -1,12 +1,5 @@
-import {
-  Modal,
-  View,
-  Text,
-  Pressable,
-  Animated,
-  Easing,
-  StyleSheet,
-} from "react-native";
+import { View, Text, Pressable, AnimatedView } from "@/theme/components";
+import { Modal, Animated, Easing, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { useTracking } from "../context/tracking.context";
 import { router } from "expo-router";
@@ -65,7 +58,7 @@ export function EndTripModal({
         />
 
         {/* Bottom Sheet */}
-        <Animated.View
+        <AnimatedView
           style={[
             styles.sheet,
             {
@@ -114,7 +107,7 @@ export function EndTripModal({
               End Trip
             </Text>
           </Pressable>
-        </Animated.View>
+        </AnimatedView>
       </View>
     </Modal>
   );

@@ -1,14 +1,7 @@
-import {
-  Modal,
-  View,
-  Text,
-  Pressable,
-  Animated,
-  Easing,
-  StyleSheet,
-} from "react-native";
+import { View, Text, Pressable, AnimatedView } from "@/theme/components";
+import { Alert, Modal, Animated, Easing, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { Ionicons } from "@/theme/icons";
 
 import { CurrentReport } from "../types/report.types";
 import { exportCsv, exportPdf } from "../api/reports.api";
@@ -17,6 +10,7 @@ import { saveFile } from "../utils/save-file";
 type ExportReportModalProps = {
   report: CurrentReport;
   visible: boolean;
+  periodLabel?: string;
   onClose: () => void;
 };
 
@@ -24,6 +18,7 @@ export function ExportReportModal({
   report,
   visible,
   onClose,
+  periodLabel,
 }: ExportReportModalProps) {
   const [isMounted, setIsMounted] =
     useState(visible);
@@ -69,8 +64,10 @@ export function ExportReportModal({
         );
       }
 
-      handleClose();
+      setFormat("pdf");
+      onClose();
     } catch (error) {
+      Alert.alert("Export failed", "We couldn’t save this report. Please try again.");
       console.error(
         "Failed to export report:",
         error,
@@ -121,7 +118,7 @@ export function ExportReportModal({
           onPress={handleClose}
         />
 
-        <Animated.View
+        <AnimatedView
           style={[
             styles.sheet,
             {
@@ -142,8 +139,7 @@ export function ExportReportModal({
               </Text>
 
               <Text style={styles.subtitle}>
-                Choose how you'd like to save
-                your report.
+                {periodLabel ?? "Choose how to save your report."}
               </Text>
             </View>
 
@@ -321,7 +317,7 @@ export function ExportReportModal({
               Cancel
             </Text>
           </Pressable>
-        </Animated.View>
+        </AnimatedView>
       </View>
     </Modal>
   );
