@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text } from "@/theme/components";
 import { useEffect } from "react";
 import { MonthlyGoal } from "@/features/users/types/user.types";
@@ -15,6 +16,7 @@ type MonthlyIncomeGoalCardProps = {
 export function MonthlyIncomeGoalCard({
   monthlyGoal,
 }: MonthlyIncomeGoalCardProps) {
+  useLanguage();
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -36,8 +38,7 @@ export function MonthlyIncomeGoalCard({
       <View style={styles.header}>
         <View style={styles.left}>
           <Text style={styles.eyebrow}>
-            MONTHLY INCOME TARGET
-          </Text>
+            <Translated text={"MONTHLY INCOME TARGET"} /></Text>
 
           <Text style={styles.current}>
             $
@@ -50,8 +51,7 @@ export function MonthlyIncomeGoalCard({
           </Text>
 
           <Text style={styles.goal}>
-            Goal $
-            {monthlyGoal.goal.toLocaleString(
+            <Translated text={"Goal $"} />{monthlyGoal.goal.toLocaleString(
               "en-US",
               {
                 minimumFractionDigits: 2,
@@ -83,10 +83,10 @@ export function MonthlyIncomeGoalCard({
       <View style={styles.footer}>
         <Text style={styles.status}>
           {monthlyGoal.percentage >= 100
-            ? "GOAL REACHED"
+            ? <Translated text={"GOAL REACHED"} />
             : monthlyGoal.percentage >= 80
-            ? "80% OR MORE REACHED"
-            : "IN PROGRESS"}
+            ? <Translated text={"80% OR MORE REACHED"} />
+            : <Translated text={"IN PROGRESS"} />}
         </Text>
 
         <Text style={styles.remaining}>
@@ -98,8 +98,7 @@ export function MonthlyIncomeGoalCard({
           ).toLocaleString("en-US", {
             minimumFractionDigits: 2,
           })}{" "}
-          left
-        </Text>
+          <Translated text={"left"} /></Text>
       </View>
     </View>
   );

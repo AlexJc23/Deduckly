@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable } from "@/theme/components";
 import { Modal, StyleSheet } from "react-native";
 
@@ -12,6 +13,7 @@ export function DeleteTripModal({
   onClose,
   onDelete,
 }: DeleteTripModalProps) {
+  useLanguage();
   return (
     <Modal
       visible={visible}
@@ -22,13 +24,10 @@ export function DeleteTripModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.title}>
-            Delete Trip?
-          </Text>
+            <Translated text={"Delete Trip?"} /></Text>
 
           <Text style={styles.description}>
-            This will permanently delete this trip.
-            This action cannot be undone.
-          </Text>
+            <Translated text={"This will permanently delete this trip. This action cannot be undone."} /></Text>
 
           <View style={styles.buttonRow}>
             <Pressable
@@ -36,8 +35,7 @@ export function DeleteTripModal({
               onPress={onClose}
             >
               <Text style={styles.cancelText}>
-                Cancel
-              </Text>
+                <Translated text={"Cancel"} /></Text>
             </Pressable>
 
             <Pressable
@@ -45,8 +43,7 @@ export function DeleteTripModal({
               onPress={onDelete}
             >
               <Text style={styles.deleteText}>
-                Delete Trip
-              </Text>
+                <Translated text={"Delete Trip"} /></Text>
             </Pressable>
           </View>
         </View>

@@ -1,3 +1,4 @@
+import { useLanguage } from "@/i18n/language";
 import { useAppTheme } from "@/theme/theme";
 import { themedStyle } from "@/theme/components";
 import { OnboardingGate } from "@/features/onboarding/components/onboarding-gate";
@@ -7,6 +8,7 @@ import { StyleSheet } from "react-native";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function TabsLayout() {
+  const { t } = useLanguage();
   const isTablet = useIsTablet();
   const { dark } = useAppTheme();
 
@@ -47,7 +49,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: "Dashboard",
+          title: t("Dashboard"),
           tabBarIcon: ({
             color,
             size,
@@ -69,7 +71,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="activity"
         options={{
-          title: "Activity",
+          title: t("Activity"),
           tabBarIcon: ({
             color,
             size,
@@ -91,7 +93,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="reports"
         options={{
-          title: "Reports",
+          title: t("Reports"),
           tabBarIcon: ({
             color,
             size,
@@ -113,7 +115,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
+          title: t("Settings"),
           tabBarIcon: ({
             color,
             size,

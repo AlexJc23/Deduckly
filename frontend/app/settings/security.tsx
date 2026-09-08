@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable, ScrollView } from "@/theme/components";
 import React from "react";
 import { StyleSheet } from "react-native";
@@ -7,6 +8,7 @@ import { router } from "expo-router";
 import { BackHeader } from "@/components/ui/BackButton";
 
 export default function SecuritySettingsScreen() {
+  useLanguage();
   const { data: user } = useCurrentUser();
 
 
@@ -18,12 +20,10 @@ export default function SecuritySettingsScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Security</Text>
+        <Text style={styles.title}><Translated text={"Security"} /></Text>
 
         <Text style={styles.subtitle}>
-          Manage your password and protect your account with two-factor
-          authentication.
-        </Text>
+          <Translated text={"Manage your password and protect your account with two-factor authentication."} /></Text>
 
         <Pressable
           style={styles.card}
@@ -31,10 +31,9 @@ export default function SecuritySettingsScreen() {
         >
           <View style={styles.cardContent}>
             <View style={styles.textContainer}>
-              <Text style={styles.cardTitle}>Change Password</Text>
+              <Text style={styles.cardTitle}><Translated text={"Change Password"} /></Text>
               <Text style={styles.cardDescription}>
-                Update your password to keep your account secure.
-              </Text>
+                <Translated text={"Update your password to keep your account secure."} /></Text>
             </View>
 
             <Text style={styles.chevron}>›</Text>
@@ -54,13 +53,12 @@ export default function SecuritySettingsScreen() {
           <View style={styles.cardContent}>
             <View style={styles.textContainer}>
               <Text style={styles.cardTitle}>
-                Two-Factor Authentication
-              </Text>
+                <Translated text={"Two-Factor Authentication"} /></Text>
 
               <Text style={styles.cardDescription}>
                 {user?.two_fa_enabled
-                  ? "Enabled for your account."
-                  : "Add an extra layer of protection."}
+                  ? <Translated text={"Enabled for your account."} />
+                  : <Translated text={"Add an extra layer of protection."} />}
               </Text>
             </View>
 
@@ -81,7 +79,7 @@ export default function SecuritySettingsScreen() {
                       : styles.badgeDisabledText,
                   ]}
                 >
-                  {user?.two_fa_enabled ? "Enabled" : "Disabled"}
+                  {user?.two_fa_enabled ? <Translated text={"Enabled"} /> : <Translated text={"Disabled"} />}
                 </Text>
               </View>
 
@@ -92,14 +90,10 @@ export default function SecuritySettingsScreen() {
 
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>
-            Keep your account secure
-          </Text>
+            <Translated text={"Keep your account secure"} /></Text>
 
           <Text style={styles.infoText}>
-            We recommend using a strong, unique password and enabling
-            two-factor authentication to help prevent unauthorized access to
-            your account.
-          </Text>
+            <Translated text={"We recommend using a strong, unique password and enabling two-factor authentication to help prevent unauthorized access to your account."} /></Text>
         </View>
       </ScrollView>
     </View>

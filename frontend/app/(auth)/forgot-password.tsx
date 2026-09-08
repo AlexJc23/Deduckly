@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, TextInput, View, SafeAreaView } from "@/theme/components";
 import { useRef, useState } from "react";
 import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
@@ -10,6 +11,7 @@ import { forgotPassword } from "@/features/auth/api/auth.api";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function ForgotPassword() {
+  useLanguage();
   const params = useLocalSearchParams<{ email?: string }>();
   const [email, setEmail] = useState(typeof params.email === "string" ? params.email : "");
   const [sentTo, setSentTo] = useState("");
@@ -37,30 +39,30 @@ export default function ForgotPassword() {
     <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <ScrollView contentContainerStyle={[s.scroll, isTablet && s.tablet]} keyboardShouldPersistTaps="handled">
         <View style={s.content}>
-          <Pressable accessibilityRole="button" onPress={() => router.replace("/(auth)/login")} style={s.back}>
-            <Ionicons name="arrow-back" size={20} color="#273449" /><Text style={s.backText}>Back to sign in</Text>
+          <Pressable accessibilityRole="button" onPress={() => router.back()} style={s.back}>
+            <Ionicons name="arrow-back" size={20} color="#273449" /><Text style={s.backText}><Translated text={"Back to sign in"} /></Text>
           </Pressable>
           <View style={s.main}>
             <Logo width={72} height={72} color="#0072B5" />
-            <Text accessibilityRole="header" style={s.title}>{sentTo ? "Check your inbox" : "Forgot your password?"}</Text>
+            <Text accessibilityRole="header" style={s.title}>{sentTo ? <Translated text={"Check your inbox"} /> : <Translated text={"Forgot your password?"} />}</Text>
             <Text style={s.description}>{sentTo
               ? `If an account exists for ${sentTo}, you’ll receive a link to reset your password. Check your spam folder too.`
-              : "Enter the email address on your Deduckly account and we’ll help you reset your password."}</Text>
-            {sentTo ? <Text style={s.note}>The reset link expires in 30 minutes. If you request another, use the most recent email.</Text> : <View style={s.field}>
-              <Text style={s.label}>Email address</Text>
+              : <Translated text={"Enter the email address on your Deduckly account and we’ll help you reset your password."} />}</Text>
+            {sentTo ? <Text style={s.note}><Translated text={"The reset link expires in 30 minutes. If you request another, use the most recent email."} /></Text> : <View style={s.field}>
+              <Text style={s.label}><Translated text={"Email address"} /></Text>
               <TextInput accessibilityLabel="Email address" value={email} onChangeText={value => { setEmail(value); if (request.isError) request.reset(); }}
                 editable={!request.isPending} keyboardType="email-address" autoCapitalize="none" autoCorrect={false}
                 textContentType="emailAddress" placeholder="you@example.com" placeholderTextColor="#94A3B8"
                 returnKeyType="send" onSubmitEditing={sendReset} style={s.input} />
             </View>}
-            {request.isError && <Text accessibilityRole="alert" style={s.error}>We couldn’t request the reset email. Check your connection and try again.</Text>}
+            {request.isError && <Text accessibilityRole="alert" style={s.error}><Translated text={"We couldn’t request the reset email. Check your connection and try again."} /></Text>}
             <Pressable accessibilityRole="button" accessibilityState={{ disabled: !validEmail || request.isPending, busy: request.isPending }}
               disabled={!validEmail || request.isPending} onPress={sendReset}
               style={({ pressed }) => [s.button, (!validEmail || request.isPending || pressed) && s.dimmed]}>
-              {request.isPending ? <ActivityIndicator color="#FFFFFF" /> : <Text style={s.buttonText}>{sentTo ? "Resend reset email" : "Send reset link"}</Text>}
+              {request.isPending ? <ActivityIndicator color="#FFFFFF" /> : <Text style={s.buttonText}>{sentTo ? <Translated text={"Resend reset email"} /> : <Translated text={"Send reset link"} />}</Text>}
             </Pressable>
             {!!sentTo && <Pressable accessibilityRole="button" disabled={request.isPending}
-              onPress={() => { setSentTo(""); request.reset(); }} style={s.secondary}><Text style={s.secondaryText}>Use a different email</Text></Pressable>}
+              onPress={() => { setSentTo(""); request.reset(); }} style={s.secondary}><Text style={s.secondaryText}><Translated text={"Use a different email"} /></Text></Pressable>}
           </View>
         </View>
       </ScrollView>

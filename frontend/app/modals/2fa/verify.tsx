@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, SafeAreaView, Text, TextInput, View } from "@/theme/components";
 import { ActivityIndicator, Keyboard, StyleSheet } from "react-native";
 import { useState } from "react";
@@ -8,6 +9,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { verify2FA } from "@/features/auth/api/auth.api";
 
 export default function TwoFAVerifyScreen() {
+  useLanguage();
   const [code, setCode] = useState("");
   const queryClient = useQueryClient();
 
@@ -70,8 +72,7 @@ export default function TwoFAVerifyScreen() {
               </View>
 
               <Text style={styles.eyebrow}>
-                STEP 2 OF 2
-              </Text>
+                <Translated text={"STEP 2 OF 2"} /></Text>
 
               <View style={styles.iconContainer}>
                 <Ionicons
@@ -82,21 +83,16 @@ export default function TwoFAVerifyScreen() {
               </View>
 
               <Text style={styles.title}>
-                Verify your code
-              </Text>
+                <Translated text={"Verify your code"} /></Text>
 
               <Text style={styles.description}>
-                Enter the six-digit code from your
-                authenticator app to finish securing
-                your Deduckly account.
-              </Text>
+                <Translated text={"Enter the six-digit code from your authenticator app to finish securing your Deduckly account."} /></Text>
             </View>
 
             <View style={styles.formCard}>
               <View style={styles.labelRow}>
                 <Text style={styles.label}>
-                  Authentication Code
-                </Text>
+                  <Translated text={"Authentication Code"} /></Text>
 
                 <View style={styles.secureBadge}>
                   <Ionicons
@@ -106,8 +102,7 @@ export default function TwoFAVerifyScreen() {
                   />
 
                   <Text style={styles.secureText}>
-                    Secure
-                  </Text>
+                    <Translated text={"Secure"} /></Text>
                 </View>
               </View>
 
@@ -151,8 +146,8 @@ export default function TwoFAVerifyScreen() {
                     ]}
                   >
                     {hasError
-                      ? "That code isn't correct. Try again."
-                      : "Your code changes periodically."}
+                      ? <Translated text={"That code isn't correct. Try again."} />
+                      : <Translated text={"Your code changes periodically."} />}
                   </Text>
                 </View>
 
@@ -172,9 +167,7 @@ export default function TwoFAVerifyScreen() {
               </View>
 
               <Text style={styles.infoText}>
-                Keep your authenticator app available.
-                You'll use it each time you sign in.
-              </Text>
+                <Translated text={"Keep your authenticator app available. You'll use it each time you sign in."} /></Text>
             </View>
 
             <View style={styles.actions}>
@@ -201,14 +194,12 @@ export default function TwoFAVerifyScreen() {
                     />
 
                     <Text style={styles.primaryText}>
-                      Verifying...
-                    </Text>
+                      <Translated text={"Verifying..."} /></Text>
                   </>
                 ) : (
                   <>
                     <Text style={styles.primaryText}>
-                      Verify & Enable
-                    </Text>
+                      <Translated text={"Verify & Enable"} /></Text>
 
                     <Ionicons
                       name="arrow-forward"
@@ -228,8 +219,7 @@ export default function TwoFAVerifyScreen() {
                 disabled={isPending}
               >
                 <Text style={styles.cancelText}>
-                  Cancel Setup
-                </Text>
+                  <Translated text={"Cancel Setup"} /></Text>
               </Pressable>
             </View>
           </View>

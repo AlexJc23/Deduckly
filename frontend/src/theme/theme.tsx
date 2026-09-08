@@ -1,7 +1,8 @@
+import { localizedAlert } from "@/i18n/alerts";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react";
-import { Alert, Appearance, Platform, useColorScheme } from "react-native";
+import {  Appearance, Platform, useColorScheme } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
 
@@ -25,7 +26,7 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
     useEffect(() => { void SystemUI.setBackgroundColorAsync(dark ? "#101722" : "#F8FAFC").catch(() => {}); }, [dark]);
     function setPreference(value: AppearancePreference) {
         setValue(value);
-        writes.current = writes.current.then(() => AsyncStorage.setItem(STORAGE_KEY, value)).catch(() => Alert.alert("Appearance wasn’t saved", "Your theme changed for this session. Please try again to save it on this device."));
+        writes.current = writes.current.then(() => AsyncStorage.setItem(STORAGE_KEY, value)).catch(() => localizedAlert("Appearance wasn’t saved", "Your theme changed for this session. Please try again to save it on this device."));
     }
     useEffect(() => {
         if (Platform.OS !== "web") Appearance.setColorScheme(preference === "system" ? null : preference);

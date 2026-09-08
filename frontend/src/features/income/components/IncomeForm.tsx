@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, TextInput, View } from "@/theme/components";
 import { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
@@ -37,6 +38,7 @@ export function IncomeForm({
   loading = false,
   onSubmit,
 }: IncomeFormProps) {
+  useLanguage();
   const [amount, setAmount] = useState("");
   const [source, setSource] =
     useState<IncomeType>("gig_platform");
@@ -89,23 +91,18 @@ export function IncomeForm({
     >
       <View style={styles.header}>
         <Text style={styles.eyebrow}>
-          INCOME
-        </Text>
+          <Translated text={"INCOME"} /></Text>
 
         <Text style={styles.title}>
-          Add income
-        </Text>
+          <Translated text={"Add income"} /></Text>
 
         <Text style={styles.subtitle}>
-          Keep your earnings organized and ready
-          for reporting.
-        </Text>
+          <Translated text={"Keep your earnings organized and ready for reporting."} /></Text>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.label}>
-          Amount
-        </Text>
+          <Translated text={"Amount"} /></Text>
 
         <View style={styles.amountContainer}>
           <Text style={styles.currency}>
@@ -123,8 +120,7 @@ export function IncomeForm({
         </View>
 
         <Text style={styles.label}>
-          Income Source
-        </Text>
+          <Translated text={"Income Source"} /></Text>
 
         <View style={styles.row}>
           <Pressable
@@ -145,8 +141,7 @@ export function IncomeForm({
                   styles.choiceTextActive,
               ]}
             >
-              Gig Platform
-            </Text>
+              <Translated text={"Gig Platform"} /></Text>
           </Pressable>
 
           <Pressable
@@ -167,16 +162,14 @@ export function IncomeForm({
                   styles.choiceTextActive,
               ]}
             >
-              Business
-            </Text>
+              <Translated text={"Business"} /></Text>
           </Pressable>
         </View>
 
         {source === "gig_platform" && (
           <>
             <Text style={styles.label}>
-              Platform
-            </Text>
+              <Translated text={"Platform"} /></Text>
 
             <View style={styles.wrap}>
               {platforms.map((item) => {
@@ -216,8 +209,7 @@ export function IncomeForm({
         {source === "business" && (
           <>
             <Text style={styles.label}>
-              Business Name
-            </Text>
+              <Translated text={"Business Name"} /></Text>
 
             <TextInput
               style={styles.input}
@@ -230,8 +222,7 @@ export function IncomeForm({
         )}
 
         <Text style={styles.label}>
-          Notes
-        </Text>
+          <Translated text={"Notes"} /></Text>
 
         <TextInput
           style={[styles.input, styles.notes]}
@@ -254,7 +245,7 @@ export function IncomeForm({
           onPress={handleSubmit}
         >
           <Text style={styles.buttonText}>
-            {loading ? "Saving..." : submitLabel}
+            {loading ? <Translated text={"Saving..."} /> : submitLabel}
           </Text>
         </Pressable>
       </View>

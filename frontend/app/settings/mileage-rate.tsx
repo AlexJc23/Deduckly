@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, SafeAreaView, ScrollView, Text, View } from "@/theme/components";
 import { ActivityIndicator, Linking, StyleSheet } from "react-native";
 
@@ -7,6 +8,7 @@ import { BackHeader } from "@/components/ui/BackButton";
 import { useMileageRates } from "@/features/settings/hooks/use-mileage-rate";
 
 export default function MileageRate() {
+  const { locale } = useLanguage();
   const {
     data: mileageRates,
     isLoading,
@@ -23,7 +25,7 @@ export default function MileageRate() {
     if (!date) return "Not available";
 
     return new Date(date).toLocaleDateString(
-      "en-US",
+      locale,
       {
         month: "long",
         day: "numeric",
@@ -48,12 +50,10 @@ export default function MileageRate() {
             <View style={styles.currentHeader}>
               <View>
                 <Text style={styles.eyebrow}>
-                  IRS STANDARD RATE
-                </Text>
+                  <Translated text={"IRS STANDARD RATE"} /></Text>
 
                 <Text style={styles.currentTitle}>
-                  Business Mileage
-                </Text>
+                  <Translated text={"Business Mileage"} /></Text>
               </View>
 
               <View style={styles.rateIcon}>
@@ -78,8 +78,7 @@ export default function MileageRate() {
                     ).toFixed(1)
                   : "-"}
                 <Text style={styles.rateUnit}>
-                  c / mile
-                </Text>
+                  <Translated text={"c / mile"} /></Text>
               </Text>
             )}
 
@@ -88,8 +87,7 @@ export default function MileageRate() {
             <View style={styles.currentFooter}>
               <View>
                 <Text style={styles.footerLabel}>
-                  Effective
-                </Text>
+                  <Translated text={"Effective"} /></Text>
 
                 <Text style={styles.date}>
                   {formatEffectiveDate(
@@ -102,8 +100,7 @@ export default function MileageRate() {
                 <View style={styles.statusDot} />
 
                 <Text style={styles.statusText}>
-                  Current
-                </Text>
+                  <Translated text={"Current"} /></Text>
               </View>
             </View>
           </View>
@@ -113,25 +110,14 @@ export default function MileageRate() {
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Text style={styles.sectionTitle}>
-                About the Mileage Rate
-              </Text>
+                <Translated text={"About the Mileage Rate"} /></Text>
             </View>
 
             <Text style={styles.body}>
-              The IRS standard mileage rate is
-              used to calculate your deduction
-              for business driving. It includes
-              costs such as gas, maintenance,
-              depreciation, insurance, and
-              repairs.
-            </Text>
+              <Translated text={"The IRS standard mileage rate is used to calculate your deduction for business driving. It includes costs such as gas, maintenance, depreciation, insurance, and repairs."} /></Text>
 
             <Text style={styles.body}>
-              If you use the Standard Mileage
-              method, these vehicle expenses
-              generally cannot be deducted
-              separately.
-            </Text>
+              <Translated text={"If you use the Standard Mileage method, these vehicle expenses generally cannot be deducted separately."} /></Text>
 
             <Pressable
               style={styles.linkButton}
@@ -142,8 +128,7 @@ export default function MileageRate() {
               }
             >
               <Text style={styles.link}>
-                View IRS Mileage Rates
-              </Text>
+                <Translated text={"View IRS Mileage Rates"} /></Text>
 
               <Text style={styles.linkArrow}>
                 ↗
@@ -157,12 +142,10 @@ export default function MileageRate() {
             <View style={styles.historyHeader}>
               <View>
                 <Text style={styles.sectionTitle}>
-                  Previous Rates
-                </Text>
+                  <Translated text={"Previous Rates"} /></Text>
 
                 <Text style={styles.historySubtitle}>
-                  Historical IRS business rates
-                </Text>
+                  <Translated text={"Historical IRS business rates"} /></Text>
               </View>
             </View>
 
@@ -200,8 +183,7 @@ export default function MileageRate() {
                               styles.currentLabel
                             }
                           >
-                            Current rate
-                          </Text>
+                            <Translated text={"Current rate"} /></Text>
                         )}
                       </View>
 
@@ -217,8 +199,7 @@ export default function MileageRate() {
                             styles.rateAmountUnit
                           }
                         >
-                          c / mile
-                        </Text>
+                          <Translated text={"c / mile"} /></Text>
                       </Text>
                     </View>
                   ),
@@ -226,8 +207,7 @@ export default function MileageRate() {
               </View>
             ) : (
               <Text style={styles.emptyText}>
-                No mileage rates available.
-              </Text>
+                <Translated text={"No mileage rates available."} /></Text>
             )}
           </View>
         </ScrollView>

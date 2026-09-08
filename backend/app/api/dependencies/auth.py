@@ -27,6 +27,10 @@ def get_current_user(
             detail="Invalid or expired token",
         )
 
+    # Temporary second-factor tokens must never authorize normal account APIs.
+    if payload.get("type") not in (None, "access"):
+        raise HTTPException(status_code=401, detail="Complete sign-in before accessing your account.")
+
     user_id = payload.get("sub")
     if user_id is None:
         raise HTTPException(

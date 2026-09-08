@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable, AnimatedView } from "@/theme/components";
 import { Modal, Animated, Easing, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
@@ -15,6 +16,7 @@ export function EndTripModal({
   onClose,
   onConfirm,
 }: EndTripModalProps) {
+  useLanguage();
   const [isMounted, setIsMounted] = useState(visible);
 
   const translateY = useRef(
@@ -70,13 +72,10 @@ export function EndTripModal({
 
           <View style={styles.header}>
             <Text style={styles.title}>
-              End Trip?
-            </Text>
+              <Translated text={"End Trip?"} /></Text>
 
             <Text style={styles.subtitle}>
-              This will stop tracking and save your
-              trip.
-            </Text>
+              <Translated text={"This will stop tracking and save your trip."} /></Text>
           </View>
 
           <Pressable
@@ -92,8 +91,7 @@ export function EndTripModal({
             ]}
           >
             <Text style={styles.resumeText}>
-              Resume Trip
-            </Text>
+              <Translated text={"Resume Trip"} /></Text>
           </Pressable>
 
           <Pressable
@@ -104,8 +102,7 @@ export function EndTripModal({
             ]}
           >
             <Text style={styles.endText}>
-              End Trip
-            </Text>
+              <Translated text={"End Trip"} /></Text>
           </Pressable>
         </AnimatedView>
       </View>

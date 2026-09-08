@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { router } from "expo-router";
@@ -6,20 +7,21 @@ import { buildExpenseChartData } from "../utils/build-expense-chart";
 import { money } from "../utils/report-display";
 
 export function ExpensePieChart({ expenseBreakdown }: { expenseBreakdown: CurrentReport["expense_breakdown"] }) {
+  useLanguage();
   const items = buildExpenseChartData(expenseBreakdown ?? {});
   const hasAdjustments = items.some(item => item.value < 0);
   return <View style={s.card}>
-    <Text style={s.description}>{hasAdjustments ? "Recorded spending by category, including negative adjustments. Percentages are hidden when categories include negative amounts." : "Categories ranked by recorded spending. Percentages show each category’s share of the total below, before tax adjustments."}</Text>
+    <Text style={s.description}>{hasAdjustments ? <Translated text={"Recorded spending by category, including negative adjustments. Percentages are hidden when categories include negative amounts."} /> : <Translated text={"Categories ranked by recorded spending. Percentages show each category’s share of the total below, before tax adjustments."} />}</Text>
     {items.length ? <>
-      <Text style={s.total}>Category total · {money(items.reduce((sum, item) => sum + item.value, 0))}</Text>
+      <Text style={s.total}><Translated text={"Category total ·"} />{" "}{money(items.reduce((sum, item) => sum + item.value, 0))}</Text>
       {items.map((item, index) => <View key={`${item.category}-${index}`} style={s.item} accessible accessibilityLabel={`${item.category}, ${money(item.value)}${hasAdjustments ? "" : `, ${item.percent.toFixed(1)} percent of expenses`}`}>
-        <View style={s.row}><Text style={s.category}>{item.category}</Text><Text selectable style={s.amount}>{money(item.value)}</Text></View>
+        <View style={s.row}><Text style={s.category}><Translated text={item.category} /></Text><Text selectable style={s.amount}>{money(item.value)}</Text></View>
         {!hasAdjustments && <><View style={s.track}><View style={[s.fill, { backgroundColor: item.color, width: `${Math.min(100, Math.max(0, item.percent))}%` }]} /></View>
-        <Text style={s.percent}>{item.percent.toFixed(1)}% of category total</Text></>}
+        <Text style={s.percent}>{item.percent.toFixed(1)}<Translated text={"% of category total"} /></Text></>}
       </View>)}
-      {items.some(item => item.category.startsWith("Other (")) && <Text style={s.description}>Other combines the remaining smaller categories.</Text>}
-    </> : <View style={s.empty}><Text style={s.category}>No expenses in this period</Text><Text style={s.description}>Recorded expenses will appear here when they fall within the selected dates.</Text></View>}
-    <Pressable accessibilityRole="button" onPress={() => router.push("/activity")} style={s.link}><Text style={s.linkText}>View activity</Text><Text style={s.description}>Browse your income, expenses, and trips</Text></Pressable>
+      {items.some(item => item.category.startsWith("Other (")) && <Text style={s.description}><Translated text={"Other combines the remaining smaller categories."} /></Text>}
+    </> : <View style={s.empty}><Text style={s.category}><Translated text={"No expenses in this period"} /></Text><Text style={s.description}><Translated text={"Recorded expenses will appear here when they fall within the selected dates."} /></Text></View>}
+    <Pressable accessibilityRole="button" onPress={() => router.push("/activity")} style={s.link}><Text style={s.linkText}><Translated text={"View activity"} /></Text><Text style={s.description}><Translated text={"Browse your income, expenses, and trips"} /></Text></Pressable>
   </View>;
 }
 const s = StyleSheet.create({

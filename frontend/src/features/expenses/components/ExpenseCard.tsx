@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, Text, View } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { router } from "expo-router";
@@ -18,6 +19,7 @@ const DATE_OPTIONS: Intl.DateTimeFormatOptions = {
 export function ExpenseCard({
   expense,
 }: Props) {
+  const { locale } = useLanguage();
   const category =
     EXPENSE_CATEGORY_LABELS[
       expense.category
@@ -26,7 +28,7 @@ export function ExpenseCard({
   const date = new Date(
     expense.incurred_at,
   ).toLocaleDateString(
-    "en-US",
+    locale,
     DATE_OPTIONS,
   );
 
@@ -95,8 +97,7 @@ export function ExpenseCard({
 
         <View style={styles.businessBadge}>
           <Text style={styles.businessText}>
-            Expense
-          </Text>
+            <Translated text={"Expense"} /></Text>
         </View>
       </View>
     </Pressable>

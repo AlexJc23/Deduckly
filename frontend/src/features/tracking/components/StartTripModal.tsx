@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable, ScrollView, AnimatedView } from "@/theme/components";
 import { Modal, Animated, Easing, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
@@ -65,6 +66,7 @@ export function StartTripModal({
   visible,
   onClose,
 }: StartTripModalProps) {
+  useLanguage();
   const [isMounted, setIsMounted] =
     useState(visible);
 
@@ -182,12 +184,10 @@ export function StartTripModal({
               <View style={styles.header}>
                 <View style={styles.headerText}>
                   <Text style={styles.title}>
-                    Start Trip
-                  </Text>
+                    <Translated text={"Start Trip"} /></Text>
 
                   <Text style={styles.subtitle}>
-                    What type of trip are you starting?
-                  </Text>
+                    <Translated text={"What type of trip are you starting?"} /></Text>
                 </View>
 
                 <View style={styles.headerIcon}>
@@ -266,8 +266,8 @@ export function StartTripModal({
                         >
                           {category.key ===
                           "business"
-                            ? "Track mileage for work"
-                            : "Track a personal drive"}
+                            ? <Translated text={"Track mileage for work"} />
+                            : <Translated text={"Track a personal drive"} />}
                         </Text>
                       </View>
 
@@ -310,8 +310,7 @@ export function StartTripModal({
                       styles.primaryTextDisabled,
                   ]}
                 >
-                  Continue
-                </Text>
+                  <Translated text={"Continue"} /></Text>
 
                 <Ionicons
                   name="arrow-forward"
@@ -329,8 +328,7 @@ export function StartTripModal({
                 style={styles.cancelButton}
               >
                 <Text style={styles.cancelText}>
-                  Cancel
-                </Text>
+                  <Translated text={"Cancel"} /></Text>
               </Pressable>
             </>
           ) : (
@@ -338,12 +336,10 @@ export function StartTripModal({
               <View style={styles.header}>
                 <View style={styles.headerText}>
                   <Text style={styles.title}>
-                    Select Platform
-                  </Text>
+                    <Translated text={"Select Platform"} /></Text>
 
                   <Text style={styles.subtitle}>
-                    Which platform are you driving for?
-                  </Text>
+                    <Translated text={"Which platform are you driving for?"} /></Text>
                 </View>
 
                 <View style={styles.headerIcon}>
@@ -445,8 +441,7 @@ export function StartTripModal({
                       styles.primaryTextDisabled,
                   ]}
                 >
-                  Start Trip
-                </Text>
+                  <Translated text={"Start Trip"} /></Text>
               </Pressable>
 
               <Pressable
@@ -457,8 +452,7 @@ export function StartTripModal({
                 style={styles.cancelButton}
               >
                 <Text style={styles.cancelText}>
-                  Back
-                </Text>
+                  <Translated text={"Back"} /></Text>
               </Pressable>
             </>
           )}

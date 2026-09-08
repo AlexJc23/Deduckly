@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
@@ -14,6 +15,7 @@ type OfferResultCardProps = {
 export function OfferResultCard({
   result,
 }: OfferResultCardProps) {
+  useLanguage();
   const isTablet = useIsTablet();
   const styles = getStyles(isTablet);
 
@@ -69,11 +71,11 @@ export function OfferResultCard({
               },
             ]}
           >
-            {result.recommendation.toUpperCase()}
+            {<Translated text={result.recommendation.toUpperCase()} />}
           </Text>
 
           <Text style={styles.subtitle}>
-            {result.summary}
+            {<Translated text={result.summary} />}
           </Text>
         </View>
       ) : (
@@ -83,23 +85,20 @@ export function OfferResultCard({
           </Text>
 
           <Text style={styles.subtitle}>
-            per mile
-          </Text>
+            <Translated text={"per mile"} /></Text>
         </View>
       )}
 
       <View style={styles.divider} />
 
       <Text style={styles.sectionTitle}>
-        Offer Breakdown
-      </Text>
+        <Translated text={"Offer Breakdown"} /></Text>
 
       {isPremium ? (
         <>
           <View style={styles.statRow}>
             <Text style={styles.label}>
-              Estimated Profit
-            </Text>
+              <Translated text={"Estimated Profit"} /></Text>
 
             <Text style={styles.value}>
               $
@@ -111,22 +110,19 @@ export function OfferResultCard({
 
           <View style={styles.statRow}>
             <Text style={styles.label}>
-              Profit / Hour
-            </Text>
+              <Translated text={"Profit / Hour"} /></Text>
 
             <Text style={styles.value}>
               $
               {result.profitHourlyRate.toFixed(
                 2
               )}
-              /hr
-            </Text>
+              <Translated text={"/hr"} /></Text>
           </View>
 
           <View style={styles.statRow}>
             <Text style={styles.label}>
-              Dollars / Mile
-            </Text>
+              <Translated text={"Dollars / Mile"} /></Text>
 
             <Text style={styles.value}>
               $
@@ -138,8 +134,7 @@ export function OfferResultCard({
 
           <View style={styles.statRow}>
             <Text style={styles.label}>
-              Vehicle Cost
-            </Text>
+              <Translated text={"Vehicle Cost"} /></Text>
 
             <Text style={styles.value}>
               $
@@ -149,22 +144,19 @@ export function OfferResultCard({
 
           <View style={styles.statRow}>
             <Text style={styles.label}>
-              Gross Hourly
-            </Text>
+              <Translated text={"Gross Hourly"} /></Text>
 
             <Text style={styles.value}>
               $
               {result.hourlyRate.toFixed(2)}
-              /hr
-            </Text>
+              <Translated text={"/hr"} /></Text>
           </View>
         </>
       ) : (
         <>
           <View style={styles.statRow}>
             <Text style={styles.label}>
-              Dollars / Mile
-            </Text>
+              <Translated text={"Dollars / Mile"} /></Text>
 
             <Text style={styles.value}>
               $
@@ -176,14 +168,12 @@ export function OfferResultCard({
 
           <View style={styles.statRow}>
             <Text style={styles.label}>
-              Hourly
-            </Text>
+              <Translated text={"Hourly"} /></Text>
 
             <Text style={styles.value}>
               $
               {result.hourlyRate.toFixed(2)}
-              /hr
-            </Text>
+              <Translated text={"/hr"} /></Text>
           </View>
         </>
       )}
@@ -192,8 +182,8 @@ export function OfferResultCard({
 
       <Text style={styles.sectionTitle}>
         {isPremium
-          ? "Your Preferences"
-          : "Analysis"}
+          ? <Translated text={"Your Preferences"} />
+          : <Translated text={"Analysis"} />}
       </Text>
 
       {isPremium
@@ -232,10 +222,10 @@ export function OfferResultCard({
                   </Text>
 
                   <Text style={styles.checkDetails}>
-                    Current:{" "}
+                    <Translated text={"Current:"} />{" "}
                     {check.actual.toFixed(2)}
                     {"  •  "}
-                    Goal:{" "}
+                    <Translated text={"Goal:"} />{" "}
                     {check.target.toFixed(2)}
                   </Text>
                 </View>
@@ -287,7 +277,7 @@ export function OfferResultCard({
                   </View>
 
                   <Text style={styles.reason}>
-                    {reason}
+                    {<Translated text={reason} />}
                   </Text>
                 </View>
               );

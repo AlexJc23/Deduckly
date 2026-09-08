@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable } from "@/theme/components";
 import { ActivityIndicator, StyleSheet } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -19,6 +20,7 @@ const DATE_OPTIONS: Intl.DateTimeFormatOptions = {
 };
 
 export default function TripDetailsScreen() {
+  const { locale } = useLanguage();
   const { id } = useLocalSearchParams<{
     id: string;
   }>();
@@ -47,8 +49,7 @@ export default function TripDetailsScreen() {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.errorText}>
-          Failed to load trip.
-        </Text>
+          <Translated text={"Failed to load trip."} /></Text>
       </View>
     );
   }
@@ -69,18 +70,16 @@ export default function TripDetailsScreen() {
         <View style={styles.contentInner}>
           <View style={styles.header}>
             <Text style={styles.eyebrow}>
-              TRIP
-            </Text>
+              <Translated text={"TRIP"} /></Text>
 
             <Text style={styles.title}>
-              Trip Details
-            </Text>
+              <Translated text={"Trip Details"} /></Text>
 
             <Text style={styles.subtitle}>
               {new Date(
                 trip.start_time,
               ).toLocaleDateString(
-                "en-US",
+                locale,
                 DATE_OPTIONS,
               )}
             </Text>
@@ -90,24 +89,21 @@ export default function TripDetailsScreen() {
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>
-                  DISTANCE
-                </Text>
+                  <Translated text={"DISTANCE"} /></Text>
 
                 <Text style={styles.summaryValue}>
                   {trip.distance_miles}
                 </Text>
 
                 <Text style={styles.summaryUnit}>
-                  miles
-                </Text>
+                  <Translated text={"miles"} /></Text>
               </View>
 
               <View style={styles.summaryDivider} />
 
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>
-                  PLATFORM
-                </Text>
+                  <Translated text={"PLATFORM"} /></Text>
 
                 <Text
                   style={styles.summaryValueSmall}
@@ -121,8 +117,7 @@ export default function TripDetailsScreen() {
 
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryLabel}>
-                  CATEGORY
-                </Text>
+                  <Translated text={"CATEGORY"} /></Text>
 
                 <Text
                   style={styles.summaryValueSmall}
@@ -136,8 +131,7 @@ export default function TripDetailsScreen() {
             <View style={styles.divider} />
 
             <Text style={styles.sectionTitle}>
-              Route
-            </Text>
+              <Translated text={"Route"} /></Text>
 
             <View style={styles.routeContainer}>
               <View style={styles.routeLine}>
@@ -151,8 +145,7 @@ export default function TripDetailsScreen() {
               <View style={styles.addresses}>
                 <View style={styles.addressCard}>
                   <Text style={styles.addressLabel}>
-                    PICKUP
-                  </Text>
+                    <Translated text={"PICKUP"} /></Text>
 
                   <Text style={styles.address}>
                     {trip.start_address ??
@@ -162,8 +155,7 @@ export default function TripDetailsScreen() {
 
                 <View style={styles.addressCard}>
                   <Text style={styles.addressLabelDropoff}>
-                    DROPOFF
-                  </Text>
+                    <Translated text={"DROPOFF"} /></Text>
 
                   <Text style={styles.address}>
                     {trip.end_address ??
@@ -185,8 +177,7 @@ export default function TripDetailsScreen() {
             }
           >
             <Text style={styles.deleteText}>
-              Delete Trip
-            </Text>
+              <Translated text={"Delete Trip"} /></Text>
           </Pressable>
 
           <DeleteTripModal

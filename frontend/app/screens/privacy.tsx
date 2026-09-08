@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable } from "@/theme/components";
 import { BackHeader } from "@/components/ui/BackButton";
 
@@ -11,6 +12,7 @@ import { router } from "expo-router"
 import React from "react"
 
 export default function PrivacyScreen() {
+  useLanguage();
     const deleteUserMutation = useDeleteUser();
     const queryClient = useQueryClient();
 
@@ -25,13 +27,9 @@ export default function PrivacyScreen() {
                         <>
                         <Pressable onPress={() => router.push("/settings/privacy/sections/privacy-policy")}>
                             <Text>
-                                Privacy Policy
-                            </Text>
+                                <Translated text={"Privacy Policy"} /></Text>
                             <Text>
-                                Read our policy to understand
-                                how we collect, use and protect
-                                your data,
-                            </Text>
+                                <Translated text={"Read our policy to understand how we collect, use and protect your data,"} /></Text>
                         </Pressable>
                         </>
                         <>
@@ -40,16 +38,13 @@ export default function PrivacyScreen() {
                                 setShowDeleteModal(true);
                             }}
                         >
-                            <Text>Delete Account</Text>
+                            <Text><Translated text={"Delete Account"} /></Text>
                         </Pressable>
                         </>
                         <>
-                            <Text style={{ fontWeight: "700" }}>Your privacy matters</Text>
+                            <Text style={{ fontWeight: "700" }}><Translated text={"Your privacy matters"} /></Text>
                             <Text>
-                                We’re committed to keeping your data
-                                safe and never sell your personal
-                                information.
-                            </Text>
+                                <Translated text={"We’re committed to keeping your data safe and never sell your personal information."} /></Text>
                         </>
         
                     </View>

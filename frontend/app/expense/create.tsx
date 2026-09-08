@@ -1,5 +1,6 @@
+import { localizedAlert } from "@/i18n/alerts";
 import { Stack, router } from "expo-router";
-import { Alert } from "react-native";
+
 
 import { BackHeader } from "@/components/ui/BackButton";
 
@@ -54,7 +55,7 @@ export default function CreateExpenseScreen() {
         ),
       );
 
-      Alert.alert(
+      localizedAlert(
         "Error",
         "Unable to create expense.",
       );

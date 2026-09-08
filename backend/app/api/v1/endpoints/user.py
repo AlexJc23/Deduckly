@@ -1,3 +1,4 @@
+from app.services.apple_auth_service import revoke_apple_accounts
 from app.mappers.user_mapper import to_user_response
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -115,10 +116,11 @@ def update_me(
 
 
 @router.delete("/me", response_model=dict)
-def delete_user(
+async def delete_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    await revoke_apple_accounts(current_user)
     try:
         db.delete(current_user)
         db.commit()

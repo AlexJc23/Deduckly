@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, TextInput, Pressable } from "@/theme/components";
 import { useState } from "react";
 import { StyleSheet } from "react-native";
@@ -12,6 +13,7 @@ type OfferFormProps = {
 export function OfferForm({
   onAnalyze,
 }: OfferFormProps) {
+  useLanguage();
   const isTablet = useIsTablet();
   const styles = getStyles(isTablet);
 
@@ -46,19 +48,16 @@ export function OfferForm({
 
         <View style={styles.headerText}>
           <Text style={styles.title}>
-            Offer Analyzer
-          </Text>
+            <Translated text={"Offer Analyzer"} /></Text>
 
           <Text style={styles.subtitle}>
-            See what an offer is really worth.
-          </Text>
+            <Translated text={"See what an offer is really worth."} /></Text>
         </View>
       </View>
 
       <View style={styles.inputGroup}>
         <Text style={styles.label}>
-          Offer Payout
-        </Text>
+          <Translated text={"Offer Payout"} /></Text>
 
         <View style={styles.inputWrapper}>
           <TextInput
@@ -74,8 +73,7 @@ export function OfferForm({
 
       <View style={styles.inputGroup}>
         <Text style={styles.label}>
-          Total Distance
-        </Text>
+          <Translated text={"Total Distance"} /></Text>
 
         <View style={styles.inputWrapper}>
           <TextInput
@@ -91,8 +89,7 @@ export function OfferForm({
 
       <View style={styles.inputGroup}>
         <Text style={styles.label}>
-          Estimated Time
-        </Text>
+          <Translated text={"Estimated Time"} /></Text>
 
         <View style={styles.inputWrapper}>
           <TextInput
@@ -125,8 +122,7 @@ export function OfferForm({
               styles.buttonTextDisabled,
           ]}
         >
-          Analyze Offer
-        </Text>
+          <Translated text={"Analyze Offer"} /></Text>
 
         {!isAnalyzeDisabled && (
           <Ionicons

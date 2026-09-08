@@ -1,3 +1,4 @@
+import { Translated } from "@/i18n/language";
 import { Pressable, Text, View } from "react-native";
 import { StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,12 +21,12 @@ export default function PremiumButton({ title, message, onPress }: PremiumButton
     style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
     <LinearGradient colors={["#173F5C", "#0D608D"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.content}>
     <View style={styles.header}>
-      <Text style={styles.title}>{title}</Text>
-      <View style={styles.badge}><Text style={styles.badgeText}>PRO</Text></View>
+      <Text style={styles.title}>{<Translated text={title} />}</Text>
+      <View style={styles.badge}><Text style={styles.badgeText}><Translated text={"PRO"} /></Text></View>
     </View>
-    <Text style={styles.message}>{message}</Text>
+    <Text style={styles.message}>{<Translated text={message} />}</Text>
     <View style={styles.cta}>
-      <Text style={styles.ctaText}>Upgrade to Pro</Text>
+      <Text style={styles.ctaText}><Translated text={"Upgrade to Pro"} /></Text>
       <Ionicons name="arrow-forward" size={18} color="#124B70" />
     </View>
     </LinearGradient>

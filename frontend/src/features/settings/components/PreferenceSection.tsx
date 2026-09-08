@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text } from "@/theme/components";
 import { StyleSheet } from "react-native";
 
@@ -12,11 +13,12 @@ export function PreferenceSection({
   icon,
   children,
 }: PreferenceSectionProps) {
+  useLanguage();
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         {icon}
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title}>{<Translated text={title} />}</Text>
       </View>
 
       {children}

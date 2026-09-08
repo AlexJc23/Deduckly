@@ -1,3 +1,4 @@
+import { useAppTheme } from "@/theme/theme";
 import { View, ScrollView } from "@/theme/components";
 import { useState } from "react";
 import { Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, StyleSheet } from "react-native";
@@ -23,6 +24,7 @@ import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function OfferAnalyzerScreen() {
   const isTablet = useIsTablet();
+  const { dark } = useAppTheme();
   const styles = getStyles(isTablet);
 
   const [result, setResult] = useState<
@@ -81,7 +83,7 @@ export default function OfferAnalyzerScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, dark && styles.darkContainer]}
       behavior={
         Platform.OS === "ios"
           ? "padding"
@@ -139,6 +141,10 @@ const getStyles = (isTablet: boolean) =>
     container: {
       flex: 1,
       backgroundColor: "#FFFFFF",
+    },
+
+    darkContainer: {
+      backgroundColor: "#101722",
     },
 
     scrollContent: {

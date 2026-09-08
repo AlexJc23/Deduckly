@@ -1,6 +1,8 @@
+import { useLanguage, Translated } from "@/i18n/language";
+import { localizedAlert } from "@/i18n/alerts";
 import { Pressable, ScrollView, Text, TextInput, View } from "@/theme/components";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Image, StyleSheet } from "react-native";
+import {  Image, StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as ImagePicker from "expo-image-picker";
@@ -38,6 +40,7 @@ export function ExpenseForm({
   loading = false,
   onSubmit,
 }: Props) {
+  const { locale } = useLanguage();
   const [amount, setAmount] = useState(
     initialValues.amount,
   );
@@ -114,7 +117,7 @@ export function ExpenseForm({
       await ImagePicker.requestCameraPermissionsAsync();
 
     if (!permission.granted) {
-      Alert.alert(
+      localizedAlert(
         "Camera Permission",
         "Camera permission is required.",
       );
@@ -139,7 +142,7 @@ export function ExpenseForm({
       await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permission.granted) {
-      Alert.alert(
+      localizedAlert(
         "Photos Permission",
         "Photo library permission is required.",
       );
@@ -170,26 +173,24 @@ export function ExpenseForm({
     >
       <View style={styles.header}>
   <Text style={styles.eyebrow}>
-    EXPENSE
-  </Text>
+    <Translated text={"EXPENSE"} /></Text>
 
   <Text style={styles.title}>
     {mode === "create"
-      ? "Add Expense"
-      : "Edit Expense"}
+      ? <Translated text={"Add Expense"} />
+      : <Translated text={"Edit Expense"} />}
   </Text>
 
   <Text style={styles.subtitle}>
     {mode === "create"
-      ? "Keep your business expenses organized and ready for reporting."
-      : "Update your expense details and keep your records accurate."}
+      ? <Translated text={"Keep your business expenses organized and ready for reporting."} />
+      : <Translated text={"Update your expense details and keep your records accurate."} />}
   </Text>
 </View>
 
       <View style={styles.card}>
         <Text style={styles.label}>
-          Amount
-        </Text>
+          <Translated text={"Amount"} /></Text>
 
         <View style={styles.amountContainer}>
           <Text style={styles.currency}>
@@ -207,8 +208,7 @@ export function ExpenseForm({
         </View>
 
         <Text style={styles.label}>
-          Category
-        </Text>
+          <Translated text={"Category"} /></Text>
 
         <Pressable
           style={({ pressed }) => [
@@ -253,8 +253,7 @@ export function ExpenseForm({
         />
 
         <Text style={styles.label}>
-          Date
-        </Text>
+          <Translated text={"Date"} /></Text>
 
         <View style={styles.date}>
           <View style={styles.dateIcon}>
@@ -265,7 +264,7 @@ export function ExpenseForm({
             />
           </View>
 
-          <DateTimePicker
+          <DateTimePicker locale={locale}
             value={incurredAt}
             mode="date"
             display="compact"
@@ -279,8 +278,7 @@ export function ExpenseForm({
         </View>
 
         <Text style={styles.label}>
-          Business %
-        </Text>
+          <Translated text={"Business %"} /></Text>
 
         <View style={styles.inputWithIcon}>
           <TextInput
@@ -300,8 +298,7 @@ export function ExpenseForm({
         </View>
 
         <Text style={styles.label}>
-          Merchant
-        </Text>
+          <Translated text={"Merchant"} /></Text>
 
         <TextInput
           value={merchant}
@@ -312,8 +309,7 @@ export function ExpenseForm({
         />
 
         <Text style={styles.label}>
-          Description
-        </Text>
+          <Translated text={"Description"} /></Text>
 
         <TextInput
           value={description}
@@ -342,12 +338,10 @@ export function ExpenseForm({
 
           <View style={styles.receiptHeaderText}>
             <Text style={styles.receiptTitle}>
-              Receipt
-            </Text>
+              <Translated text={"Receipt"} /></Text>
 
             <Text style={styles.receiptSubtitle}>
-              Attach a receipt for your records.
-            </Text>
+              <Translated text={"Attach a receipt for your records."} /></Text>
           </View>
         </View>
 
@@ -364,8 +358,7 @@ export function ExpenseForm({
                 styles.receiptPlaceholder
               }
             >
-              No receipt attached
-            </Text>
+              <Translated text={"No receipt attached"} /></Text>
           </View>
         )}
 
@@ -401,8 +394,7 @@ export function ExpenseForm({
                   styles.receiptButtonText
                 }
               >
-                Replace Receipt
-              </Text>
+                <Translated text={"Replace Receipt"} /></Text>
             </Pressable>
 
             <Pressable
@@ -426,8 +418,7 @@ export function ExpenseForm({
                   styles.removeText
                 }
               >
-                Remove Receipt
-              </Text>
+                <Translated text={"Remove Receipt"} /></Text>
             </Pressable>
           </>
         ) : (
@@ -453,8 +444,7 @@ export function ExpenseForm({
                   styles.receiptButtonText
                 }
               >
-                Take Photo
-              </Text>
+                <Translated text={"Take Photo"} /></Text>
             </Pressable>
 
             <Pressable
@@ -478,8 +468,7 @@ export function ExpenseForm({
                   styles.receiptButtonText
                 }
               >
-                Choose From Library
-              </Text>
+                <Translated text={"Choose From Library"} /></Text>
             </Pressable>
           </View>
         )}
@@ -516,7 +505,7 @@ export function ExpenseForm({
       >
         <Text style={styles.buttonText}>
           {loading
-            ? "Saving..."
+            ? <Translated text={"Saving..."} />
             : submitLabel}
         </Text>
       </Pressable>

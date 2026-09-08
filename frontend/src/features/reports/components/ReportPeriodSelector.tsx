@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, View } from "@/theme/components";
 import { useRef, useState } from "react";
 import { Modal, Platform, StyleSheet } from "react-native";
@@ -16,6 +17,7 @@ const OPTIONS: { label: string; value: ReportPeriod; detail: string }[] = [
 ];
 
 export function ReportPeriodSelector({ selected, onSelect }: Props) {
+  useLanguage();
   const [open, setOpen] = useState(false);
   const pending = useRef<ReportPeriod | null>(null);
   const isTablet = useIsTablet();
@@ -38,7 +40,7 @@ export function ReportPeriodSelector({ selected, onSelect }: Props) {
       accessibilityHint="Choose the dates shown in your report" accessibilityState={{ expanded: open }}
       onPress={() => setOpen(true)} style={({ pressed }) => [s.control, pressed && s.pressed]}>
       <View style={s.calendar}><Ionicons name="calendar-outline" size={22} color="#0072B5" /></View>
-      <View style={s.controlCopy}><Text style={s.caption}>Report period</Text><Text style={s.selection}>{current.label}</Text></View>
+      <View style={s.controlCopy}><Text style={s.caption}><Translated text={"Report period"} /></Text><Text style={s.selection}><Translated text={current.label} /></Text></View>
       <Ionicons name="chevron-down" size={18} color="#64748B" />
     </Pressable>
     <Modal visible={open} transparent animationType="fade" onRequestClose={dismiss}
@@ -47,7 +49,7 @@ export function ReportPeriodSelector({ selected, onSelect }: Props) {
         <Pressable accessibilityRole="button" accessibilityLabel="Dismiss period selection" onPress={dismiss} style={StyleSheet.absoluteFill} />
         <View accessibilityViewIsModal style={[s.sheet, isTablet && s.sheetTablet, { paddingBottom: Math.max(insets.bottom, 20) }]}>
           {!isTablet && <View style={s.handle} />}
-          <View style={s.header}><View style={s.headerCopy}><Text accessibilityRole="header" style={s.title}>Report period</Text><Text style={s.subtitle}>Choose the time you want to review.</Text></View>
+          <View style={s.header}><View style={s.headerCopy}><Text accessibilityRole="header" style={s.title}><Translated text={"Report period"} /></Text><Text style={s.subtitle}><Translated text={"Choose the time you want to review."} /></Text></View>
             <Pressable accessibilityRole="button" accessibilityLabel="Close period selection" onPress={dismiss} style={s.close}><Ionicons name="close" size={21} color="#64748B" /></Pressable>
           </View>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.options}>
@@ -55,7 +57,7 @@ export function ReportPeriodSelector({ selected, onSelect }: Props) {
               const active = selected === option.value;
               return <Pressable key={option.value} accessibilityRole="button" accessibilityState={{ selected: active }}
                 onPress={() => choose(option.value)} style={({ pressed }) => [s.option, active && s.activeOption, pressed && s.pressed]}>
-                <View style={s.optionCopy}><Text style={[s.optionTitle, active && s.activeText]}>{option.label}</Text><Text style={s.optionDetail}>{option.detail}</Text></View>
+                <View style={s.optionCopy}><Text style={[s.optionTitle, active && s.activeText]}>{<Translated text={option.label} />}</Text><Text style={s.optionDetail}><Translated text={option.detail} /></Text></View>
                 <Ionicons name={active ? "checkmark" : option.value === "custom" ? "chevron-forward" : "ellipse-outline"} size={active ? 22 : 18} color={active ? "#0072B5" : "#A0ACBB"} />
               </Pressable>;
             })}

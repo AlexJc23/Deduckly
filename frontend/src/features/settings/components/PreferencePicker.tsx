@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, Text, View } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
@@ -17,6 +18,7 @@ export function PreferencePicker({
     helperText,
     disabled = false,
 }: PreferencePickerProps) {
+  useLanguage();
     return (
         <Pressable
             style={({ pressed }) => [
@@ -28,17 +30,17 @@ export function PreferencePicker({
             disabled={disabled}
         >
             <View style={styles.left}>
-                <Text style={styles.label}>{label}</Text>
+                <Text style={styles.label}>{<Translated text={label} />}</Text>
 
                 {helperText && (
                     <Text style={styles.helperText}>
-                        {helperText}
+                        {<Translated text={helperText} />}
                     </Text>
                 )}
             </View>
 
             <View style={styles.right}>
-                <Text style={styles.value}>{value}</Text>
+                <Text style={styles.value}>{<Translated text={value} />}</Text>
 
                 <Ionicons
                     name="chevron-forward"
@@ -80,11 +82,15 @@ const styles = StyleSheet.create({
     },
 
     right: {
+        flexShrink: 1,
+        maxWidth: "48%",
         flexDirection: "row",
         alignItems: "center",
     },
 
     value: {
+        flexShrink: 1,
+        textAlign: "right",
         fontSize: 15,
         color: "#64748B",
         marginRight: 6,

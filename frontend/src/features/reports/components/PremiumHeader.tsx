@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, Text, View } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
@@ -9,25 +10,22 @@ type PremiumHeaderProps = {
 export default function PremiumHeader({
   onExport,
 }: PremiumHeaderProps) {
+  useLanguage();
   return (
     <View style={styles.container}>
       <View style={styles.textContainer}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>
-            Reports
-          </Text>
+            <Translated text={"Reports"} /></Text>
 
           <View style={styles.proBadge}>
             <Text style={styles.proText}>
-              PRO
-            </Text>
+              <Translated text={"PRO"} /></Text>
           </View>
         </View>
 
         <Text style={styles.subtitle}>
-          Powerful insights. Tax-ready reports.
-          All in one place.
-        </Text>
+          <Translated text={"Powerful insights. Tax-ready reports. All in one place."} /></Text>
       </View>
 
       {/* <Pressable

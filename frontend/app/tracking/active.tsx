@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { router } from "expo-router";
@@ -44,6 +45,7 @@ function formatStartTime(date: Date | null) {
 }
 
 export default function ActiveTripScreen() {
+  useLanguage();
   const isTablet = useIsTablet();
   const styles = getStyles(isTablet);
 
@@ -135,21 +137,18 @@ export default function ActiveTripScreen() {
               <View style={styles.liveDot} />
 
               <Text style={styles.liveText}>
-                TRIP IN PROGRESS
-              </Text>
+                <Translated text={"TRIP IN PROGRESS"} /></Text>
             </View>
 
             <Text style={styles.sectionLabel}>
-              DURATION
-            </Text>
+              <Translated text={"DURATION"} /></Text>
 
             <Text style={styles.timer}>
               {formatTime(elapsedSeconds)}
             </Text>
 
             <Text style={styles.timeFormat}>
-              hh:mm:ss
-            </Text>
+              <Translated text={"hh:mm:ss"} /></Text>
           </View>
 
           {/* Distance */}
@@ -157,8 +156,7 @@ export default function ActiveTripScreen() {
           <View style={styles.distanceSection}>
             <View style={styles.distanceContent}>
               <Text style={styles.sectionLabel}>
-                DISTANCE
-              </Text>
+                <Translated text={"DISTANCE"} /></Text>
 
               <View style={styles.distanceRow}>
                 <Text style={styles.distanceValue}>
@@ -166,13 +164,11 @@ export default function ActiveTripScreen() {
                 </Text>
 
                 <Text style={styles.distanceUnit}>
-                  mi
-                </Text>
+                  <Translated text={"mi"} /></Text>
               </View>
 
               <Text style={styles.distanceHint}>
-                miles tracked
-              </Text>
+                <Translated text={"miles tracked"} /></Text>
             </View>
           </View>
 
@@ -189,8 +185,7 @@ export default function ActiveTripScreen() {
               </View>
 
               <Text style={styles.detailLabel}>
-                START TIME
-              </Text>
+                <Translated text={"START TIME"} /></Text>
 
               <Text style={styles.detailValue}>
                 {formatStartTime(startTime)}
@@ -209,12 +204,10 @@ export default function ActiveTripScreen() {
               </View>
 
               <Text style={styles.detailLabel}>
-                DISTANCE
-              </Text>
+                <Translated text={"DISTANCE"} /></Text>
 
               <Text style={styles.detailValue}>
-                {distanceMiles.toFixed(2)} mi
-              </Text>
+                {distanceMiles.toFixed(2)} <Translated text={"mi"} /></Text>
             </View>
 
             <View style={styles.detailDivider} />
@@ -229,8 +222,7 @@ export default function ActiveTripScreen() {
               </View>
 
               <Text style={styles.detailLabel}>
-                PLATFORM
-              </Text>
+                <Translated text={"PLATFORM"} /></Text>
 
               <Text
                 style={styles.detailValue}
@@ -242,8 +234,8 @@ export default function ActiveTripScreen() {
                       " "
                     )
                   : category === "personal"
-                  ? "Personal"
-                  : "Other"}
+                  ? <Translated text={"Personal"} />
+                  : <Translated text={"Other"} />}
               </Text>
             </View>
           </View>
@@ -266,12 +258,10 @@ export default function ActiveTripScreen() {
 
             <View style={styles.endTripText}>
               <Text style={styles.endTripTitle}>
-                Stop Trip
-              </Text>
+                <Translated text={"Stop Trip"} /></Text>
 
               <Text style={styles.endTripSubtitle}>
-                End and save trip
-              </Text>
+                <Translated text={"End and save trip"} /></Text>
             </View>
 
             <Ionicons
@@ -294,8 +284,7 @@ export default function ActiveTripScreen() {
             ]}
           >
             <Text style={styles.cancelText}>
-              Cancel Trip
-            </Text>
+              <Translated text={"Cancel Trip"} /></Text>
           </Pressable>
 
           {/* Security */}
@@ -311,12 +300,10 @@ export default function ActiveTripScreen() {
 
             <View style={styles.securityText}>
               <Text style={styles.securityTitle}>
-                Your trip data is securely transmitted.
-              </Text>
+                <Translated text={"Your trip data is securely transmitted."} /></Text>
 
               <Text style={styles.securitySubtitle}>
-                You can stop tracking anytime.
-              </Text>
+                <Translated text={"You can stop tracking anytime."} /></Text>
             </View>
           </View>
         </View>

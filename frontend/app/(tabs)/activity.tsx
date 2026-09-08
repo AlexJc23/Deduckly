@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, Text, View } from "@/theme/components";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -26,6 +27,7 @@ type TabValue = "trips" | "income" | "expenses";
 type SortValue = "desc" | "asc";
 
 function TripListEmpty() {
+  useLanguage();
   return (
     <View style={styles.messageContainer}>
       <View style={styles.emptyIcon}>
@@ -37,17 +39,16 @@ function TripListEmpty() {
       </View>
 
       <Text style={styles.emptyTitle}>
-        No trips yet
-      </Text>
+        <Translated text={"No trips yet"} /></Text>
 
       <Text style={styles.messageText}>
-        No trips found for this period.
-      </Text>
+        <Translated text={"No trips found for this period."} /></Text>
     </View>
   );
 }
 
 function TripListError() {
+  useLanguage();
   return (
     <View style={styles.messageContainer}>
       <View style={styles.errorIcon}>
@@ -59,21 +60,20 @@ function TripListError() {
       </View>
 
       <Text style={styles.emptyTitle}>
-        Something went wrong
-      </Text>
+        <Translated text={"Something went wrong"} /></Text>
 
       <Text style={styles.messageText}>
-        Failed to load trips.
-      </Text>
+        <Translated text={"Failed to load trips."} /></Text>
     </View>
   );
 }
 
 function TripItem({ item }: { item: Trip }) {
+  const { locale } = useLanguage();
   const dateLabel = new Date(
     item.start_time,
   ).toLocaleDateString(
-    "en-US",
+    locale,
     DATE_OPTIONS,
   );
 
@@ -112,8 +112,7 @@ function TripItem({ item }: { item: Trip }) {
             </Text>
 
             <Text style={styles.tripType}>
-              Trip
-            </Text>
+              <Translated text={"Trip"} /></Text>
           </View>
         </View>
 
@@ -126,8 +125,7 @@ function TripItem({ item }: { item: Trip }) {
 
       <View style={styles.tripDetails}>
         <Text style={styles.tripDistance}>
-          {item.distance_miles} mi
-        </Text>
+          {item.distance_miles} <Translated text={"mi"} /></Text>
 
         <Text style={styles.tripDate}>
           {dateLabel}
@@ -138,6 +136,7 @@ function TripItem({ item }: { item: Trip }) {
 }
 
 export default function ActivityScreen() {
+  useLanguage();
   const [tab, setTab] =
     useState<TabValue>("trips");
 
@@ -329,12 +328,10 @@ export default function ActivityScreen() {
       <View style={styles.header}>
 
         <Text style={styles.title}>
-          Activity
-        </Text>
+          <Translated text={"Activity"} /></Text>
 
         <Text style={styles.subtitle}>
-          Track your trips, income, and expenses.
-        </Text>
+          <Translated text={"Track your trips, income, and expenses."} /></Text>
       </View>
 
       <View style={styles.segment}>
@@ -369,8 +366,7 @@ export default function ActivityScreen() {
                 styles.segmentTextActive,
             ]}
           >
-            Trips
-          </Text>
+            <Translated text={"Trips"} /></Text>
         </Pressable>
 
         <Pressable
@@ -404,8 +400,7 @@ export default function ActivityScreen() {
                 styles.segmentTextActive,
             ]}
           >
-            Income
-          </Text>
+            <Translated text={"Income"} /></Text>
         </Pressable>
 
         <Pressable
@@ -439,8 +434,7 @@ export default function ActivityScreen() {
                 styles.segmentTextActive,
             ]}
           >
-            Expenses
-          </Text>
+            <Translated text={"Expenses"} /></Text>
         </Pressable>
       </View>
 
@@ -470,8 +464,8 @@ export default function ActivityScreen() {
 
           <Text style={styles.actionText}>
             {sort === "desc"
-              ? "Newest"
-              : "Oldest"}
+              ? <Translated text={"Newest"} />
+              : <Translated text={"Oldest"} />}
           </Text>
 
           <Ionicons

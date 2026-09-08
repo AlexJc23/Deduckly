@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable } from "@/theme/components";
 import { Modal, StyleSheet } from "react-native";
 
@@ -12,6 +13,7 @@ export function DeleteIncomeModal({
   onClose,
   onDelete,
 }: DeleteIncomeModalProps) {
+  useLanguage();
   return (
     <Modal
       visible={visible}
@@ -22,13 +24,10 @@ export function DeleteIncomeModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.title}>
-            Delete Income?
-          </Text>
+            <Translated text={"Delete Income?"} /></Text>
 
           <Text style={styles.description}>
-            This will permanently delete this income.
-            This action cannot be undone.
-          </Text>
+            <Translated text={"This will permanently delete this income. This action cannot be undone."} /></Text>
 
           <View style={styles.buttonRow}>
             <Pressable
@@ -36,8 +35,7 @@ export function DeleteIncomeModal({
               onPress={onClose}
             >
               <Text style={styles.cancelText}>
-                Cancel
-              </Text>
+                <Translated text={"Cancel"} /></Text>
             </Pressable>
 
             <Pressable
@@ -45,8 +43,7 @@ export function DeleteIncomeModal({
               onPress={onDelete}
             >
               <Text style={styles.deleteText}>
-                Delete Income
-              </Text>
+                <Translated text={"Delete Income"} /></Text>
             </Pressable>
           </View>
         </View>

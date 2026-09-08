@@ -2,13 +2,18 @@ const fs = require('fs'), path = require('path'), Module = require('module'), as
 const root = process.env.DEDUCKLY_FRONTEND || path.resolve(__dirname, '..');
 const resolve = name => require.resolve(name, { paths: [root] });
 const ts = require(resolve('typescript')), React = require(resolve('react')), server = require(resolve('react-dom/server')), native = require(resolve('react-native-web'));
-let dark = false, width = 390;
+let dark = false, width = 390, keyboardBackground;
 const original = Module._load;
 Module._load = function(id, parent, main) {
-  if (id === 'react-native') return { ...native, useWindowDimensions: () => ({ width, height: 844, scale: 1, fontScale: 1 }) };
+ if (id === '@react-native-async-storage/async-storage') return { getItem: async () => null, setItem: async () => {} };
+  if (id === 'react-native') return { ...native, KeyboardAvoidingView: props => { keyboardBackground = native.StyleSheet.flatten(props.style)?.backgroundColor; return React.createElement(native.View, props); }, useWindowDimensions: () => ({ width, height: 844, scale: 1, fontScale: 1 }) };
   if (id === '@/theme/theme' || (id === './theme' && parent.filename.includes('/theme/'))) return { useAppTheme: () => ({ dark }) };
   if (id === 'react-native-safe-area-context') return { SafeAreaView: native.View, useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) };
   if (id === 'expo-router') return { router: { push() {} } };
+  if (id === '@/components/ui/PremiumButton') return { __esModule: true, default: () => null };
+  if (id === '@/theme/icons') return { Ionicons: () => null };
+  if (id === '@/features/settings/hooks/usePreferences') return { usePreferences: () => ({ preferences: {} }) };
+  if (id === '@/features/subscriptions/hooks/use-premium') return { usePremium: () => ({ isPremium: true }) };
   if (id.startsWith('@/')) id = path.join(root, 'src', id.slice(2));
   return original.call(this, id, parent, main);
 };
@@ -28,8 +33,13 @@ const style = [{ padding: 20, backgroundColor: '#FFFFFF' }, { opacity: .5 }];
 assert.equal(themedStyle(style, false), style);
 assert.deepEqual(themedStyle(style, true), { padding: 20, backgroundColor: '#1B2635', opacity: .5 });
 const report = { total_income: 5400, total_expenses: 870, total_miles: 1260, mileage_deduction: 850, deductible_expense_total: 440, total_deductions: 1290, net_profit: 4110, taxable_income: 4110, estimated_tax_owed: 411, estimated_tax_savings: 129, tax_method: 'standard_mileage', expense_breakdown: { fuel: { amount: 430, count: 8 }, supplies: { amount: 440, count: 2 } } };
+const OfferAnalyzerScreen = require(root + '/app/offer-analyzer/screens/OfferAnalyzerScreen.tsx').default;
 const output = '/tmp/deduckly-theme-qa'; fs.mkdirSync(output, { recursive: true });
 for (dark of [false, true]) for (width of [320, 390, 1024]) {
+  const offerBody = server.renderToStaticMarkup(React.createElement(OfferAnalyzerScreen));
+  assert.equal(keyboardBackground, dark ? '#101722' : '#FFFFFF', 'Offer Analyzer keyboard container must follow appearance');
+  assert.ok(offerBody.includes('Offer Analyzer'));
+  fs.writeFileSync(`${output}/offer-${dark ? 'dark' : 'light'}-${width}.html`, `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}${native.StyleSheet.getSheet().textContent}</style><main style="max-width:${width}px;margin:auto">${offerBody}</main>`);
   const body = server.renderToStaticMarkup(React.createElement(View, { style: { padding: 20, maxWidth: 760, marginHorizontal: 'auto', backgroundColor: '#F8FAFC' } },
     React.createElement(Text, { style: { fontSize: 28, fontWeight: '700', marginBottom: 20 } }, 'Deduckly'),
     React.createElement(PreferenceSection, { title: 'Goals' }, React.createElement(PreferenceInput, { label: 'Monthly Income Goal', value: '5000' }), React.createElement(PreferenceToggle, { label: 'Income Goal Reminders', description: 'Daily reminders and a new-month goal.', value: true, onValueChange() {} })),
@@ -37,4 +47,4 @@ for (dark of [false, true]) for (width of [320, 390, 1024]) {
   assert.ok(body.includes('$5,400.00'));
   fs.writeFileSync(`${output}/${dark ? 'dark' : 'light'}-${width}.html`, `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;background:${dark ? '#101722' : '#F8FAFC'}}${native.StyleSheet.getSheet().textContent}</style><main style="max-width:${width}px;margin:auto">${body}</main>`);
 }
-console.log('Passed palette, brand/white-text preservation, light-style identity, animation/layout-property preservation, and six phone/tablet report/form renders.');
+console.log('Passed palette, brand/white-text preservation, light-style identity, animation/layout-property preservation, and phone/tablet report, form, and Offer Analyzer renders in both themes.');

@@ -19,6 +19,7 @@ interface AuthContextType {
   isLoading: boolean;
   signIn: () => void;
   signOut: () => void;
+  clearSession: () => Promise<void>;
 }
 
 const AuthContext =
@@ -37,13 +38,17 @@ export function AuthProvider({
     setAuthenticated(true);
   }
 
+  async function clearSession() {
+    await clearTokens();
+    setAuthenticated(false);
+    router.replace("/(auth)/login");
+  }
+
   async function signOut() {
     try {
       await logout();
     } finally {
-      await clearTokens();
-      setAuthenticated(false);
-      router.replace("/(auth)/login");
+      await clearSession();
     }
   }
 
@@ -68,6 +73,7 @@ export function AuthProvider({
         isLoading,
         signIn,
         signOut,
+        clearSession,
       }}
     >
       {children}

@@ -2,7 +2,7 @@
 
 
 from fastapi import APIRouter
-from app.api.v1.endpoints import legal, health, user, auth, trip, income, expense, taxbracket, mileage_rate, subscription, report, notification, feedback
+from app.api.v1.endpoints import apple, legal, health, user, auth, trip, income, expense, taxbracket, mileage_rate, subscription, report, notification, feedback
 
 
 
@@ -11,6 +11,7 @@ api_router = APIRouter()
 api_router.include_router(health.router)
 api_router.include_router(user.router)
 api_router.include_router(auth.router)
+api_router.include_router(apple.router)
 api_router.include_router(trip.router)
 api_router.include_router(income.router)
 api_router.include_router(expense.router)

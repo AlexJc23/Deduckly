@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, TextInput } from "@/theme/components";
 import { StyleSheet, TextInputProps } from "react-native";
 
@@ -16,15 +17,16 @@ export function PreferenceInput({
   editable = true,
   ...props
 }: PreferenceInputProps) {
+  useLanguage();
   return (
     <View style={styles.container}>
       <Text style={styles.label}>
-        {label}
+        {<Translated text={label} />}
       </Text>
 
       {helperText && (
         <Text style={styles.helper}>
-          {helperText}
+          {<Translated text={helperText} />}
         </Text>
       )}
 

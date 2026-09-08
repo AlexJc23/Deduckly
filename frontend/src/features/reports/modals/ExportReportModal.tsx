@@ -1,5 +1,7 @@
+import { useLanguage, Translated } from "@/i18n/language";
+import { localizedAlert } from "@/i18n/alerts";
 import { View, Text, Pressable, AnimatedView } from "@/theme/components";
-import { Alert, Modal, Animated, Easing, StyleSheet } from "react-native";
+import {  Modal, Animated, Easing, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { Ionicons } from "@/theme/icons";
 
@@ -20,6 +22,7 @@ export function ExportReportModal({
   onClose,
   periodLabel,
 }: ExportReportModalProps) {
+  useLanguage();
   const [isMounted, setIsMounted] =
     useState(visible);
 
@@ -67,7 +70,7 @@ export function ExportReportModal({
       setFormat("pdf");
       onClose();
     } catch (error) {
-      Alert.alert("Export failed", "We couldn’t save this report. Please try again.");
+      localizedAlert("Export failed", "We couldn’t save this report. Please try again.");
       console.error(
         "Failed to export report:",
         error,
@@ -131,12 +134,10 @@ export function ExportReportModal({
           <View style={styles.header}>
             <View style={styles.headerText}>
               <Text style={styles.eyebrow}>
-                REPORTS
-              </Text>
+                <Translated text={"REPORTS"} /></Text>
 
               <Text style={styles.title}>
-                Export Report
-              </Text>
+                <Translated text={"Export Report"} /></Text>
 
               <Text style={styles.subtitle}>
                 {periodLabel ?? "Choose how to save your report."}
@@ -191,12 +192,10 @@ export function ExportReportModal({
                       styles.optionTitleSelected,
                   ]}
                 >
-                  PDF
-                </Text>
+                  <Translated text={"PDF"} /></Text>
 
                 <Text style={styles.optionSubtitle}>
-                  Formatted report for sharing
-                </Text>
+                  <Translated text={"Formatted report for sharing"} /></Text>
               </View>
 
               <View
@@ -252,12 +251,10 @@ export function ExportReportModal({
                       styles.optionTitleSelected,
                   ]}
                 >
-                  CSV
-                </Text>
+                  <Translated text={"CSV"} /></Text>
 
                 <Text style={styles.optionSubtitle}>
-                  Spreadsheet-ready data
-                </Text>
+                  <Translated text={"Spreadsheet-ready data"} /></Text>
               </View>
 
               <View
@@ -299,7 +296,7 @@ export function ExportReportModal({
 
             <Text style={styles.primaryText}>
               {isExporting
-                ? "Exporting..."
+                ? <Translated text={"Exporting..."} />
                 : `Export ${format.toUpperCase()}`}
             </Text>
           </Pressable>
@@ -314,8 +311,7 @@ export function ExportReportModal({
             onPress={handleClose}
           >
             <Text style={styles.secondaryText}>
-              Cancel
-            </Text>
+              <Translated text={"Cancel"} /></Text>
           </Pressable>
         </AnimatedView>
       </View>

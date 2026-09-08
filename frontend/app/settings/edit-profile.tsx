@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, SafeAreaView, Text, TextInput, View, AnimatedView } from "@/theme/components";
 import { ActivityIndicator, Animated, Keyboard, Modal, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
@@ -12,6 +13,7 @@ import DeleteAccountModal from "@/features/settings/modals/DeleteAccountModal";
 import { BackHeader } from "@/components/ui/BackButton";
 
 export default function UserUpdateScreen() {
+  useLanguage();
   const userQuery = useCurrentUser();
   const updateUserMutation = useUpdateUser();
   const deleteUserMutation = useDeleteUser();
@@ -125,17 +127,13 @@ export default function UserUpdateScreen() {
 
           <View style={styles.header}>
             <Text style={styles.eyebrow}>
-              ACCOUNT
-            </Text>
+              <Translated text={"ACCOUNT"} /></Text>
 
             <Text style={styles.title}>
-              Personal information
-            </Text>
+              <Translated text={"Personal information"} /></Text>
 
             <Text style={styles.subtitle}>
-              Keep your account details and tax
-              profile up to date.
-            </Text>
+              <Translated text={"Keep your account details and tax profile up to date."} /></Text>
           </View>
 
           {/* Form */}
@@ -144,12 +142,10 @@ export default function UserUpdateScreen() {
             <View style={styles.cardHeader}>
               <View>
                 <Text style={styles.cardEyebrow}>
-                  PROFILE
-                </Text>
+                  <Translated text={"PROFILE"} /></Text>
 
                 <Text style={styles.cardTitle}>
-                  Your information
-                </Text>
+                  <Translated text={"Your information"} /></Text>
               </View>
             </View>
 
@@ -157,8 +153,7 @@ export default function UserUpdateScreen() {
 
             <View style={styles.field}>
               <Text style={styles.label}>
-                First Name
-              </Text>
+                <Translated text={"First Name"} /></Text>
 
               <TextInput
                 style={styles.input}
@@ -174,8 +169,7 @@ export default function UserUpdateScreen() {
 
             <View style={styles.field}>
               <Text style={styles.label}>
-                Last Name
-              </Text>
+                <Translated text={"Last Name"} /></Text>
 
               <TextInput
                 style={styles.input}
@@ -191,8 +185,7 @@ export default function UserUpdateScreen() {
 
             <View style={styles.field}>
               <Text style={styles.label}>
-                Filing Status
-              </Text>
+                <Translated text={"Filing Status"} /></Text>
 
               <Pressable
                 style={styles.selectButton}
@@ -239,13 +232,11 @@ export default function UserUpdateScreen() {
                   />
 
                   <Text style={styles.saveButtonText}>
-                    Saving...
-                  </Text>
+                    <Translated text={"Saving..."} /></Text>
                 </>
               ) : (
                 <Text style={styles.saveButtonText}>
-                  Save Changes
-                </Text>
+                  <Translated text={"Save Changes"} /></Text>
               )}
             </Pressable>
           </View>
@@ -262,13 +253,10 @@ export default function UserUpdateScreen() {
 
               <View style={styles.dangerContent}>
                 <Text style={styles.dangerTitle}>
-                  Delete account
-                </Text>
+                  <Translated text={"Delete account"} /></Text>
 
                 <Text style={styles.dangerDescription}>
-                  Permanently remove your account
-                  and associated data.
-                </Text>
+                  <Translated text={"Permanently remove your account and associated data."} /></Text>
               </View>
             </View>
 
@@ -279,8 +267,7 @@ export default function UserUpdateScreen() {
               }
             >
               <Text style={styles.deleteButtonText}>
-                Delete Account
-              </Text>
+                <Translated text={"Delete Account"} /></Text>
             </Pressable>
           </View>
         </View>
@@ -318,17 +305,13 @@ export default function UserUpdateScreen() {
               <View style={styles.grabber} />
 
               <Text style={styles.sheetEyebrow}>
-                TAX PROFILE
-              </Text>
+                <Translated text={"TAX PROFILE"} /></Text>
 
               <Text style={styles.sheetTitle}>
-                Filing Status
-              </Text>
+                <Translated text={"Filing Status"} /></Text>
 
               <Text style={styles.sheetSubtitle}>
-                Select the status that applies to
-                your tax return.
-              </Text>
+                <Translated text={"Select the status that applies to your tax return."} /></Text>
 
               <View style={styles.optionList}>
                 {filingStatuses.map(
@@ -396,8 +379,7 @@ export default function UserUpdateScreen() {
                 }
               >
                 <Text style={styles.cancelText}>
-                  Cancel
-                </Text>
+                  <Translated text={"Cancel"} /></Text>
               </Pressable>
             </AnimatedView>
           </View>

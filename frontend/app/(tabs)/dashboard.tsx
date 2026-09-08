@@ -1,8 +1,27 @@
-import { Pressable, Text, View, SafeAreaView } from "@/theme/components";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, StyleSheet, Image, useWindowDimensions } from "react-native";
+import { useLanguage, Translated } from "@/i18n/language";
+import {
+  Pressable,
+  Text,
+  View,
+  SafeAreaView,
+} from "@/theme/components";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Image,
+  useWindowDimensions,
+} from "react-native";
 
-import { router, useLocalSearchParams } from "expo-router";
+import {
+  router,
+  useLocalSearchParams,
+} from "expo-router";
 import { Ionicons } from "@/theme/icons";
 
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
@@ -33,6 +52,8 @@ const subtitles = [
 ];
 
 export default function DashboardScreen() {
+  useLanguage();
+
   const userQuery = useCurrentUser();
   const { saved } = useLocalSearchParams();
   const isTablet = useIsTablet();
@@ -51,14 +72,18 @@ export default function DashboardScreen() {
     startTrackingFromSiri,
   } = useTracking();
 
-  const [showStartTripModal, setShowStartTripModal] =
-    useState(false);
+  const [
+    showStartTripModal,
+    setShowStartTripModal,
+  ] = useState(false);
 
   const [showBanner, setShowBanner] =
     useState(false);
 
   const bannerTimeoutRef =
-    useRef<ReturnType<typeof setTimeout> | null>(null);
+    useRef<ReturnType<typeof setTimeout> | null>(
+      null
+    );
 
   const { data: dailyGoal } =
     useDailyGoal();
@@ -69,7 +94,8 @@ export default function DashboardScreen() {
   } = useTodayReport();
 
   const todayExpenses =
-    todayReport?.total_expenses.toFixed(2) ?? "--";
+    todayReport?.total_expenses.toFixed(2) ??
+    "--";
 
   const tripBreakdown =
     todayReport?.trip_breakdown ?? [];
@@ -145,22 +171,25 @@ export default function DashboardScreen() {
   }, [saved]);
 
   useEffect(() => {
-    const interval = setInterval(async () => {
-      const pendingTrip =
-        await getPendingTrip();
+    const interval = setInterval(
+      async () => {
+        const pendingTrip =
+          await getPendingTrip();
 
-      if (!pendingTrip) return;
+        if (!pendingTrip) return;
 
-      clearInterval(interval);
+        clearInterval(interval);
 
-      await startTrackingFromSiri(
-        pendingTrip.platform
-      );
+        await startTrackingFromSiri(
+          pendingTrip.platform
+        );
 
-      router.replace(
-        "/tracking/active"
-      );
-    }, 500);
+        router.replace(
+          "/tracking/active"
+        );
+      },
+      500
+    );
 
     return () => clearInterval(interval);
   }, []);
@@ -192,24 +221,38 @@ export default function DashboardScreen() {
           />
 
           <Text style={styles.bannerText}>
-            Trip Saved Successfully
+            <Translated
+              text={"Trip Saved Successfully"}
+            />
           </Text>
         </View>
       )}
 
       {userQuery.data && (
-        <View style={styles.welcomeContainer}>
+        <View
+          style={styles.welcomeContainer}
+        >
           <Text style={styles.welcomeText}>
-            <Text style={styles.welcomeLight}>
-              {greeting}
+            <Text
+              style={styles.welcomeLight}
+            >
+              <Translated
+                text={greeting}
+              />
             </Text>{" "}
-            <Text style={styles.welcomeName}>
+            <Text
+              style={styles.welcomeName}
+            >
               {userQuery.data.first_name}!
             </Text>
           </Text>
 
-          <Text style={styles.welcomeSubtitle}>
-            {subtitle}
+          <Text
+            style={styles.welcomeSubtitle}
+          >
+            <Translated
+              text={subtitle}
+            />
           </Text>
         </View>
       )}
@@ -242,13 +285,27 @@ export default function DashboardScreen() {
           />
         </View>
 
-        <View style={styles.offerTextContainer}>
-          <Text style={styles.offerTitle}>
-            Offer Analyzer
+        <View
+          style={
+            styles.offerTextContainer
+          }
+        >
+          <Text
+            style={styles.offerTitle}
+          >
+            <Translated
+              text={"Offer Analyzer"}
+            />
           </Text>
 
-          <Text style={styles.offerSubtitle}>
-            See if a gig is worth your time
+          <Text
+            style={styles.offerSubtitle}
+          >
+            <Translated
+              text={
+                "See if a gig is worth your time"
+              }
+            />
           </Text>
         </View>
 
@@ -260,124 +317,211 @@ export default function DashboardScreen() {
       </Pressable>
 
       <View style={styles.platformCard}>
-        <View style={styles.platformHeader}>
-
-          <View style={styles.platformHeaderText}>
-            <Text style={styles.platformTitle}>
-              MILEAGE BREAKDOWN
+        <View
+          style={styles.platformHeader}
+        >
+          <View
+            style={
+              styles.platformHeaderText
+            }
+          >
+            <Text
+              style={styles.platformTitle}
+            >
+              <Translated
+                text={
+                  "MILEAGE BREAKDOWN"
+                }
+              />
             </Text>
 
-            <Text style={styles.platformSubtitle}>
-              Miles tracked today
+            <Text
+              style={
+                styles.platformSubtitle
+              }
+            >
+              <Translated
+                text={
+                  "Miles tracked today"
+                }
+              />
             </Text>
           </View>
 
-          <View style={styles.totalMilesContainer}>
-            <Text style={styles.totalMilesValue}>
-              {Number(totalMiles).toFixed(2)}
+          <View
+            style={
+              styles.totalMilesContainer
+            }
+          >
+            <Text
+              style={
+                styles.totalMilesValue
+              }
+            >
+              {Number(
+                totalMiles
+              ).toFixed(2)}
             </Text>
 
-            <Text style={styles.totalMilesLabel}>
-              miles
+            <Text
+              style={
+                styles.totalMilesLabel
+              }
+            >
+              <Translated text={"miles"} />
             </Text>
           </View>
         </View>
 
-        {visibleTripBreakdown.length > 0 ? (
-  <View style={styles.platformList}>
-    {visibleTripBreakdown.map(
-      (
-        trip: {
-          platform: PlatformName;
-          miles: number;
-          trip_count: number;
-        },
-        index: number
-      ) => (
-        <View
-          key={`${trip.platform}-${index}`}
-          style={[
-            styles.platformRow,
-            index ===
-              visibleTripBreakdown.length - 1 &&
-              !hasMorePlatforms &&
-              styles.platformRowLast,
-          ]}
-        >
-          <View style={styles.platformNameContainer}>
-            <Image
-              source={
-                platformIcons[trip.platform] ??
-                platformIcons.other
-              }
-              style={styles.platformLogo}
-              resizeMode="contain"
+        {visibleTripBreakdown.length >
+        0 ? (
+          <View
+            style={styles.platformList}
+          >
+            {visibleTripBreakdown.map(
+              (
+                trip: {
+                  platform: PlatformName;
+                  miles: number;
+                  trip_count: number;
+                },
+                index: number
+              ) => (
+                <View
+                  key={`${trip.platform}-${index}`}
+                  style={[
+                    styles.platformRow,
+                    index ===
+                      visibleTripBreakdown.length -
+                        1 &&
+                      !hasMorePlatforms &&
+                      styles.platformRowLast,
+                  ]}
+                >
+                  <View
+                    style={
+                      styles.platformNameContainer
+                    }
+                  >
+                    <Image
+                      source={
+                        platformIcons[
+                          trip.platform
+                        ] ??
+                        platformIcons.other
+                      }
+                      style={
+                        styles.platformLogo
+                      }
+                      resizeMode="contain"
+                    />
+
+                    <View>
+                      <Text
+                        style={
+                          styles.platformName
+                        }
+                      >
+                        {formatPlatformName(
+                          trip.platform
+                        )}
+                      </Text>
+
+                      <Text
+                        style={
+                          styles.platformTripCount
+                        }
+                      >
+                        {trip.trip_count}{" "}
+                        {trip.trip_count ===
+                        1 ? (
+                          <Translated
+                            text={"trip"}
+                          />
+                        ) : (
+                          <Translated
+                            text={"trips"}
+                          />
+                        )}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text
+                    style={
+                      styles.platformMiles
+                    }
+                  >
+                    {Number(
+                      trip.miles
+                    ).toFixed(2)}{" "}
+                    <Translated
+                      text={"mi"}
+                    />
+                  </Text>
+                </View>
+              )
+            )}
+          </View>
+        ) : (
+          <View
+            style={styles.emptyMileage}
+          >
+            <Ionicons
+              name="car-outline"
+              size={isTablet ? 24 : 21}
+              color="#94A3B8"
             />
 
-            <View>
-              <Text style={styles.platformName}>
-                {formatPlatformName(
-                  trip.platform
-                )}
-              </Text>
-
-              <Text
-                style={styles.platformTripCount}
-              >
-                {trip.trip_count}{" "}
-                {trip.trip_count === 1
-                  ? "trip"
-                  : "trips"}
-              </Text>
-            </View>
+            <Text
+              style={
+                styles.emptyMileageText
+              }
+            >
+              <Translated
+                text={
+                  "No miles tracked today"
+                }
+              />
+            </Text>
           </View>
+        )}
 
-          <Text style={styles.platformMiles}>
-            {Number(trip.miles).toFixed(2)} mi
+        <Pressable
+          onPress={() =>
+            router.push(
+              "/(tabs)/activity"
+            )
+          }
+          style={({ pressed }) => [
+            styles.seeMoreButton,
+            pressed &&
+              styles.seeMoreButtonPressed,
+          ]}
+        >
+          <Text
+            style={styles.seeMoreText}
+          >
+            <Translated
+              text={"View your trips"}
+            />
           </Text>
-        </View>
-      )
-    )}
-  </View>
-) : (
-  <View style={styles.emptyMileage}>
-    <Ionicons
-      name="car-outline"
-      size={isTablet ? 24 : 21}
-      color="#94A3B8"
-    />
 
-    <Text style={styles.emptyMileageText}>
-      No miles tracked today
-    </Text>
-  </View>
-)}
-
-<Pressable
-  onPress={() =>
-    router.push("/(tabs)/activity")
-  }
-  style={({ pressed }) => [
-    styles.seeMoreButton,
-    pressed &&
-      styles.seeMoreButtonPressed,
-  ]}
->
-  <Text style={styles.seeMoreText}>
-    View your trips
-  </Text>
-
-  <Ionicons
-    name="chevron-forward"
-    size={isTablet ? 18 : 16}
-    color="#4A6FE3"
-  />
-</Pressable>
+          <Ionicons
+            name="chevron-forward"
+            size={isTablet ? 18 : 16}
+            color="#4A6FE3"
+          />
+        </Pressable>
       </View>
 
       <View style={styles.expenseCard}>
-        <View style={styles.expenseHeader}>
-          <View style={styles.expenseIcon}>
+        <View
+          style={styles.expenseHeader}
+        >
+          <View
+            style={styles.expenseIcon}
+          >
             <Ionicons
               name="receipt-outline"
               size={isTablet ? 20 : 17}
@@ -386,23 +530,43 @@ export default function DashboardScreen() {
           </View>
 
           <View>
-            <Text style={styles.expenseTitle}>
-              EXPENSES
+            <Text
+              style={styles.expenseTitle}
+            >
+              <Translated
+                text={"EXPENSES"}
+              />
             </Text>
 
-            <Text style={styles.expenseSubtitle}>
-              Expenses recorded today
+            <Text
+              style={
+                styles.expenseSubtitle
+              }
+            >
+              <Translated
+                text={
+                  "Expenses recorded today"
+                }
+              />
             </Text>
           </View>
 
-          <Text style={styles.expenseAmount}>
+          <Text
+            style={styles.expenseAmount}
+          >
             ${todayExpenses}
           </Text>
         </View>
       </View>
 
-      <View style={styles.actionsContainer}>
-        <View style={styles.actionButtonsRow}>
+      <View
+        style={styles.actionsContainer}
+      >
+        <View
+          style={
+            styles.actionButtonsRow
+          }
+        >
           <Pressable
             style={({ pressed }) => [
               styles.actionButton,
@@ -410,7 +574,9 @@ export default function DashboardScreen() {
                 styles.actionButtonPressed,
             ]}
             onPress={() =>
-              router.push("/income/create")
+              router.push(
+                "/income/create"
+              )
             }
           >
             <Ionicons
@@ -419,8 +585,14 @@ export default function DashboardScreen() {
               color="#4A6FE3"
             />
 
-            <Text style={styles.actionButtonText}>
-              Add Income
+            <Text
+              style={
+                styles.actionButtonText
+              }
+            >
+              <Translated
+                text={"Add Income"}
+              />
             </Text>
           </Pressable>
 
@@ -431,7 +603,9 @@ export default function DashboardScreen() {
                 styles.actionButtonPressed,
             ]}
             onPress={() =>
-              router.push("/expense/create")
+              router.push(
+                "/expense/create"
+              )
             }
           >
             <Ionicons
@@ -440,8 +614,14 @@ export default function DashboardScreen() {
               color="#64748B"
             />
 
-            <Text style={styles.actionButtonText}>
-              Add Expense
+            <Text
+              style={
+                styles.actionButtonText
+              }
+            >
+              <Translated
+                text={"Add Expense"}
+              />
             </Text>
           </Pressable>
         </View>
@@ -478,7 +658,11 @@ export default function DashboardScreen() {
             }
           />
 
-          <View style={styles.startTripTextContainer}>
+          <View
+            style={
+              styles.startTripTextContainer
+            }
+          >
             <Text
               style={[
                 styles.startTripButtonText,
@@ -486,14 +670,28 @@ export default function DashboardScreen() {
                   styles.startTripButtonTextTracking,
               ]}
             >
-              {isTracking
-                ? "Trip in Progress"
-                : "Start a Trip"}
+              {isTracking ? (
+                <Translated
+                  text={
+                    "Trip in Progress"
+                  }
+                />
+              ) : (
+                <Translated
+                  text={"Start a Trip"}
+                />
+              )}
             </Text>
 
             {!isTracking && (
-              <Text style={styles.siriHint}>
-                Or say "Siri, Start a trip in Deduckly"
+              <Text
+                style={styles.siriHint}
+              >
+                <Translated
+                  text={
+                    'Or say "Siri, Start a trip in Deduckly"'
+                  }
+                />
               </Text>
             )}
           </View>
