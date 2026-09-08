@@ -13,10 +13,15 @@
         "UIBackgroundModes": [
           "location"
         ],
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Deduckly uses your camera to photograph receipts and attach them to your expenses.",
+        "NSPhotoLibraryUsageDescription": "Deduckly uses your photo library so you can attach receipt images to your expenses.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Deduckly uses your location to record mileage during trips you start, including while the app is in the background.",
+        "NSLocationAlwaysUsageDescription": "Deduckly uses your location to continue recording an active trip in the background."
       },
       "supportsTablet": true,
-      "bundleIdentifier": "com.karlsonworks.deduckly"
+      "bundleIdentifier": "com.karlsonworks.deduckly",
+      "usesAppleSignIn": true
     },
     "android": {
       "adaptiveIcon": {
@@ -44,7 +49,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Deduckly uses your location to automatically track trips even when the app is in the background.",
+          "locationAlwaysAndWhenInUsePermission": "Deduckly uses your location to record mileage during trips you start, including while the app is in the background.",
           "locationWhenInUsePermission": "Deduckly uses your location to track your trips.",
           "isIosBackgroundLocationEnabled": true
         }
@@ -62,7 +67,8 @@
         }
       ],
       "expo-secure-store",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-apple-authentication"
     ],
     "experiments": {
       "typedRoutes": true,

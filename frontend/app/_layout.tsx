@@ -1,3 +1,4 @@
+import { LanguageProvider } from "@/i18n/language";
 import { AppThemeProvider } from "@/theme/theme";
 import { Stack } from "expo-router";
 import { NotificationSync } from "@/features/notifications/components/notification-sync";
@@ -23,6 +24,7 @@ export default function RootLayout() {
   useTripSync();
   
   return (
+    <LanguageProvider>
     <QueryProvider>
       <AuthProvider>
         <NotificationSync />
@@ -55,5 +57,6 @@ export default function RootLayout() {
         </TrackingProvider>
       </AuthProvider>
     </QueryProvider>
+    </LanguageProvider>
   );
 }

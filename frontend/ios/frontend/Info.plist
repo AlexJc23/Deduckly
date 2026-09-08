@@ -113,7 +113,7 @@
     </array>
 
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>$(CURRENT_PROJECT_VERSION)</string>
 
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
@@ -133,16 +133,16 @@
     </dict>
 
     <key>NSCameraUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to access your camera</string>
+    <string>Deduckly uses your camera to photograph receipts and attach them to your expenses.</string>
 
     <key>NSFaceIDUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
 
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Deduckly uses your location to automatically track trips even when the app is in the background.</string>
+    <string>Deduckly uses your location to record mileage during trips you start, including while the app is in the background.</string>
 
     <key>NSLocationAlwaysUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to access your location</string>
+    <string>Deduckly uses your location to continue recording an active trip in the background.</string>
 
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Deduckly uses your location to track your trips.</string>
@@ -151,7 +151,7 @@
     <string>Allow $(PRODUCT_NAME) to access your microphone</string>
 
     <key>NSPhotoLibraryUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to access your photos</string>
+    <string>Deduckly uses your photo library so you can attach receipt images to your expenses.</string>
 
     <key>NSUserActivityTypes</key>
     <array>

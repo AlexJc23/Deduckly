@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, Text, View } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { router } from "expo-router";
@@ -18,9 +19,10 @@ interface IncomeCardProps {
 export function IncomeCard({
   income,
 }: IncomeCardProps) {
+  const { locale } = useLanguage();
   const date = new Date(
     income.received_at ?? income.created_at,
-  ).toLocaleDateString("en-US", DATE_OPTIONS);
+  ).toLocaleDateString(locale, DATE_OPTIONS);
 
   const title =
     income.source === "gig_platform"
@@ -57,8 +59,8 @@ export function IncomeCard({
 
             <Text style={styles.type}>
               {income.source === "gig_platform"
-                ? "Gig income"
-                : "Business income"}
+                ? <Translated text={"Gig income"} />
+                : <Translated text={"Business income"} />}
             </Text>
           </View>
         </View>

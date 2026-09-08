@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Text, View } from "@/theme/components";
 import { ActivityIndicator, FlatList, StyleSheet } from "react-native";
 import { useState } from "react";
@@ -12,21 +13,21 @@ type Props = {
 };
 
 function EmptyExpenses() {
+  useLanguage();
   return (
     <View style={styles.messageContainer}>
       <Text style={styles.messageText}>
-        No expenses found this month.
-      </Text>
+        <Translated text={"No expenses found this month."} /></Text>
     </View>
   );
 }
 
 function ExpenseError() {
+  useLanguage();
   return (
     <View style={styles.messageContainer}>
       <Text style={styles.messageText}>
-        Failed to load expenses.
-      </Text>
+        <Translated text={"Failed to load expenses."} /></Text>
     </View>
   );
 }
@@ -36,6 +37,7 @@ export function ExpenseList({
   endDate,
   sort,
 }: Props) {
+  useLanguage();
   const [refreshing, setRefreshing] =
     useState(false);
 

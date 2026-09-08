@@ -1,3 +1,5 @@
+import { AppleSignInButton } from "@/features/auth/components/AppleSignInButton";
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, SafeAreaView, ScrollView, Text, TextInput, View } from "@/theme/components";
 import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 import { useMutation } from "@tanstack/react-query";
@@ -13,6 +15,7 @@ import { register } from "@/features/auth/api/auth.api";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function RegisterScreen() {
+  useLanguage();
   const isTablet = useIsTablet();
   
   const [firstName, setFirstName] = useState("");
@@ -131,8 +134,7 @@ export default function RegisterScreen() {
                       isTablet && styles.titleTablet,
                     ]}
                   >
-                    Let&apos;s get started!
-                  </Text>
+                    <Translated text={"Let's get started!"} /></Text>
 
                   <Text
                     style={[
@@ -140,8 +142,7 @@ export default function RegisterScreen() {
                       isTablet && styles.subtitleTablet,
                     ]}
                   >
-                    Your miles, money, and work, all in one place
-                  </Text>
+                    <Translated text={"Your miles, money, and work, all in one place"} /></Text>
                 </View>
 
                 {/* Google */}
@@ -151,6 +152,7 @@ export default function RegisterScreen() {
                     isTablet && styles.socialSectionTablet,
                   ]}
                 >
+                  <AppleSignInButton disabled={registerMutation.isPending} />
                   <Pressable
                     style={[
                       styles.googleButton,
@@ -165,8 +167,7 @@ export default function RegisterScreen() {
                     />
 
                     <Text style={styles.googleButtonText}>
-                      Continue with Google
-                    </Text>
+                      <Translated text={"Continue with Google"} /></Text>
                   </Pressable>
 
                   {/* Divider */}
@@ -174,8 +175,7 @@ export default function RegisterScreen() {
                     <View style={styles.divider} />
 
                     <Text style={styles.dividerText}>
-                      OR
-                    </Text>
+                      <Translated text={"OR"} /></Text>
 
                     <View style={styles.divider} />
                   </View>
@@ -192,8 +192,7 @@ export default function RegisterScreen() {
                   <View style={styles.row}>
                     <View style={styles.halfField}>
                       <Text style={styles.label}>
-                        First name
-                      </Text>
+                        <Translated text={"First name"} /></Text>
 
                       <TextInput
                         value={firstName}
@@ -213,8 +212,7 @@ export default function RegisterScreen() {
 
                     <View style={styles.halfField}>
                       <Text style={styles.label}>
-                        Last name
-                      </Text>
+                        <Translated text={"Last name"} /></Text>
 
                       <TextInput
                         value={lastName}
@@ -237,8 +235,7 @@ export default function RegisterScreen() {
 
                   <View style={styles.field}>
                     <Text style={styles.label}>
-                      Email
-                    </Text>
+                      <Translated text={"Email"} /></Text>
 
                     <View
                       style={[
@@ -273,8 +270,7 @@ export default function RegisterScreen() {
 
                   <View style={styles.field}>
                     <Text style={styles.label}>
-                      Password
-                    </Text>
+                      <Translated text={"Password"} /></Text>
 
                     <View
                       style={[
@@ -345,9 +341,7 @@ export default function RegisterScreen() {
                       />
 
                       <Text style={styles.errorText}>
-                        Unable to create your account. Please
-                        check your information and try again.
-                      </Text>
+                        <Translated text={"Unable to create your account. Please check your information and try again."} /></Text>
                     </View>
                   )}
 
@@ -371,14 +365,12 @@ export default function RegisterScreen() {
                         />
 
                         <Text style={styles.buttonText}>
-                          Creating Account...
-                        </Text>
+                          <Translated text={"Creating Account..."} /></Text>
                       </>
                     ) : (
                       <>
                         <Text style={styles.buttonText}>
-                          Create Account
-                        </Text>
+                          <Translated text={"Create Account"} /></Text>
 
                         <Ionicons
                           name="arrow-forward"
@@ -394,8 +386,7 @@ export default function RegisterScreen() {
 
                 <View style={styles.loginRow}>
                   <Text style={styles.loginText}>
-                    Already have an account?
-                  </Text>
+                    <Translated text={"Already have an account?"} /></Text>
 
                   <Link
                     href="/(auth)/login"
@@ -403,8 +394,7 @@ export default function RegisterScreen() {
                   >
                     <Pressable>
                       <Text style={styles.loginLink}>
-                        Sign in
-                      </Text>
+                        <Translated text={"Sign in"} /></Text>
                     </Pressable>
                   </Link>
                 </View>
@@ -707,7 +697,7 @@ const styles = StyleSheet.create({
   },
 
   googleButtonText: {
-    fontSize: 15,
+    fontSize: 19,
     fontWeight: "700",
     color: "#273449",
   },

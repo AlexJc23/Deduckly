@@ -1,6 +1,11 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
+    apple_client_id: str = "com.karlsonworks.deduckly"
+    apple_team_id: str = ""
+    apple_key_id: str = ""
+    apple_private_key: str = ""
+
     app_name: str
     debug: bool
     database_url: str

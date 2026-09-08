@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, TextInput, Pressable, ScrollView } from "@/theme/components";
 import React, { useState } from "react";
 import { ActivityIndicator, StyleSheet } from "react-native";
@@ -9,6 +10,7 @@ import { Ionicons } from "@/theme/icons";
 import { BackHeader } from "@/components/ui/BackButton";
 
 export default function UserUpdatePassword() {
+  useLanguage();
   const updatePasswordMutation = useUpdatePassword();
   const queryClient = useQueryClient();
 
@@ -73,10 +75,9 @@ export default function UserUpdatePassword() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Update Password</Text>
+        <Text style={styles.title}><Translated text={"Update Password"} /></Text>
         <Text style={styles.subtitle}>
-          Choose a strong password to help keep your account secure.
-        </Text>
+          <Translated text={"Choose a strong password to help keep your account secure."} /></Text>
 
         {/* Current Password */}
         <View style={styles.inputContainer}>
@@ -139,8 +140,7 @@ export default function UserUpdatePassword() {
         {/* Password Rules */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>
-            Password Requirements
-          </Text>
+            <Translated text={"Password Requirements"} /></Text>
 
           <Text
             style={[
@@ -150,8 +150,7 @@ export default function UserUpdatePassword() {
                 : styles.errorText,
             ]}
           >
-            • At least 8 characters
-          </Text>
+            <Translated text={"• At least 8 characters"} /></Text>
 
           <Text
             style={[
@@ -161,8 +160,7 @@ export default function UserUpdatePassword() {
                 : styles.errorText,
             ]}
           >
-            • At least 1 uppercase letter
-          </Text>
+            <Translated text={"• At least 1 uppercase letter"} /></Text>
 
           <Text
             style={[
@@ -172,8 +170,7 @@ export default function UserUpdatePassword() {
                 : styles.errorText,
             ]}
           >
-            • At least 1 lowercase letter
-          </Text>
+            <Translated text={"• At least 1 lowercase letter"} /></Text>
 
           <Text
             style={[
@@ -183,8 +180,7 @@ export default function UserUpdatePassword() {
                 : styles.errorText,
             ]}
           >
-            • At least 1 number
-          </Text>
+            <Translated text={"• At least 1 number"} /></Text>
 
           <Text
             style={[
@@ -194,8 +190,7 @@ export default function UserUpdatePassword() {
                 : styles.errorText,
             ]}
           >
-            • At least 1 special character (!@#$%^&*)
-          </Text>
+            <Translated text={"• At least 1 special character (!@#$%^&*)"} /></Text>
         </View>
 
         {/* Confirm Password */}
@@ -230,12 +225,11 @@ export default function UserUpdatePassword() {
         {!passwordsMatch &&
           confirmNewPassword.length > 0 && (
             <Text style={styles.errorMessage}>
-              Passwords do not match.
-            </Text>
+              <Translated text={"Passwords do not match."} /></Text>
           )}
 
         {error && (
-          <Text style={styles.errorMessage}>{error}</Text>
+          <Text style={styles.errorMessage}>{<Translated text={error} />}</Text>
         )}
 
         <Pressable
@@ -253,8 +247,7 @@ export default function UserUpdatePassword() {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.primaryButtonText}>
-              Update Password
-            </Text>
+              <Translated text={"Update Password"} /></Text>
           )}
         </Pressable>
 
@@ -263,8 +256,7 @@ export default function UserUpdatePassword() {
           onPress={() => router.back()}
         >
           <Text style={styles.secondaryButtonText}>
-            Cancel
-          </Text>
+            <Translated text={"Cancel"} /></Text>
         </Pressable>
       </ScrollView>
     </View>

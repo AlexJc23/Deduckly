@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, TextInput, Pressable, AnimatedView } from "@/theme/components";
 import { ActivityIndicator, Modal, Animated } from "react-native";
 import { useEffect, useRef, useState } from "react";
@@ -16,6 +17,7 @@ import { BackHeader } from "@/components/ui/BackButton";
 
 
 export default function UserUpdateScreen() {
+  useLanguage();
   const userQuery = useCurrentUser();
   const updateUserMutation = useUpdateUser();
   const queryClient = useQueryClient();
@@ -94,13 +96,13 @@ export default function UserUpdateScreen() {
       <BackHeader />
     
     <View style={{ padding: 20, margin: "auto", marginTop: 40,justifyContent: "center" }}>
-      <Text>First Name</Text>
+      <Text><Translated text={"First Name"} /></Text>
       <TextInput value={firstName} onChangeText={setFirstName} />
 
-      <Text>Last Name</Text>
+      <Text><Translated text={"Last Name"} /></Text>
       <TextInput value={lastName} onChangeText={setLastName} />
 
-      <Text>Filing Status</Text>
+      <Text><Translated text={"Filing Status"} /></Text>
       <Pressable onPress={() => setShowFilingStatusModal(true)}>
         <Text>{filingStatus || "Select Filing Status"}</Text>
       </Pressable>
@@ -116,14 +118,14 @@ export default function UserUpdateScreen() {
           router.back();
         }}
       >
-        <Text>Update</Text>
+        <Text><Translated text={"Update"} /></Text>
       </Pressable>
       <Pressable
         onPress={() => {
             setShowDeleteModal(true);
         }}
       >
-        <Text>Delete Account</Text>
+        <Text><Translated text={"Delete Account"} /></Text>
       </Pressable>
 
       <Modal
@@ -166,8 +168,7 @@ export default function UserUpdateScreen() {
                 marginBottom: 16,
               }}
             >
-              Choose Filing Status
-            </Text>
+              <Translated text={"Choose Filing Status"} /></Text>
 
             {filingStatuses.map((status) => (
               <Pressable
@@ -189,8 +190,7 @@ export default function UserUpdateScreen() {
                   marginTop: 16,
                 }}
               >
-                Cancel
-              </Text>
+                <Translated text={"Cancel"} /></Text>
             </Pressable>
           </AnimatedView>
         </View>

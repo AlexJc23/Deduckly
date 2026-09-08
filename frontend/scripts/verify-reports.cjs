@@ -8,6 +8,7 @@ const native=require(resolve('react-native-web'));
 let width=390, fontScale=1;
 const original=Module._load;
 Module._load=function(id,parent,isMain){
+ if (id === '@react-native-async-storage/async-storage') return { getItem: async () => null, setItem: async () => {} };
  if(id==='react-native') return {...native,useWindowDimensions:()=>({width,height:844,scale:1,fontScale})};
  if(id==='@/theme/theme' || (id==='./theme' && parent.filename.includes('/theme/'))) return {useAppTheme:()=>({dark:false})};
  if(id==='react-native-safe-area-context') return {SafeAreaView:native.View};

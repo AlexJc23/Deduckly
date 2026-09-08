@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, View, AnimatedView } from "@/theme/components";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Modal, StyleSheet, useWindowDimensions } from "react-native";
@@ -14,6 +15,7 @@ interface PreferenceSelectModalProps {
 }
 
 export function PreferenceSelectedModal({ visible, title, options, selectedValue, onClose, onSelect }: PreferenceSelectModalProps) {
+  useLanguage();
     const [mounted, setMounted] = useState(visible);
     const progress = useRef(new Animated.Value(0)).current;
     const { height, width } = useWindowDimensions();
@@ -48,7 +50,7 @@ export function PreferenceSelectedModal({ visible, title, options, selectedValue
                     transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [height, 0] }) }],
                 }]}>
                     <View style={styles.header}>
-                        <Text style={styles.title}>{title}</Text>
+                        <Text style={styles.title}>{<Translated text={title} />}</Text>
                         <Pressable style={styles.close} accessibilityRole="button" accessibilityLabel="Close selection" onPress={onClose}>
                             <Ionicons name="close" size={22} color="#64748B" />
                         </Pressable>
@@ -56,7 +58,7 @@ export function PreferenceSelectedModal({ visible, title, options, selectedValue
                     <ScrollView bounces={false}>
                         {options.map(option => (
                             <Pressable key={option.value} accessibilityRole="radio" accessibilityState={{ checked: option.value === selectedValue }} style={styles.option} onPress={() => { onSelect(option.value); onClose(); }}>
-                                <Text style={[styles.optionText, option.value === selectedValue && styles.selected]}>{option.label}</Text>
+                                <Text style={[styles.optionText, option.value === selectedValue && styles.selected]}>{<Translated text={option.label} />}</Text>
                                 {option.value === selectedValue && <Ionicons name="checkmark" size={22} color="#0072B5" />}
                             </Pressable>
                         ))}

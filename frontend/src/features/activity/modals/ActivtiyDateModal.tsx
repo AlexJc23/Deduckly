@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, Text, View, AnimatedView } from "@/theme/components";
 import { useState } from "react";
 import { Modal, StyleSheet, Animated, Easing } from "react-native";
@@ -31,6 +32,7 @@ export function ActivityDateModal({
   onSelectPreset,
   onApplyCustom,
 }: Props) {
+  const { locale } = useLanguage();
   const [showCustom, setShowCustom] =
     useState(false);
 
@@ -119,7 +121,7 @@ export function ActivityDateModal({
     return (
       <View style={styles.optionRow}>
         <Text style={styles.optionText}>
-          {title}
+          {<Translated text={title} />}
         </Text>
 
         {!isPremium && (
@@ -176,8 +178,7 @@ export function ActivityDateModal({
               <View style={styles.header}>
                 <View>
                   <Text style={styles.title}>
-                    Activity Filter
-                  </Text>
+                    <Translated text={"Activity Filter"} /></Text>
                 </View>
 
                 <Pressable
@@ -214,8 +215,7 @@ export function ActivityDateModal({
                 </View>
 
                 <Text style={styles.optionText}>
-                  Current Month
-                </Text>
+                  <Translated text={"Current Month"} /></Text>
 
                 <Ionicons
                   name="chevron-forward"
@@ -332,8 +332,7 @@ export function ActivityDateModal({
                 onPress={closeModal}
               >
                 <Text style={styles.cancelText}>
-                  Cancel
-                </Text>
+                  <Translated text={"Cancel"} /></Text>
               </Pressable>
             </>
           ) : (
@@ -341,8 +340,7 @@ export function ActivityDateModal({
               <View style={styles.header}>
                 <View>
                   <Text style={styles.title}>
-                    Custom Date Range
-                  </Text>
+                    <Translated text={"Custom Date Range"} /></Text>
                 </View>
 
                 <Pressable
@@ -360,10 +358,9 @@ export function ActivityDateModal({
 
               <View style={styles.input}>
                 <Text style={styles.label}>
-                  Start Date
-                </Text>
+                  <Translated text={"Start Date"} /></Text>
 
-                <DateTimePicker
+                <DateTimePicker locale={locale}
                   value={startDate}
                   mode="date"
                   display="compact"
@@ -382,10 +379,9 @@ export function ActivityDateModal({
 
               <View style={styles.input}>
                 <Text style={styles.label}>
-                  End Date
-                </Text>
+                  <Translated text={"End Date"} /></Text>
 
-                <DateTimePicker
+                <DateTimePicker locale={locale}
                   value={endDate}
                   mode="date"
                   display="compact"
@@ -415,8 +411,7 @@ export function ActivityDateModal({
                 }}
               >
                 <Text style={styles.primaryText}>
-                  Apply Filter
-                </Text>
+                  <Translated text={"Apply Filter"} /></Text>
               </Pressable>
 
               <Pressable
@@ -436,8 +431,7 @@ export function ActivityDateModal({
                 />
 
                 <Text style={styles.cancelText}>
-                  Back
-                </Text>
+                  <Translated text={"Back"} /></Text>
               </Pressable>
             </>
           )}

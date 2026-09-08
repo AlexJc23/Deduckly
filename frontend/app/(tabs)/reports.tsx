@@ -5,7 +5,7 @@ import { PremiumGate } from "@/features/subscriptions/components/PremiumGate";
 
 export default function ReportsScreen() {
   return (
-    <PremiumGate fallback={<PremiumReportScreen />}>
+    <PremiumGate fallback={<FreeTierReportScreen />}>
       <PremiumReportScreen />
     </PremiumGate>
   );

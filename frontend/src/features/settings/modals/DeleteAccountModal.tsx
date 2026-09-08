@@ -1,5 +1,7 @@
-import { View, Text, TextInput, Pressable, AnimatedView } from "@/theme/components";
-import { Modal, Animated, Easing, StyleSheet } from "react-native";
+import { localizedAlert } from "@/i18n/alerts";
+import { useLanguage, Translated } from "@/i18n/language";
+import { ScrollView, Text, TextInput, Pressable, AnimatedView } from "@/theme/components";
+import { Modal, Animated, Easing, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
 import { useEffect, useRef, useState } from "react";
 
 type DeleteAccountModalProps = {
@@ -13,6 +15,16 @@ export default function DeleteAccountModal({
   onClose,
   onDelete,
 }: DeleteAccountModalProps) {
+  useLanguage();
+  const [deleting, setDeleting] = useState(false);
+  const deleteLock = useRef(false);
+  async function confirmDelete() {
+    if (deleteLock.current) return;
+    deleteLock.current = true; setDeleting(true);
+    try { await onDelete(); }
+    catch { localizedAlert("Account couldn’t be deleted", "Please try again. If you use Sign in with Apple, we also need to disconnect it before deleting your account."); }
+    finally { deleteLock.current = false; setDeleting(false); }
+  }
   const [isMounted, setIsMounted] = useState(visible);
   const [confirmation, setConfirmation] = useState("");
 
@@ -41,7 +53,7 @@ export default function DeleteAccountModal({
         setConfirmation("");
       });
     }
-  }, [visible]);
+  }, [visible, translateY]);
 
   const canDelete =
     confirmation === "DELETE";
@@ -52,7 +64,7 @@ export default function DeleteAccountModal({
       transparent
       animationType="none"
     >
-      <View
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{
           flex: 1,
           justifyContent: "flex-end",
@@ -64,7 +76,7 @@ export default function DeleteAccountModal({
             backgroundColor:
               "rgba(0,0,0,0.5)",
           }}
-          onPress={onClose}
+          onPress={onClose} disabled={deleting}
         />
 
         <AnimatedView
@@ -73,10 +85,11 @@ export default function DeleteAccountModal({
             backgroundColor: "white",
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
-            padding: 24,
-            minHeight: 420,
+            maxHeight: "90%",
+            width: "100%", maxWidth: 560, alignSelf: "center",
           }}
         >
+          <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 24 }}>
           <Text
             style={{
               fontSize: 22,
@@ -84,23 +97,18 @@ export default function DeleteAccountModal({
               marginBottom: 16,
             }}
           >
-            Delete Account
-          </Text>
+            <Translated text={"Delete Account"} /></Text>
 
           <Text
             style={{
               marginBottom: 24,
             }}
           >
-            This action cannot be undone.
-            All trips, expenses, income,
-            subscriptions, and account
-            data will be permanently
-            deleted.
-          </Text>
+            <Translated text={"This action cannot be undone. Your Deduckly account, trips, expenses, and income records will be permanently deleted. Apple subscriptions are not canceled when you delete your account. Manage or cancel your subscription in your Apple Account settings."} /></Text>
 
           <TextInput
             placeholder="Type DELETE"
+            editable={!deleting}
             value={confirmation}
             onChangeText={setConfirmation}
             autoCapitalize="characters"
@@ -114,8 +122,8 @@ export default function DeleteAccountModal({
           />
 
           <Pressable
-            disabled={!canDelete}
-            onPress={onDelete}
+            disabled={!canDelete || deleting}
+            onPress={confirmDelete}
             style={{
               backgroundColor: canDelete
                 ? "#FF3B30"
@@ -132,21 +140,21 @@ export default function DeleteAccountModal({
                 fontWeight: "600",
               }}
             >
-              Delete Account
-            </Text>
+              <Translated text={"Delete Account"} /></Text>
           </Pressable>
 
           <Pressable
-            onPress={onClose}
+            onPress={onClose} disabled={deleting}
             style={{
               alignItems: "center",
               padding: 12,
             }}
           >
-            <Text>Cancel</Text>
+            <Text><Translated text={"Cancel"} /></Text>
           </Pressable>
+          </ScrollView>
         </AnimatedView>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

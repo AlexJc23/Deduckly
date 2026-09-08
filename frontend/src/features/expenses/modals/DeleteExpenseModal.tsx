@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable } from "@/theme/components";
 import { ActivityIndicator, Modal, StyleSheet } from "react-native";
 import { useState } from "react";
@@ -13,6 +14,7 @@ export function DeleteExpenseModal({
   onClose,
   onDelete,
 }: DeleteExpenseModalProps) {
+  useLanguage();
   const [isDeleting, setIsDeleting] =
     useState(false);
 
@@ -47,13 +49,10 @@ export function DeleteExpenseModal({
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <Text style={styles.title}>
-            Delete Expense?
-          </Text>
+            <Translated text={"Delete Expense?"} /></Text>
 
           <Text style={styles.description}>
-            This will permanently delete this
-            expense. This action cannot be undone.
-          </Text>
+            <Translated text={"This will permanently delete this expense. This action cannot be undone."} /></Text>
 
           <View style={styles.buttonRow}>
             <Pressable
@@ -67,8 +66,7 @@ export function DeleteExpenseModal({
               onPress={handleClose}
             >
               <Text style={styles.cancelText}>
-                Cancel
-              </Text>
+                <Translated text={"Cancel"} /></Text>
             </Pressable>
 
             <Pressable
@@ -89,13 +87,11 @@ export function DeleteExpenseModal({
                   />
 
                   <Text style={styles.deleteText}>
-                    Deleting...
-                  </Text>
+                    <Translated text={"Deleting..."} /></Text>
                 </View>
               ) : (
                 <Text style={styles.deleteText}>
-                  Delete Expense
-                </Text>
+                  <Translated text={"Delete Expense"} /></Text>
               )}
             </Pressable>
           </View>

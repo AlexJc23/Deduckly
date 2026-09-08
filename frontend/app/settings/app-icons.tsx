@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable, ScrollView } from "@/theme/components";
 import React, { useEffect } from "react";
 import { StyleSheet, Image } from "react-native";
@@ -100,6 +101,7 @@ const PREMIUM_ICONS = [
 const { AppIconManager } = NativeModules;
 
 export default function AppIconScreen() {
+  useLanguage();
   const { data: user } = useCurrentUser();
   const isTablet = useIsTablet();
 
@@ -167,8 +169,7 @@ export default function AppIconScreen() {
               isTablet && styles.titleTablet,
             ]}
           >
-            App Icon
-          </Text>
+            <Translated text={"App Icon"} /></Text>
 
           <Text
             style={[
@@ -176,8 +177,7 @@ export default function AppIconScreen() {
               isTablet && styles.subtitleTablet,
             ]}
           >
-            Choose the icon Deduckly uses on your Home Screen.
-          </Text>
+            <Translated text={"Choose the icon Deduckly uses on your Home Screen."} /></Text>
 
           <View
             style={[
@@ -282,8 +282,7 @@ export default function AppIconScreen() {
                           styles.premiumTextTablet,
                       ]}
                     >
-                      Premium
-                    </Text>
+                      <Translated text={"Premium"} /></Text>
                   )}
                 </Pressable>
               );

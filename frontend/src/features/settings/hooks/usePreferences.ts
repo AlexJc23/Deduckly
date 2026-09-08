@@ -1,6 +1,7 @@
+import { localizedAlert } from "@/i18n/alerts";
 import { useEffect, useRef, useState } from "react";
 
-import { Alert } from "react-native";
+
 import { updateCurrentUser } from "@/features/auth/api/user.api";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useUpdateUser } from "@/features/auth/hooks/use-update-user";
@@ -94,7 +95,7 @@ export function usePreferences() {
                 await updateCurrentUser({ [notificationField]: value });
                 setPreferences(prev => ({ ...prev, [key]: value }));
             } catch {
-                Alert.alert("Couldn’t update notifications", "Check your connection and device permissions, then try again.");
+                localizedAlert("Couldn’t update notifications", "Check your connection and device permissions, then try again.");
             } finally {
                 notificationLock.current = false;
                 setNotificationSaving(false);

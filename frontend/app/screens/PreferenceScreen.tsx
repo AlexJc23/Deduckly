@@ -1,3 +1,4 @@
+import { Translated, useLanguage } from "@/i18n/language";
 import { useAppTheme, type AppearancePreference } from "@/theme/theme";
 import { ScrollView, Pressable, Text, View } from "@/theme/components";
 import { StyleSheet } from "react-native";
@@ -22,6 +23,8 @@ import { weekStarts } from "../../src/features/settings/constants/week-starts";
 import { usePremium } from "@/features/subscriptions/hooks/use-premium";
 
 export default function PreferenceScreen() {
+    const { language, setLanguage } = useLanguage();
+    const [languageVisible, setLanguageVisible] = useState(false);
     const { preference, setPreference } = useAppTheme();
     const [appearanceVisible, setAppearanceVisible] = useState(false);
     const {
@@ -182,8 +185,12 @@ export default function PreferenceScreen() {
                     )}
                 </PreferenceSection>
 
+                <PreferenceSection title="Language">
+                    <PreferencePicker label="Language" value={language === "es" ? "Español" : "English"} helperText="Applies immediately on this device." onPress={() => setLanguageVisible(true)} />
+                </PreferenceSection>
+
                 <PreferenceSection title="Appearance">
-                    <PreferencePicker label="Theme" value={preference === "system" ? "System" : preference === "dark" ? "Dark" : "Light"} helperText="Applies immediately on this device. System follows your device’s appearance." onPress={() => setAppearanceVisible(true)} />
+                    <PreferencePicker label="Theme" value={preference === "system" ? "System" : preference === "dark" ? "Dark" : "Light"} helperText="Applies after restarting the app." onPress={() => setAppearanceVisible(true)} />
                 </PreferenceSection>
 
                 <PreferenceSection title="Units">
@@ -238,11 +245,13 @@ export default function PreferenceScreen() {
                 >
                     <Text style={styles.saveButtonText}>
                         {isSaving
-                            ? "Saving..."
-                            : "Save Changes"}
+                            ? <Translated text={"Saving..."} />
+                            : <Translated text={"Save Changes"} />}
                     </Text>
                 </Pressable>
             </ScrollView>
+
+            <PreferenceSelectedModal visible={languageVisible} title="Choose your language" options={[{ label: "English", value: "en" }, { label: "Español", value: "es" }]} selectedValue={language} onClose={() => setLanguageVisible(false)} onSelect={value => setLanguage(value === "es" ? "es" : "en")} />
 
             <PreferenceSelectedModal visible={appearanceVisible} title="Appearance" options={[{ label: "System", value: "system" }, { label: "Light", value: "light" }, { label: "Dark", value: "dark" }]} selectedValue={preference} onClose={() => setAppearanceVisible(false)} onSelect={value => setPreference(value as AppearancePreference)} />
 

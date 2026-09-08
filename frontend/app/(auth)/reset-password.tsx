@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { SafeAreaView, Pressable, ScrollView, Text, TextInput, View } from "@/theme/components";
 
 import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
@@ -11,6 +12,7 @@ import Logo from "../../assets/images/logo.svg";
 import { resetPassword } from "@/features/auth/api/auth.api";
 
 export default function ResetPassword() {
+  useLanguage();
   const { token } = useLocalSearchParams<{
     token?: string;
   }>();
@@ -77,8 +79,7 @@ export default function ResetPassword() {
             />
 
             <Text style={styles.backText}>
-              Back
-            </Text>
+              <Translated text={"Back"} /></Text>
           </Pressable>
 
           <View style={styles.content}>
@@ -92,24 +93,19 @@ export default function ResetPassword() {
 
             <View style={styles.header}>
               <Text style={styles.eyebrow}>
-                ACCOUNT RECOVERY
-              </Text>
+                <Translated text={"ACCOUNT RECOVERY"} /></Text>
 
               <Text style={styles.title}>
-                Create a new password
-              </Text>
+                <Translated text={"Create a new password"} /></Text>
 
               <Text style={styles.subtitle}>
-                Choose a strong password for your
-                Deduckly account.
-              </Text>
+                <Translated text={"Choose a strong password for your Deduckly account."} /></Text>
             </View>
 
             <View style={styles.form}>
               <View style={styles.field}>
                 <Text style={styles.label}>
-                  New password
-                </Text>
+                  <Translated text={"New password"} /></Text>
 
                 <View style={styles.inputContainer}>
                   <Ionicons
@@ -145,8 +141,7 @@ export default function ResetPassword() {
 
               <View style={styles.field}>
                 <Text style={styles.label}>
-                  Confirm password
-                </Text>
+                  <Translated text={"Confirm password"} /></Text>
 
                 <View
                   style={[
@@ -191,8 +186,7 @@ export default function ResetPassword() {
 
                 {passwordsDoNotMatch && (
                   <Text style={styles.validationText}>
-                    Passwords do not match.
-                  </Text>
+                    <Translated text={"Passwords do not match."} /></Text>
                 )}
               </View>
 
@@ -205,9 +199,7 @@ export default function ResetPassword() {
                   />
 
                   <Text style={styles.errorText}>
-                    This reset link is invalid or has
-                    expired. Please request a new one.
-                  </Text>
+                    <Translated text={"This reset link is invalid or has expired. Please request a new one."} /></Text>
                 </View>
               )}
 
@@ -228,14 +220,12 @@ export default function ResetPassword() {
                     />
 
                     <Text style={styles.buttonText}>
-                      Resetting...
-                    </Text>
+                      <Translated text={"Resetting..."} /></Text>
                   </>
                 ) : (
                   <>
                     <Text style={styles.buttonText}>
-                      Reset Password
-                    </Text>
+                      <Translated text={"Reset Password"} /></Text>
 
                     <Ionicons
                       name="checkmark"
@@ -256,8 +246,7 @@ export default function ResetPassword() {
             />
 
             <Text style={styles.securityText}>
-              Your information is securely encrypted.
-            </Text>
+              <Translated text={"Your information is securely encrypted."} /></Text>
           </View>
         </ScrollView>
         </KeyboardAvoidingView>

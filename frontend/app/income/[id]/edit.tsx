@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Text, View } from "@/theme/components";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, StyleSheet } from "react-native";
@@ -9,6 +10,7 @@ import { UpdateIncomeRequest } from "@/features/income/types/income";
 import { BackHeader } from "@/components/ui/BackButton";
 
 export default function EditIncomeScreen() {
+  useLanguage();
   const { id } = useLocalSearchParams<{
     id: string;
   }>();
@@ -43,7 +45,7 @@ export default function EditIncomeScreen() {
   if (incomeQuery.isError || !incomeQuery.data) {
     return (
       <View style={styles.center}>
-        <Text>Failed to load income.</Text>
+        <Text><Translated text={"Failed to load income."} /></Text>
       </View>
     );
   }

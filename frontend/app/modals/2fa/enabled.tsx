@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Text, Pressable, View } from "@/theme/components";
 import { ActivityIndicator, StyleSheet } from "react-native";
 import { useState } from "react";
@@ -9,6 +10,7 @@ import { disable2FA } from "@/features/auth/api/auth.api";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 
 export default function TwoFAEnabledScreen() {
+  useLanguage();
   const { data: user } = useCurrentUser();
   const queryClient = useQueryClient();
 
@@ -49,19 +51,14 @@ export default function TwoFAEnabledScreen() {
             <View style={styles.statusDot} />
 
             <Text style={styles.status}>
-              Protection enabled
-            </Text>
+              <Translated text={"Protection enabled"} /></Text>
           </View>
 
           <Text style={styles.title}>
-            Two-Factor Authentication
-          </Text>
+            <Translated text={"Two-Factor Authentication"} /></Text>
 
           <Text style={styles.description}>
-            Your account has an additional layer
-            of security enabled. You'll need your
-            authenticator code when signing in.
-          </Text>
+            <Translated text={"Your account has an additional layer of security enabled. You'll need your authenticator code when signing in."} /></Text>
         </View>
 
         <View style={styles.accountCard}>
@@ -75,8 +72,7 @@ export default function TwoFAEnabledScreen() {
 
           <View style={styles.accountContent}>
             <Text style={styles.cardLabel}>
-              PROTECTED ACCOUNT
-            </Text>
+              <Translated text={"PROTECTED ACCOUNT"} /></Text>
 
             <Text
               style={styles.email}
@@ -104,21 +100,16 @@ export default function TwoFAEnabledScreen() {
 
           <View style={styles.infoContent}>
             <Text style={styles.infoTitle}>
-              Your account is protected
-            </Text>
+              <Translated text={"Your account is protected"} /></Text>
 
             <Text style={styles.infoText}>
-              Two-factor authentication helps keep
-              your account secure even if your
-              password is compromised.
-            </Text>
+              <Translated text={"Two-factor authentication helps keep your account secure even if your password is compromised."} /></Text>
           </View>
         </View>
 
         <View style={styles.securitySection}>
           <Text style={styles.sectionLabel}>
-            SECURITY SETTINGS
-          </Text>
+            <Translated text={"SECURITY SETTINGS"} /></Text>
 
           <Pressable
             style={[
@@ -141,12 +132,10 @@ export default function TwoFAEnabledScreen() {
 
             <View style={styles.disableContent}>
               <Text style={styles.disableText}>
-                Disable 2FA
-              </Text>
+                <Translated text={"Disable 2FA"} /></Text>
 
               <Text style={styles.disableSubtext}>
-                Remove two-factor authentication
-              </Text>
+                <Translated text={"Remove two-factor authentication"} /></Text>
             </View>
 
             {disableMutation.isPending ? (
@@ -174,8 +163,7 @@ export default function TwoFAEnabledScreen() {
           />
 
           <Text style={styles.backText}>
-            Back to Security
-          </Text>
+            <Translated text={"Back to Security"} /></Text>
         </Pressable>
       </View>
 
@@ -191,14 +179,10 @@ export default function TwoFAEnabledScreen() {
             </View>
 
             <Text style={styles.modalTitle}>
-              Disable 2FA?
-            </Text>
+              <Translated text={"Disable 2FA?"} /></Text>
 
             <Text style={styles.modalText}>
-              Your account will no longer require
-              two-factor authentication when
-              signing in.
-            </Text>
+              <Translated text={"Your account will no longer require two-factor authentication when signing in."} /></Text>
 
             <View style={styles.modalButtons}>
               <Pressable
@@ -211,8 +195,7 @@ export default function TwoFAEnabledScreen() {
                 }
               >
                 <Text style={styles.cancelText}>
-                  Cancel
-                </Text>
+                  <Translated text={"Cancel"} /></Text>
               </Pressable>
 
               <Pressable
@@ -231,8 +214,7 @@ export default function TwoFAEnabledScreen() {
                   />
                 ) : (
                   <Text style={styles.confirmText}>
-                    Disable
-                  </Text>
+                    <Translated text={"Disable"} /></Text>
                 )}
               </Pressable>
             </View>

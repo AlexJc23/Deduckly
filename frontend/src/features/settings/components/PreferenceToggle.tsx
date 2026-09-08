@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Text, View } from "@/theme/components";
 import { Switch, StyleSheet } from "react-native";
 
@@ -17,16 +18,17 @@ export function PreferenceToggle({
   onValueChange,
   disabled,
 }: PreferenceToggleProps) {
+  useLanguage();
   return (
     <View style={styles.container}>
       <View style={styles.textContainer}>
         <Text style={styles.label}>
-          {label}
+          {<Translated text={label} />}
         </Text>
 
         {description && (
           <Text style={styles.description}>
-            {description}
+            {<Translated text={description} />}
           </Text>
         )}
       </View>

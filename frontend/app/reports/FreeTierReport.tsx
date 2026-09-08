@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { ScrollView, Text, View, SafeAreaView } from "@/theme/components";
 import { StyleSheet } from "react-native";
 
@@ -11,6 +12,7 @@ import { MonthlyIncomeGoalCard } from "@/features/reports/components/MonthlyInco
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function FreeTierReportScreen() {
+  const { locale } = useLanguage();
   const isTablet = useIsTablet();
   const { year, month } = getCurrentMonthAndYear();
   const { data, isLoading, isError, refetch } = useCurrentReport({ year, month });
@@ -18,9 +20,9 @@ export default function FreeTierReportScreen() {
   return <SafeAreaView edges={["top"]} style={s.screen}>
     <ScrollView contentContainerStyle={[s.content, isTablet && s.tablet]} showsVerticalScrollIndicator={false}>
       <View style={s.inner}>
-        <Text accessibilityRole="header" style={s.title}>Reports</Text>
-        <Text style={s.period}>{formatReportDate(year, month)} · Month to date</Text>
-        <Text style={s.subtitle}>Income, spending, mileage, and estimates in one view.</Text>
+        <Text accessibilityRole="header" style={s.title}><Translated text={"Reports"} /></Text>
+        <Text style={s.period}>{formatReportDate(year, month, undefined, locale)} <Translated text={"· Month to date"} /></Text>
+        <Text style={s.subtitle}><Translated text={"Income, spending, mileage, and estimates in one view."} /></Text>
           {monthlyGoal && monthlyGoal.goal > 0 && <ReportSection title=""><MonthlyIncomeGoalCard monthlyGoal={monthlyGoal} /></ReportSection>}
         {isLoading || isError || !data ? <ReportLoadState loading={isLoading} retry={() => void refetch()} /> : <>
           <ReportBody report={data} />

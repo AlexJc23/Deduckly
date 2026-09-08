@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, View } from "@/theme/components";
 import { router } from "expo-router";
 import { StyleSheet } from "react-native";
@@ -6,6 +7,7 @@ import { Ionicons } from "@/theme/icons";
 import { BackHeader } from "@/components/ui/BackButton";
 
 export default function FeedbackScreen() {
+  useLanguage();
   function openFeedback(
     type: "bug" | "feature" | "general",
   ) {
@@ -24,14 +26,10 @@ export default function FeedbackScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.title}>
-          Help & Feedback
-        </Text>
+          <Translated text={"Help & Feedback"} /></Text>
 
         <Text style={styles.subtitle}>
-          Help improve Deduckly by reporting bugs,
-          requesting features, or sharing your
-          thoughts.
-        </Text>
+          <Translated text={"Help improve Deduckly by reporting bugs, requesting features, or sharing your thoughts."} /></Text>
 
         <Pressable
           style={styles.card}
@@ -47,12 +45,10 @@ export default function FeedbackScreen() {
 
           <View style={styles.text}>
             <Text style={styles.cardTitle}>
-              Report a Bug
-            </Text>
+              <Translated text={"Report a Bug"} /></Text>
 
             <Text style={styles.cardSubtitle}>
-              Something isn't working correctly.
-            </Text>
+              <Translated text={"Something isn't working correctly."} /></Text>
           </View>
         </Pressable>
 
@@ -70,12 +66,10 @@ export default function FeedbackScreen() {
 
           <View style={styles.text}>
             <Text style={styles.cardTitle}>
-              Request a Feature
-            </Text>
+              <Translated text={"Request a Feature"} /></Text>
 
             <Text style={styles.cardSubtitle}>
-              Tell us what you'd love to see next.
-            </Text>
+              <Translated text={"Tell us what you'd love to see next."} /></Text>
           </View>
         </Pressable>
 
@@ -95,12 +89,10 @@ export default function FeedbackScreen() {
 
           <View style={styles.text}>
             <Text style={styles.cardTitle}>
-              General Feedback
-            </Text>
+              <Translated text={"General Feedback"} /></Text>
 
             <Text style={styles.cardSubtitle}>
-              Share your thoughts about Deduckly.
-            </Text>
+              <Translated text={"Share your thoughts about Deduckly."} /></Text>
           </View>
         </Pressable>
       </ScrollView>

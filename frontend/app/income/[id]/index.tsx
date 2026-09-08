@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, View } from "@/theme/components";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, StyleSheet } from "react-native";
@@ -15,6 +16,7 @@ import { BackHeader } from "@/components/ui/BackButton";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function IncomeDetailsScreen() {
+  useLanguage();
   const { id } = useLocalSearchParams<{
     id: string;
   }>();
@@ -49,12 +51,10 @@ export default function IncomeDetailsScreen() {
         />
 
         <Text style={styles.errorTitle}>
-          Something went wrong
-        </Text>
+          <Translated text={"Something went wrong"} /></Text>
 
         <Text style={styles.errorText}>
-          Failed to load income.
-        </Text>
+          <Translated text={"Failed to load income."} /></Text>
       </View>
     );
   }
@@ -91,16 +91,13 @@ export default function IncomeDetailsScreen() {
         <View style={styles.contentInner}>
           <View style={styles.header}>
             <Text style={styles.eyebrow}>
-              INCOME
-            </Text>
+              <Translated text={"INCOME"} /></Text>
 
             <Text style={styles.title}>
-              Income Details
-            </Text>
+              <Translated text={"Income Details"} /></Text>
 
             <Text style={styles.subtitle}>
-              Review the details of this income entry.
-            </Text>
+              <Translated text={"Review the details of this income entry."} /></Text>
           </View>
 
           <View style={styles.card}>
@@ -114,8 +111,7 @@ export default function IncomeDetailsScreen() {
               </View>
 
               <Text style={styles.amountLabel}>
-                Amount
-              </Text>
+                <Translated text={"Amount"} /></Text>
 
               <Text style={styles.amount}>
                 ${Number(income.amount).toFixed(2)}
@@ -126,8 +122,7 @@ export default function IncomeDetailsScreen() {
 
             <View style={styles.detailRow}>
               <Text style={styles.label}>
-                Source
-              </Text>
+                <Translated text={"Source"} /></Text>
 
               <Text style={styles.value}>
                 {sourceLabel}
@@ -137,8 +132,7 @@ export default function IncomeDetailsScreen() {
             {income.platform && (
               <View style={styles.detailRow}>
                 <Text style={styles.label}>
-                  Platform
-                </Text>
+                  <Translated text={"Platform"} /></Text>
 
                 <Text style={styles.value}>
                   {platformLabel}
@@ -149,8 +143,7 @@ export default function IncomeDetailsScreen() {
             {income.business_name && (
               <View style={styles.detailRow}>
                 <Text style={styles.label}>
-                  Business
-                </Text>
+                  <Translated text={"Business"} /></Text>
 
                 <Text
                   style={styles.value}
@@ -163,8 +156,7 @@ export default function IncomeDetailsScreen() {
 
             <View style={styles.detailRow}>
               <Text style={styles.label}>
-                Received
-              </Text>
+                <Translated text={"Received"} /></Text>
 
               <Text style={styles.value}>
                 {new Date(
@@ -177,8 +169,7 @@ export default function IncomeDetailsScreen() {
             {income.notes && (
               <View style={styles.notesSection}>
                 <Text style={styles.label}>
-                  Notes
-                </Text>
+                  <Translated text={"Notes"} /></Text>
 
                 <Text style={styles.notes}>
                   {income.notes}
@@ -206,8 +197,7 @@ export default function IncomeDetailsScreen() {
               />
 
               <Text style={styles.buttonText}>
-                Edit Income
-              </Text>
+                <Translated text={"Edit Income"} /></Text>
             </Pressable>
 
             <Pressable
@@ -227,8 +217,7 @@ export default function IncomeDetailsScreen() {
               />
 
               <Text style={styles.deleteText}>
-                Delete Income
-              </Text>
+                <Translated text={"Delete Income"} /></Text>
             </Pressable>
           </View>
         </View>

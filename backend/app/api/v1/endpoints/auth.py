@@ -117,8 +117,8 @@ def login(
     if status == "oauth_account":
         raise HTTPException(
             status_code=403,
-            detail="This account uses Google login. "
-                   "Please sign in with Google.",
+            detail="This account uses a social sign-in provider. "
+                   "Please use the Apple or Google option you registered with.",
         )
 
     if status != "success":

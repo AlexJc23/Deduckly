@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable, AnimatedView } from "@/theme/components";
 import { Modal, Animated, Easing, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
@@ -26,6 +27,7 @@ export function SortTripsModal({
   value,
   onChange,
 }: SortTripsModalProps) {
+  useLanguage();
   const [isMounted, setIsMounted] = useState(visible);
 
   const translateY = useRef(
@@ -92,8 +94,7 @@ export function SortTripsModal({
               marginBottom: 24,
             }}
           >
-            Sort Trips
-          </Text>
+            <Translated text={"Sort Trips"} /></Text>
 
           {options.map((option) => (
             <Pressable
@@ -121,7 +122,7 @@ export function SortTripsModal({
                       : "400",
                 }}
               >
-                {option.label}
+                {<Translated text={option.label} />}
               </Text>
             </Pressable>
           ))}
@@ -133,7 +134,7 @@ export function SortTripsModal({
               alignItems: "center",
             }}
           >
-            <Text>Cancel</Text>
+            <Text><Translated text={"Cancel"} /></Text>
           </Pressable>
         </AnimatedView>
       </View>

@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
@@ -15,15 +16,16 @@ export function PreferenceSelect({
   onPress,
   description,
 }: PreferenceSelectProps) {
+  useLanguage();
   return (
     <View style={styles.container}>
       <Text style={styles.label}>
-        {label}
+        {<Translated text={label} />}
       </Text>
 
       {description && (
         <Text style={styles.description}>
-          {description}
+          {<Translated text={description} />}
         </Text>
       )}
 

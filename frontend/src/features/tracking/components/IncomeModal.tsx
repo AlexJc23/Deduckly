@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, TextInput, Pressable, AnimatedView } from "@/theme/components";
 import { Modal, Animated, Easing, StyleSheet, KeyboardAvoidingView, Platform, Keyboard, InputAccessoryView } from "react-native";
 import { useEffect, useRef, useState } from "react";
@@ -14,6 +15,7 @@ export function IncomeModal({
   onSave,
   onSkip,
 }: IncomeModalProps) {
+  useLanguage();
   const [income, setIncome] = useState("");
 
   const translateY = useRef(
@@ -84,24 +86,19 @@ export function IncomeModal({
 
             <View style={styles.headerText}>
               <Text style={styles.title}>
-                Trip Complete
-              </Text>
+                <Translated text={"Trip Complete"} /></Text>
 
               <Text style={styles.subtitle}>
-                Add your earnings to finish recording
-                this trip.
-              </Text>
+                <Translated text={"Add your earnings to finish recording this trip."} /></Text>
             </View>
           </View>
 
           <View style={styles.inputSection}>
             <Text style={styles.label}>
-              Income
-            </Text>
+              <Translated text={"Income"} /></Text>
 
             <Text style={styles.optional}>
-              Optional
-            </Text>
+              <Translated text={"Optional"} /></Text>
 
             <TextInput
               value={income}
@@ -126,8 +123,7 @@ export function IncomeModal({
                 onPress={Keyboard.dismiss}
               >
                 <Text style={styles.doneText}>
-                  Done
-                </Text>
+                  <Translated text={"Done"} /></Text>
               </Pressable>
             </View>
           </InputAccessoryView>
@@ -156,8 +152,7 @@ export function IncomeModal({
             />
 
             <Text style={styles.saveText}>
-              Save Trip
-            </Text>
+              <Translated text={"Save Trip"} /></Text>
           </Pressable>
 
           <Pressable
@@ -172,8 +167,7 @@ export function IncomeModal({
             ]}
           >
             <Text style={styles.skipText}>
-              Skip
-            </Text>
+              <Translated text={"Skip"} /></Text>
           </Pressable>
         </AnimatedView>
       </KeyboardAvoidingView>

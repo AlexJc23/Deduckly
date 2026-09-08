@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { ScrollView, Text, View, SafeAreaView } from "@/theme/components";
 import { StyleSheet } from "react-native";
 
@@ -14,6 +15,7 @@ import { reportPeriodLabel } from "@/features/reports/utils/report-display";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function PremiumReportScreen() {
+  const { locale } = useLanguage();
   const isTablet = useIsTablet();
   const [selectedPeriod, setSelectedPeriod] = useState<ReportPeriod>("month");
   const [showCustomModal, setShowCustomModal] = useState(false);
@@ -22,17 +24,17 @@ export default function PremiumReportScreen() {
   const reportParams = selectedPeriod === "custom" ? customRange : buildReportParams(selectedPeriod);
   const { data, isLoading, isError, isPlaceholderData, refetch } = useCurrentReport(reportParams);
   const ready = !!data && !isError && !isPlaceholderData && !isLoading;
-  const periodLabel = reportPeriodLabel(reportParams);
+  const periodLabel = reportPeriodLabel(reportParams, locale);
   return <SafeAreaView edges={["top"]} style={s.screen}>
     <ScrollView contentContainerStyle={[s.content, isTablet && s.tablet]} showsVerticalScrollIndicator={false}>
       <View style={s.inner}>
-        <View style={s.titleRow}><Text accessibilityRole="header" style={s.title}>Reports</Text><Text style={s.badge}>PRO</Text></View>
-        <Text style={s.subtitle}>Choose a period to review your activity and estimates.</Text>
+        <View style={s.titleRow}><Text accessibilityRole="header" style={s.title}><Translated text={"Reports"} /></Text><Text style={s.badge}><Translated text={"PRO"} /></Text></View>
+        <Text style={s.subtitle}><Translated text={"Choose a period to review your activity and estimates."} /></Text>
         <ReportPeriodSelector selected={selectedPeriod} onSelect={period => {
           setExportVisible(false);
           if (period === "custom") setShowCustomModal(true); else setSelectedPeriod(period);
         }} />
-        <Text style={s.period}>{periodLabel}{selectedPeriod === "month" ? " · Month to date" : selectedPeriod === "year" ? " · Year to date" : ""}</Text>
+        <Text style={s.period}>{<Translated text={periodLabel} />}{selectedPeriod === "month" ? <Translated text={" · Month to date"} /> : selectedPeriod === "year" ? <Translated text={" · Year to date"} /> : ""}</Text>
         {!ready ? <ReportLoadState loading={isLoading || isPlaceholderData} retry={() => void refetch()} /> : <>
           <ReportBody report={data} />
           <ReportSection title="Use this report" description="Export the figures above or review their tax details.">

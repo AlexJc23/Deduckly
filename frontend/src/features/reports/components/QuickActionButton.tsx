@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, Text, View } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
@@ -15,6 +16,7 @@ export function QuickActionButton({
   subtitle,
   onPress,
 }: QuickActionButtonProps) {
+  useLanguage();
   return (
     <Pressable
       accessibilityRole="button"
@@ -39,13 +41,13 @@ export function QuickActionButton({
         <Text
           style={styles.title}
         >
-          {title}
+          {<Translated text={title} />}
         </Text>
 
         <Text
           style={styles.subtitle}
         >
-          {subtitle}
+          {<Translated text={subtitle} />}
         </Text>
       </View>
     </Pressable>

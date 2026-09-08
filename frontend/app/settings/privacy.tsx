@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, SafeAreaView, ScrollView, Text, View } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { useState } from "react";
@@ -6,10 +7,12 @@ import { router } from "expo-router";
 
 import { BackHeader } from "@/components/ui/BackButton";
 import DeleteAccountModal from "@/features/settings/modals/DeleteAccountModal";
-import { clearTokens } from "@/features/auth/services/auth-service.service";
+import { useAuth } from "@/features/auth/context/auth.context";
 import { useDeleteUser } from "@/features/auth/hooks/use-delete-account";
 
 export default function PrivacyScreen() {
+  useLanguage();
+  const { clearSession } = useAuth();
   const deleteUserMutation = useDeleteUser();
   const queryClient = useQueryClient();
 
@@ -19,7 +22,7 @@ export default function PrivacyScreen() {
   const handleDeleteAccount = async () => {
     await deleteUserMutation.mutateAsync();
 
-    await clearTokens();
+    await clearSession();
 
     queryClient.clear();
 
@@ -39,25 +42,20 @@ export default function PrivacyScreen() {
 
           <View style={styles.header}>
             <Text style={styles.eyebrow}>
-              PRIVACY & SECURITY
-            </Text>
+              <Translated text={"PRIVACY & SECURITY"} /></Text>
 
             <Text style={styles.title}>
-              Your privacy
-            </Text>
+              <Translated text={"Your privacy"} /></Text>
 
             <Text style={styles.subtitle}>
-              Manage your privacy settings and learn
-              how Deduckly protects your information.
-            </Text>
+              <Translated text={"Manage your privacy settings and learn how Deduckly protects your information."} /></Text>
           </View>
 
           {/* Privacy Policy */}
 
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>
-              PRIVACY
-            </Text>
+              <Translated text={"PRIVACY"} /></Text>
 
             <Pressable
               style={styles.card}
@@ -75,13 +73,10 @@ export default function PrivacyScreen() {
 
               <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>
-                  Privacy Policy
-                </Text>
+                  <Translated text={"Privacy Policy"} /></Text>
 
                 <Text style={styles.cardDescription}>
-                  Learn how we collect, use, and
-                  protect your personal information.
-                </Text>
+                  <Translated text={"Learn how we collect, use, and protect your personal information."} /></Text>
               </View>
 
               <Text style={styles.chevron}>
@@ -102,30 +97,22 @@ export default function PrivacyScreen() {
 
               <View style={styles.infoHeaderText}>
                 <Text style={styles.infoTitle}>
-                  Your privacy matters
-                </Text>
+                  <Translated text={"Your privacy matters"} /></Text>
 
                 <Text style={styles.infoEyebrow}>
-                  DATA PROTECTION
-                </Text>
+                  <Translated text={"DATA PROTECTION"} /></Text>
               </View>
             </View>
 
             <Text style={styles.infoText}>
-              We're committed to protecting your
-              information. Your data is encrypted
-              where appropriate, used only to provide
-              Deduckly's services, and is never sold
-              to third parties.
-            </Text>
+              <Translated text={"We're committed to protecting your information. Your data is encrypted where appropriate, used only to provide Deduckly's services, and is never sold to third parties."} /></Text>
           </View>
 
           {/* Danger Zone */}
 
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>
-              DANGER ZONE
-            </Text>
+              <Translated text={"DANGER ZONE"} /></Text>
 
             <Pressable
               style={styles.deleteCard}
@@ -141,13 +128,10 @@ export default function PrivacyScreen() {
 
               <View style={styles.cardContent}>
                 <Text style={styles.deleteTitle}>
-                  Delete Account
-                </Text>
+                  <Translated text={"Delete Account"} /></Text>
 
                 <Text style={styles.deleteDescription}>
-                  Permanently remove your account and
-                  all associated data.
-                </Text>
+                  <Translated text={"Permanently remove your account and all associated data."} /></Text>
               </View>
 
               <Text style={styles.deleteChevron}>

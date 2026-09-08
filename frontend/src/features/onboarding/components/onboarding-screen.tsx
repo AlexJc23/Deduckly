@@ -1,5 +1,6 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, View, SafeAreaView } from "@/theme/components";
-import { ComponentProps } from "react";
+import { ComponentProps, ReactNode } from "react";
 import { ActivityIndicator, Linking, StyleSheet, useWindowDimensions } from "react-native";
 
 import { Ionicons } from "@/theme/icons";
@@ -26,36 +27,39 @@ type Props = {
   onboarding: ReturnType<typeof useOnboarding>;
   onContinue: () => void;
   onSkip?: () => void;
+  children?: ReactNode;
 };
 
 function OnboardingIcon({ symbol, icon, size }: { symbol: SymbolName; icon: IconName; size: number }) {
+  useLanguage();
   return <SymbolView name={symbol} size={size} weight="regular" tintColor="#0072B5"
     style={{ width: size, height: size }}
     fallback={<Ionicons name={icon} size={size} color="#0072B5" />} />;
 }
 
-export function OnboardingScreen({ screen, onboarding, onContinue, onSkip }: Props) {
+export function OnboardingScreen({ screen, onboarding, onContinue, onSkip, children }: Props) {
+  useLanguage();
   const { loading, isLoading, userId, step, error, busy, settings, setError, retry, signOut } = onboarding;
   const isTablet = useIsTablet();
   const { height, width } = useWindowDimensions();
   const isSmallPhone = !isTablet && (height <= 931 || width <= 429);
-  const isWelcome = step === 2;
+  const isWelcome = step === 3;
   const ready = !loading && !isLoading && userId !== undefined;
 
   return <SafeAreaView style={styles.safeArea}>
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[
+    <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={[
       styles.scroll, isSmallPhone && styles.scrollCompact, isTablet && styles.scrollTablet,
     ]}>
       <View style={[styles.container, isTablet && styles.containerTablet]}>
         <View style={styles.header}>
-          <Text style={styles.wordmark}>Deduckly</Text>
-          {ready && <Text style={styles.step} accessibilityLabel={`Step ${step + 1} of 3`}>{step + 1} of 3</Text>}
+          <Text style={styles.wordmark}><Translated text={"Deduckly"} /></Text>
+          {ready && <Text style={styles.step}><Translated text="{step} of {total}" params={{ step: step + 1, total: 4 }} /></Text>}
         </View>
         {loading || isLoading ? <ActivityIndicator color="#0072B5" style={styles.loader} accessibilityLabel="Loading your account" />
           : !ready ? <View style={styles.recovery}>
-            <Text accessibilityRole="alert" style={styles.description}>{error}</Text>
-            <Pressable accessibilityRole="button" style={styles.button} onPress={retry}><Text style={styles.buttonText}>Try again</Text></Pressable>
-            <Pressable accessibilityRole="button" style={styles.skip} onPress={signOut}><Text style={styles.skipText}>Sign out</Text></Pressable>
+            <Text accessibilityRole="alert" style={styles.description}>{<Translated text={error} />}</Text>
+            <Pressable accessibilityRole="button" style={styles.button} onPress={retry}><Text style={styles.buttonText}><Translated text={"Try again"} /></Text></Pressable>
+            <Pressable accessibilityRole="button" style={styles.skip} onPress={signOut}><Text style={styles.skipText}><Translated text={"Sign out"} /></Text></Pressable>
           </View> : <>
             <View style={[styles.main, isSmallPhone && styles.mainCompact, isTablet && styles.mainTablet]}>
               <View style={[styles.intro, isTablet && styles.introTablet]}>
@@ -65,37 +69,37 @@ export function OnboardingScreen({ screen, onboarding, onContinue, onSkip }: Pro
                     ? <Logo width={isTablet ? 120 : isSmallPhone ? 80 : 100} height={isTablet ? 120 : isSmallPhone ? 80 : 100} color="#0072B5" />
                     : <OnboardingIcon symbol={screen.symbol} icon={screen.icon} size={isTablet ? 76 : isSmallPhone ? 52 : 64} />}
                 </View>
-                <Text style={styles.label}>{screen.label}</Text>
-                <Text accessibilityRole="header" style={[styles.title, isSmallPhone && styles.titleCompact, isTablet && styles.titleTablet]}>{screen.title}</Text>
-                <Text style={[styles.description, isTablet && styles.descriptionTablet]}>{screen.description}</Text>
+                <Text style={styles.label}>{<Translated text={screen.label} />}</Text>
+                <Text accessibilityRole="header" style={[styles.title, isSmallPhone && styles.titleCompact, isTablet && styles.titleTablet]}>{<Translated text={screen.title} />}</Text>
+                <Text style={[styles.description, isTablet && styles.descriptionTablet]}>{<Translated text={screen.description} />}</Text>
               </View>
               <View style={[styles.features, isSmallPhone && styles.featuresCompact, isTablet && styles.featuresTablet]}>
-                {screen.features.map((feature, index) => <View key={feature.title} style={[
+                {children ?? screen.features.map((feature, index) => <View key={feature.title} style={[
                   styles.feature, isSmallPhone && styles.featureCompact, index > 0 && styles.featureBorder,
                 ]}>
                   <View style={styles.featureIcon} accessible={false} accessibilityElementsHidden>
                     <OnboardingIcon symbol={feature.symbol} icon={feature.icon} size={25} />
                   </View>
                   <View style={styles.featureCopy}>
-                    <Text style={styles.featureTitle}>{feature.title}</Text>
-                    <Text style={styles.featureDescription}>{feature.description}</Text>
+                    <Text style={styles.featureTitle}>{<Translated text={feature.title} />}</Text>
+                    <Text style={styles.featureDescription}>{<Translated text={feature.description} />}</Text>
                   </View>
                 </View>)}
               </View>
             </View>
             <View style={[styles.footer, isTablet && styles.footerTablet]}>
-              {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
+              {!!error && <Text accessibilityRole="alert" style={styles.error}>{<Translated text={error} />}</Text>}
               {settings && <Pressable accessibilityRole="button" style={styles.skip} disabled={busy}
                 onPress={() => Linking.openSettings().catch(() => setError("Please open your device settings to change permissions."))}>
-                <Text style={styles.settingsText}>Open device settings</Text>
+                <Text style={styles.settingsText}><Translated text={"Open device settings"} /></Text>
               </Pressable>}
-              <Text style={styles.note}>{screen.note}</Text>
+              <Text style={styles.note}>{<Translated text={screen.note} />}</Text>
               <Pressable accessibilityRole="button" accessibilityState={{ disabled: busy, busy }} disabled={busy}
                 onPress={onContinue} style={({ pressed }) => [styles.button, (pressed || busy) && styles.pressed]}>
-                {busy ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.buttonText}>{screen.action}</Text>}
+                {busy ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.buttonText}>{<Translated text={screen.action} />}</Text>}
               </Pressable>
               {onSkip && <Pressable accessibilityRole="button" disabled={busy} onPress={onSkip} style={styles.skip}>
-                <Text style={[styles.skipText, busy && styles.pressed]}>Not now</Text>
+                <Text style={[styles.skipText, busy && styles.pressed]}><Translated text={"Not now"} /></Text>
               </Pressable>}
             </View>
           </>}

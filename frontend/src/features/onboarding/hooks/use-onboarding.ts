@@ -7,6 +7,7 @@ import { getOnboardingStep, saveOnboardingStep, OnboardingStep } from "../servic
 export function useOnboarding() {
   const { isAuthenticated, isLoading, signOut } = useAuth();
   const [userId, setUserId] = useState<number>();
+  const [initialGoals, setInitialGoals] = useState({ daily: "", monthly: "", currency: "USD" });
   const [step, setStep] = useState<OnboardingStep>(0);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -22,7 +23,7 @@ export function useOnboarding() {
     setError("");
     getCurrentUser().then(async user => {
       const saved = await getOnboardingStep(user.id);
-      if (active) { setUserId(user.id); setStep(saved); }
+      if (active) { setUserId(user.id); setStep(saved); setInitialGoals({ daily: String(user.daily_income_goal ?? ""), monthly: String(user.monthly_income_goal ?? ""), currency: user.currency || "USD" }); }
     }).catch(() => { if (active) setError("We couldn’t load your account. Please try again."); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -35,7 +36,7 @@ export function useOnboarding() {
     await saveOnboardingStep(userId, next);
     setSettings(false);
     setStep(next);
-    if (next === 3) router.replace("/(tabs)/dashboard");
+    if (next === 4) router.replace("/(tabs)/dashboard");
   }
 
   async function runAction(action?: () => Promise<boolean>, failureMessage = "We couldn’t save this step. Please try again.") {
@@ -55,6 +56,6 @@ export function useOnboarding() {
     }
   }
 
-  return { isAuthenticated, isLoading, signOut, userId, step, loading, busy, error,
+  return { initialGoals, isAuthenticated, isLoading, signOut, userId, step, loading, busy, error,
     settings, setSettings, setError, runAction, retry: () => setAttempt(a => a + 1) };
 }

@@ -1,3 +1,4 @@
+import { GoalsScreen } from "@/features/onboarding/screens/goals-screen";
 import { Redirect } from "expo-router";
 import { useOnboarding } from "@/features/onboarding/hooks/use-onboarding";
 import { LocationScreen } from "@/features/onboarding/screens/location-screen";
@@ -13,8 +14,10 @@ export default function Onboarding() {
     case 1:
       return <NotificationsScreen onboarding={onboarding} />;
     case 2:
-      return <WelcomeScreen onboarding={onboarding} />;
+      return <GoalsScreen onboarding={onboarding} />;
     case 3:
+      return <WelcomeScreen onboarding={onboarding} />;
+    case 4:
       return <Redirect href="/(tabs)/dashboard" />;
     default:
       return <LocationScreen onboarding={onboarding} />;

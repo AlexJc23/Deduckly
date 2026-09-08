@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Text, View } from "@/theme/components";
 import { ActivityIndicator, FlatList, StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
@@ -12,6 +13,7 @@ interface IncomeListProps {
 }
 
 function EmptyState() {
+  useLanguage();
   return (
     <View style={styles.messageContainer}>
       <View style={styles.emptyIcon}>
@@ -23,17 +25,16 @@ function EmptyState() {
       </View>
 
       <Text style={styles.emptyTitle}>
-        No income yet
-      </Text>
+        <Translated text={"No income yet"} /></Text>
 
       <Text style={styles.messageText}>
-        No income found this month.
-      </Text>
+        <Translated text={"No income found this month."} /></Text>
     </View>
   );
 }
 
 function ErrorState() {
+  useLanguage();
   return (
     <View style={styles.messageContainer}>
       <View style={styles.errorIcon}>
@@ -45,12 +46,10 @@ function ErrorState() {
       </View>
 
       <Text style={styles.emptyTitle}>
-        Something went wrong
-      </Text>
+        <Translated text={"Something went wrong"} /></Text>
 
       <Text style={styles.messageText}>
-        Failed to load income.
-      </Text>
+        <Translated text={"Failed to load income."} /></Text>
     </View>
   );
 }
@@ -60,6 +59,7 @@ export function IncomeList({
   endDate,
   sort,
 }: IncomeListProps) {
+  useLanguage();
   const incomeQuery = useIncome(
     startDate,
     endDate,

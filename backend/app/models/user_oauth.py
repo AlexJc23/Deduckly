@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, ForeignKey, DateTime, func, UniqueConstraint
+from sqlalchemy import Integer, Text, String, ForeignKey, DateTime, func, UniqueConstraint
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from app.db.base import Base
 
@@ -13,6 +13,7 @@ class UserOAuth(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
     provider: Mapped[str] = mapped_column(String(50), nullable=False)
     provider_user_id: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    apple_refresh_token: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 

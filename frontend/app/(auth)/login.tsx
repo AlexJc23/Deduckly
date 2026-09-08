@@ -1,6 +1,8 @@
-import { Pressable, SafeAreaView, Text, TextInput, View, AnimatedView } from "@/theme/components";
-import { ActivityIndicator, Animated, Keyboard, StyleSheet } from "react-native";
-import { useEffect, useRef, useState } from "react";
+import { AppleSignInButton } from "@/features/auth/components/AppleSignInButton";
+import { useLanguage, Translated } from "@/i18n/language";
+import { Pressable, SafeAreaView, Text, TextInput, View, ScrollView } from "@/theme/components";
+import { ActivityIndicator, Keyboard, StyleSheet } from "react-native";
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { router, Link } from "expo-router";
 import { Ionicons, FontAwesome6 } from "@expo/vector-icons";
@@ -15,42 +17,10 @@ import { useIsTablet } from "@/hooks/use-is-tablet";
 import { startGoogleLogin } from "@/features/auth/api/google-auth.api";
 
 export default function Login() {
+  useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
-  const keyboardOffset = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const showSubscription = Keyboard.addListener(
-      "keyboardWillShow",
-      (event) => {
-        Animated.spring(keyboardOffset, {
-          toValue: -Math.min(event.endCoordinates.height * 0.45, 260),
-          useNativeDriver: true,
-          tension: 80,
-          friction: 12,
-        }).start();
-      }
-    );
-
-    const hideSubscription = Keyboard.addListener(
-      "keyboardWillHide",
-      () => {
-        Animated.spring(keyboardOffset, {
-          toValue: 0,
-          useNativeDriver: true,
-          tension: 80,
-          friction: 12,
-        }).start();
-      }
-    );
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, [keyboardOffset]);
 
   const isTablet = useIsTablet();
 
@@ -144,17 +114,11 @@ export default function Login() {
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.safeArea}>
-        <Pressable
-          style={styles.flex}
-          onPress={Keyboard.dismiss}
-        >
-          <AnimatedView
+        <ScrollView style={styles.flex} contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" automaticallyAdjustKeyboardInsets showsVerticalScrollIndicator={false}>
+          <View
             style={[
               styles.container,
               isTablet && styles.containerTablet,
-              {
-                transform: [{ translateY: keyboardOffset }],
-              },
             ]}
           >
             <View
@@ -182,8 +146,7 @@ export default function Login() {
                   isTablet && styles.titleTablet,
                 ]}
               >
-                Welcome back!
-              </Text>
+                <Translated text={"Welcome back!"} /></Text>
 
               <Text
                 style={[
@@ -191,10 +154,10 @@ export default function Login() {
                   isTablet && styles.subtitleTablet,
                 ]}
               >
-                Log in to keep your miles, earnings, and expenses organized.
-              </Text>
+                <Translated text={"Log in to keep your miles, earnings, and expenses organized."} /></Text>
             </View>
 
+            <AppleSignInButton disabled={loginMutation.isPending} />
             {/* Google */}
 
             <Pressable
@@ -211,8 +174,7 @@ export default function Login() {
               />
 
               <Text style={styles.googleButtonText}>
-                Continue with Google
-              </Text>
+                <Translated text={"Continue with Google"} /></Text>
             </Pressable>
 
             {/* Divider */}
@@ -221,8 +183,7 @@ export default function Login() {
               <View style={styles.divider} />
 
               <Text style={styles.dividerText}>
-                OR
-              </Text>
+                <Translated text={"OR"} /></Text>
 
               <View style={styles.divider} />
             </View>
@@ -239,8 +200,7 @@ export default function Login() {
 
               <View style={styles.field}>
                 <Text style={styles.label}>
-                  Email
-                </Text>
+                  <Translated text={"Email"} /></Text>
 
                 <View
                   style={[
@@ -275,8 +235,7 @@ export default function Login() {
               <View style={styles.field}>
                 <View style={styles.labelRow}>
                   <Text style={styles.label}>
-                    Password
-                  </Text>
+                    <Translated text={"Password"} /></Text>
                 </View>
 
                 <View
@@ -343,8 +302,7 @@ export default function Login() {
                   style={styles.forgotButton}
                 >
                   <Text style={styles.forgotText}>
-                    Forgot password?
-                  </Text>
+                    <Translated text={"Forgot password?"} /></Text>
                 </Pressable>
               </View>
 
@@ -359,9 +317,7 @@ export default function Login() {
                   />
 
                   <Text style={styles.errorText}>
-                    Please check your email and
-                    password and try again.
-                  </Text>
+                    <Translated text={"Please check your email and password and try again."} /></Text>
                 </View>
               )}
 
@@ -386,14 +342,12 @@ export default function Login() {
                     />
 
                     <Text style={styles.buttonText}>
-                      Signing in...
-                    </Text>
+                      <Translated text={"Signing in..."} /></Text>
                   </>
                 ) : (
                   <>
                     <Text style={styles.buttonText}>
-                      Log In
-                    </Text>
+                      <Translated text={"Log In"} /></Text>
 
                     <Ionicons
                       name="arrow-forward"
@@ -415,8 +369,7 @@ export default function Login() {
               ]}
             >
               <Text style={styles.registerText}>
-                Don't have an account?
-              </Text>
+                <Translated text={"Don't have an account?"} /></Text>
 
               <Link
                 href="/(auth)/register"
@@ -424,13 +377,12 @@ export default function Login() {
               >
                 <Pressable>
                   <Text style={styles.registerLink}>
-                    Create one
-                  </Text>
+                    <Translated text={"Create one"} /></Text>
                 </Pressable>
               </Link>
             </View>
-          </AnimatedView>
-        </Pressable>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -451,11 +403,10 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 24,
     paddingTop: 10,
     paddingBottom: 20,
-    top: "5%",
   },
 
   containerTablet: {
@@ -516,7 +467,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    marginTop: 34,
+    marginTop: 0,
   },
 
   googleButtonTablet: {
@@ -526,7 +477,7 @@ const styles = StyleSheet.create({
   },
 
   googleButtonText: {
-    fontSize: 15,
+    fontSize: 19,
     fontWeight: "700",
     color: "#273449",
   },
@@ -557,6 +508,7 @@ const styles = StyleSheet.create({
   subtitle: {
     maxWidth: 340,
     marginTop: 9,
+    marginBottom: 30,
     fontSize: 14,
     lineHeight: 20,
     color: "#64748B",

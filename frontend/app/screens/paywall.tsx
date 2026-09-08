@@ -1,4 +1,6 @@
-import { View, Text, Pressable, SafeAreaView, AnimatedView } from "@/theme/components";
+import { localizedAlert } from "@/i18n/alerts";
+import { useLanguage, Translated } from "@/i18n/language";
+import { View, ScrollView, Text, Pressable, SafeAreaView, AnimatedView } from "@/theme/components";
 import { Animated, Dimensions, Easing, StyleSheet } from "react-native";
 
 import { Ionicons } from "@/theme/icons";
@@ -61,6 +63,7 @@ function Confetti({
   visible: boolean;
   styles: ReturnType<typeof getStyles>;
 }) {
+  useLanguage();
   const pieces = useRef<ConfettiPiece[]>(
     Array.from({ length: 55 }, (_, index) => ({
       id: index,
@@ -190,6 +193,7 @@ function Confetti({
 }
 
 export default function PaywallScreen() {
+  useLanguage();
   const isTablet = useIsTablet();
   const styles = getStyles(isTablet);
 
@@ -239,7 +243,8 @@ export default function PaywallScreen() {
 
         const offering = offerings.current;
 
-        if (!offering) {
+        if (!offering || (!offering.annual && !offering.monthly)) {
+          localizedAlert("Plans unavailable", "We couldn’t load subscription plans. Please reopen this screen and try again.");
           console.warn(
             "RevenueCat: no current offering found",
           );
@@ -258,6 +263,7 @@ export default function PaywallScreen() {
           "Failed to load RevenueCat offerings:",
           error,
         );
+        localizedAlert("Plans unavailable", "We couldn’t load subscription plans. Please reopen this screen and try again.");
       } finally {
         setLoadingOfferings(false);
       }
@@ -290,6 +296,7 @@ export default function PaywallScreen() {
         customerInfo.entitlements.active["Deduckly Pro"] !== undefined;
 
       if (!isPremium) {
+        localizedAlert("Subscription not active yet", "Your purchase did not return an active Deduckly Pro subscription. Try Restore Purchases before purchasing again.");
         return;
       }
 
@@ -304,6 +311,7 @@ export default function PaywallScreen() {
       }
 
       console.error("Purchase failed:", error);
+      localizedAlert("Purchase couldn’t be completed", "Please try again. If Apple already confirmed your purchase, use Restore Purchases before purchasing again.");
     } finally {
       setIsPurchasing(false);
     }
@@ -317,7 +325,7 @@ export default function PaywallScreen() {
         style={styles.safeArea}
         edges={["bottom", "left", "right"]}
       >
-        <View style={styles.content}>
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.contentInner}>
             <View style={styles.header}>
               <View style={styles.logoContainer}>
@@ -336,19 +344,14 @@ export default function PaywallScreen() {
                 />
 
                 <Text style={styles.proBadgeText}>
-                  DEDUCKLY PRO
-                </Text>
+                  <Translated text={"DEDUCKLY PRO"} /></Text>
               </View>
 
               <Text style={styles.title}>
-                Work smarter.
-              </Text>
+                <Translated text={"Work smarter."} /></Text>
 
               <Text style={styles.subtitle}>
-                Get deeper insights for offers,
-                track your progress, and stay
-                tax-ready all year long.
-              </Text>
+                <Translated text={"Get deeper insights for offers, track your progress, and stay tax-ready all year long."} /></Text>
             </View>
 
             <View style={styles.featuresCard}>
@@ -370,7 +373,7 @@ export default function PaywallScreen() {
                   </View>
 
                   <Text style={styles.featureText}>
-                    {feature.title}
+                    {<Translated text={feature.title} />}
                   </Text>
 
                   <View style={styles.check}>
@@ -386,12 +389,10 @@ export default function PaywallScreen() {
 
             <View style={styles.planHeader}>
               <Text style={styles.chooseLabel}>
-                CHOOSE YOUR PLAN
-              </Text>
+                <Translated text={"CHOOSE YOUR PLAN"} /></Text>
 
               <Text style={styles.planHint}>
-                Cancel anytime
-              </Text>
+                <Translated text={"Cancel anytime"} /></Text>
             </View>
 
             <View style={styles.plans}>
@@ -420,15 +421,12 @@ export default function PaywallScreen() {
 
                 <View style={styles.planInfo}>
                   <Text style={styles.planName}>
-                    Annual
-                  </Text>
+                    <Translated text={"Annual"} /></Text>
 
                   <Text
                     style={styles.planDescription}
                   >
-                    Best value for year-round
-                    tracking
-                  </Text>
+                    <Translated text={"Best value for year-round tracking"} /></Text>
                 </View>
 
                 <View style={styles.priceContainer}>
@@ -438,18 +436,16 @@ export default function PaywallScreen() {
                   </Text>
 
                   <Text style={styles.period}>
-                    /year
-                  </Text>
+                    <Translated text={"/year"} /></Text>
 
                   {annualMonthsFree !== null &&
                     annualMonthsFree > 0 && (
                       <Text style={styles.freeMonthsText}>
                         {annualMonthsFree}{" "}
                         {annualMonthsFree === 1
-                          ? "month"
-                          : "months"}{" "}
-                        free
-                      </Text>
+                          ? <Translated text={"month"} />
+                          : <Translated text={"months"} />}{" "}
+                        <Translated text={"free"} /></Text>
                     )}
                 </View>
               </Pressable>
@@ -479,15 +475,12 @@ export default function PaywallScreen() {
 
                 <View style={styles.planInfo}>
                   <Text style={styles.planName}>
-                    Monthly
-                  </Text>
+                    <Translated text={"Monthly"} /></Text>
 
                   <Text
                     style={styles.planDescription}
                   >
-                    Flexible month-to-month
-                    billing
-                  </Text>
+                    <Translated text={"Flexible month-to-month billing"} /></Text>
                 </View>
 
                 <View style={styles.priceContainer}>
@@ -497,8 +490,7 @@ export default function PaywallScreen() {
                   </Text>
 
                   <Text style={styles.period}>
-                    /month
-                  </Text>
+                    <Translated text={"/month"} /></Text>
                 </View>
               </Pressable>
             </View>
@@ -528,9 +520,9 @@ export default function PaywallScreen() {
             >
               <Text style={styles.subscribeText}>
                 {loadingOfferings
-                  ? "Loading..."
+                  ? <Translated text={"Loading..."} />
                   : isPurchasing
-                    ? "Processing..."
+                    ? <Translated text={"Processing..."} />
                     : `Continue with ${
                         selectedPlan === "annual"
                           ? "Annual"
@@ -549,39 +541,39 @@ export default function PaywallScreen() {
             </Pressable>
 
             <Text style={styles.cancelText}>
-              Cancel anytime
-            </Text>
+              <Translated text={"Cancel anytime"} /></Text>
 
             <Pressable
               disabled={restorePurchases.isPending}
               style={styles.restoreButton}
               onPress={async () => {
                 try {
-                  await restorePurchases.mutateAsync();
+                  const info = await restorePurchases.mutateAsync();
+                  localizedAlert(info.entitlements.active["Deduckly Pro"] ? "Purchases restored" : "No active subscription found", info.entitlements.active["Deduckly Pro"] ? "Your Deduckly Pro subscription has been restored." : "No active Deduckly Pro subscription was found for this Apple Account.");
                 } catch (error) {
                   console.error(
                     "RevenueCat restore failed:",
                     error,
                   );
+                  localizedAlert("Restore couldn’t be completed", "Check your connection and try Restore Purchases again.");
                 }
               }}
             >
               <Text style={styles.restoreText}>
                 {restorePurchases.isPending
-                  ? "Restoring..."
-                  : "Restore Purchases"}
+                  ? <Translated text={"Restoring..."} />
+                  : <Translated text={"Restore Purchases"} />}
               </Text>
             </Pressable>
 
+            <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 16 }}>
+              <Pressable accessibilityRole="link" style={{ minHeight: 44, justifyContent: "center" }} onPress={() => router.push("/settings/legal/sections/terms-of-service")}><Text style={styles.restoreText}><Translated text="Terms of Service" /></Text></Pressable>
+              <Pressable accessibilityRole="link" style={{ minHeight: 44, justifyContent: "center" }} onPress={() => router.push("/settings/privacy/sections/privacy-policy")}><Text style={styles.restoreText}><Translated text="Privacy Policy" /></Text></Pressable>
+            </View>
             <Text style={styles.legal}>
-              Payment is charged to your Apple
-              Account. Subscriptions renew
-              automatically unless canceled at
-              least 24 hours before the current
-              period ends.
-            </Text>
+              <Translated text={"Payment is charged to your Apple Account. Subscriptions renew automatically unless canceled at least 24 hours before the current period ends."} /></Text>
           </View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
 
       <Confetti
@@ -604,12 +596,10 @@ export default function PaywallScreen() {
             </View>
 
             <Text style={styles.successTitle}>
-              Welcome to Deduckly Pro!
-            </Text>
+              <Translated text={"Welcome to Deduckly Pro!"} /></Text>
 
             <Text style={styles.successSubtitle}>
-              Your subscription is active.
-            </Text>
+              <Translated text={"Your subscription is active."} /></Text>
           </View>
         </View>
       )}
@@ -691,7 +681,7 @@ const getStyles = (isTablet: boolean) =>
     },
 
     content: {
-      flex: 1,
+      flexGrow: 1,
       paddingHorizontal: isTablet ? 34 : 20,
       paddingBottom: isTablet ? 30 : 18,
     },

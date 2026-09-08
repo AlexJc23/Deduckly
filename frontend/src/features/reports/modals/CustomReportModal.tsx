@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable, AnimatedView } from "@/theme/components";
 import { useState, useRef, useEffect } from "react";
 import { Modal, StyleSheet, Animated, Easing } from "react-native";
@@ -18,6 +19,7 @@ export function CustomReportModal({
   onClose,
   onGenerate,
 }: Props) {
+  const { locale } = useLanguage();
   const [startDate, setStartDate] =
     useState(new Date());
 
@@ -85,17 +87,13 @@ export function CustomReportModal({
           <View style={styles.header}>
             <View>
               <Text style={styles.eyebrow}>
-                REPORTS
-              </Text>
+                <Translated text={"REPORTS"} /></Text>
 
               <Text style={styles.title}>
-                Custom Report
-              </Text>
+                <Translated text={"Custom Report"} /></Text>
 
               <Text style={styles.subtitle}>
-                Choose the period you want to
-                analyze.
-              </Text>
+                <Translated text={"Choose the period you want to analyze."} /></Text>
             </View>
 
             <View style={styles.headerIcon}>
@@ -111,15 +109,13 @@ export function CustomReportModal({
             <View style={styles.inputHeader}>
               <View>
                 <Text style={styles.label}>
-                  Start Date
-                </Text>
+                  <Translated text={"Start Date"} /></Text>
 
                 <Text style={styles.helper}>
-                  Beginning of report
-                </Text>
+                  <Translated text={"Beginning of report"} /></Text>
               </View>
 
-              <DateTimePicker
+              <DateTimePicker locale={locale}
                 value={startDate}
                 mode="date"
                 display="compact"
@@ -141,15 +137,13 @@ export function CustomReportModal({
             <View style={styles.inputHeader}>
               <View>
                 <Text style={styles.label}>
-                  End Date
-                </Text>
+                  <Translated text={"End Date"} /></Text>
 
                 <Text style={styles.helper}>
-                  End of report
-                </Text>
+                  <Translated text={"End of report"} /></Text>
               </View>
 
-              <DateTimePicker
+              <DateTimePicker locale={locale}
                 value={endDate}
                 mode="date"
                 display="compact"
@@ -184,8 +178,7 @@ export function CustomReportModal({
             />
 
             <Text style={styles.primaryText}>
-              Generate Report
-            </Text>
+              <Translated text={"Generate Report"} /></Text>
           </Pressable>
 
           <Pressable
@@ -197,8 +190,7 @@ export function CustomReportModal({
             onPress={onClose}
           >
             <Text style={styles.cancelText}>
-              Cancel
-            </Text>
+              <Translated text={"Cancel"} /></Text>
           </Pressable>
         </AnimatedView>
       </View>

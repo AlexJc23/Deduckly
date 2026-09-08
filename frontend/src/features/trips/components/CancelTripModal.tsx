@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable } from "@/theme/components";
 import { Modal, StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
@@ -13,6 +14,7 @@ export function CancelTripModal({
   onClose,
   onCancel,
 }: CancelTripModalProps) {
+  useLanguage();
   return (
     <Modal
       visible={visible}
@@ -31,12 +33,10 @@ export function CancelTripModal({
           </View>
 
           <Text style={styles.title}>
-            Cancel Trip?
-          </Text>
+            <Translated text={"Cancel Trip?"} /></Text>
 
           <Text style={styles.description}>
-            This will cancel the current active trip.
-          </Text>
+            <Translated text={"This will cancel the current active trip."} /></Text>
 
           <View style={styles.buttonRow}>
             <Pressable
@@ -48,8 +48,7 @@ export function CancelTripModal({
               onPress={onClose}
             >
               <Text style={styles.cancelText}>
-                Keep Trip
-              </Text>
+                <Translated text={"Keep Trip"} /></Text>
             </Pressable>
 
             <Pressable
@@ -67,8 +66,7 @@ export function CancelTripModal({
               />
 
               <Text style={styles.deleteText}>
-                Cancel Trip
-              </Text>
+                <Translated text={"Cancel Trip"} /></Text>
             </Pressable>
           </View>
         </View>

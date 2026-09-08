@@ -1,3 +1,4 @@
+import { getLocale } from "@/i18n/core";
 import { UseCurrentReportParams } from "../hooks/use-current-report";
 import { formatReportDate } from "./date";
 
@@ -14,12 +15,12 @@ export function miles(value: unknown): string {
   const number = reportNumber(value);
   return number === null ? "—" : `${number.toLocaleString("en-US", { maximumFractionDigits: 2 })} mi`;
 }
-export function reportPeriodLabel(params: UseCurrentReportParams): string {
+export function reportPeriodLabel(params: UseCurrentReportParams, locale = getLocale()): string {
   if (params.startDate && params.endDate) {
-    const format = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    const format = (d: Date) => d.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
     return `${format(params.startDate)} – ${format(params.endDate)}`;
   }
-  return params.year ? formatReportDate(params.year, params.month, params.day) : "Selected period";
+  return params.year ? formatReportDate(params.year, params.month, params.day, locale) : "Selected period";
 }
 export function localDateString(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;

@@ -1,9 +1,11 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, SafeAreaView, Text, View } from "@/theme/components";
 import { StyleSheet, ViewStyle, TextStyle } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@/theme/icons";
 
 export default function TwoFAStartScreen() {
+  useLanguage();
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.safeArea}>
@@ -20,28 +22,21 @@ export default function TwoFAStartScreen() {
             </View>
 
             <Text style={styles.eyebrow}>
-              ACCOUNT SECURITY
-            </Text>
+              <Translated text={"ACCOUNT SECURITY"} /></Text>
 
             <Text style={styles.title}>
-              Protect your account
-            </Text>
+              <Translated text={"Protect your account"} /></Text>
 
             <Text style={styles.description}>
-              Add an extra layer of security to your
-              Deduckly account with two-factor
-              authentication.
-            </Text>
+              <Translated text={"Add an extra layer of security to your Deduckly account with two-factor authentication."} /></Text>
           </View>
 
           <View style={styles.stepsCard}>
             <Text style={styles.stepsHeading}>
-              How it works
-            </Text>
+              <Translated text={"How it works"} /></Text>
 
             <Text style={styles.stepsSubtitle}>
-              Setup takes less than a minute.
-            </Text>
+              <Translated text={"Setup takes less than a minute."} /></Text>
 
             <View style={styles.steps}>
               <Step
@@ -82,8 +77,7 @@ export default function TwoFAStartScreen() {
               }
             >
               <Text style={styles.primaryText}>
-                Continue
-              </Text>
+                <Translated text={"Continue"} /></Text>
 
             </Pressable>
 
@@ -95,8 +89,7 @@ export default function TwoFAStartScreen() {
               onPress={() => router.back()}
             >
               <Text style={styles.cancelText}>
-                Not Now
-              </Text>
+                <Translated text={"Not Now"} /></Text>
             </Pressable>
           </View>
         </View>
@@ -116,6 +109,7 @@ function Step({
   title: string;
   description: string;
 }) {
+  useLanguage();
   return (
     <View style={styles.step}>
       <View style={styles.stepIcon}>
@@ -135,12 +129,12 @@ function Step({
           </View>
 
           <Text style={styles.stepTitle}>
-            {title}
+            {<Translated text={title} />}
           </Text>
         </View>
 
         <Text style={styles.stepDescription}>
-          {description}
+          {<Translated text={description} />}
         </Text>
       </View>
     </View>

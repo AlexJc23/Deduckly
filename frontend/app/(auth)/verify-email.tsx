@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, SafeAreaView, Text, View } from "@/theme/components";
 import { ActivityIndicator, StyleSheet } from "react-native";
 import { useEffect } from "react";
@@ -13,6 +14,7 @@ import {
 } from "@/features/auth/api/auth.api";
 
 export default function VerifyEmail() {
+  useLanguage();
   const { token, email } = useLocalSearchParams<{
     token?: string;
     email?: string;
@@ -67,16 +69,13 @@ export default function VerifyEmail() {
               </View>
 
               <Text style={styles.eyebrow}>
-                VERIFY YOUR EMAIL
-              </Text>
+                <Translated text={"VERIFY YOUR EMAIL"} /></Text>
 
               <Text style={styles.title}>
-                Check your inbox
-              </Text>
+                <Translated text={"Check your inbox"} /></Text>
 
               <Text style={styles.subtitle}>
-                We sent a verification link to
-              </Text>
+                <Translated text={"We sent a verification link to"} /></Text>
 
               <View style={styles.emailPill}>
                 <Ionicons
@@ -94,10 +93,7 @@ export default function VerifyEmail() {
               </View>
 
               <Text style={styles.helperText}>
-                Tap the link in the email to verify
-                your account and finish setting
-                things up.
-              </Text>
+                <Translated text={"Tap the link in the email to verify your account and finish setting things up."} /></Text>
 
               {email && (
                 <Pressable
@@ -131,8 +127,7 @@ export default function VerifyEmail() {
                       />
 
                       <Text style={styles.buttonText}>
-                        Resend Verification Email
-                      </Text>
+                        <Translated text={"Resend Verification Email"} /></Text>
                     </>
                   )}
                 </Pressable>
@@ -157,8 +152,7 @@ export default function VerifyEmail() {
                 <Text
                   style={styles.secondaryButtonText}
                 >
-                  Back to Login
-                </Text>
+                  <Translated text={"Back to Login"} /></Text>
               </Pressable>
             </View>
           )}
@@ -174,17 +168,13 @@ export default function VerifyEmail() {
               </View>
 
               <Text style={styles.eyebrow}>
-                EMAIL VERIFICATION
-              </Text>
+                <Translated text={"EMAIL VERIFICATION"} /></Text>
 
               <Text style={styles.title}>
-                Verifying your email
-              </Text>
+                <Translated text={"Verifying your email"} /></Text>
 
               <Text style={styles.subtitle}>
-                Please wait while we securely verify
-                your email address.
-              </Text>
+                <Translated text={"Please wait while we securely verify your email address."} /></Text>
 
               <View style={styles.loadingCard}>
                 <ActivityIndicator
@@ -193,8 +183,7 @@ export default function VerifyEmail() {
                 />
 
                 <Text style={styles.loadingText}>
-                  Verifying account...
-                </Text>
+                  <Translated text={"Verifying account..."} /></Text>
               </View>
             </View>
           )}
@@ -215,17 +204,13 @@ export default function VerifyEmail() {
               </View>
 
               <Text style={styles.eyebrow}>
-                EMAIL VERIFIED
-              </Text>
+                <Translated text={"EMAIL VERIFIED"} /></Text>
 
               <Text style={styles.title}>
-                You're all set
-              </Text>
+                <Translated text={"You're all set"} /></Text>
 
               <Text style={styles.subtitle}>
-                Your email has been successfully
-                verified.
-              </Text>
+                <Translated text={"Your email has been successfully verified."} /></Text>
 
               <View style={styles.successCard}>
                 <Ionicons
@@ -235,8 +220,7 @@ export default function VerifyEmail() {
                 />
 
                 <Text style={styles.successText}>
-                  Taking you to login...
-                </Text>
+                  <Translated text={"Taking you to login..."} /></Text>
               </View>
             </View>
           )}
@@ -257,17 +241,13 @@ export default function VerifyEmail() {
               </View>
 
               <Text style={styles.eyebrow}>
-                VERIFICATION FAILED
-              </Text>
+                <Translated text={"VERIFICATION FAILED"} /></Text>
 
               <Text style={styles.title}>
-                Link is invalid or expired
-              </Text>
+                <Translated text={"Link is invalid or expired"} /></Text>
 
               <Text style={styles.subtitle}>
-                This verification link is no longer
-                valid. Please request a new one.
-              </Text>
+                <Translated text={"This verification link is no longer valid. Please request a new one."} /></Text>
 
               {email && (
                 <Pressable
@@ -301,8 +281,7 @@ export default function VerifyEmail() {
                       />
 
                       <Text style={styles.buttonText}>
-                        Resend Verification Email
-                      </Text>
+                        <Translated text={"Resend Verification Email"} /></Text>
                     </>
                   )}
                 </Pressable>
@@ -327,8 +306,7 @@ export default function VerifyEmail() {
                 <Text
                   style={styles.secondaryButtonText}
                 >
-                  Back to Login
-                </Text>
+                  <Translated text={"Back to Login"} /></Text>
               </Pressable>
             </View>
           )}
@@ -344,8 +322,7 @@ export default function VerifyEmail() {
           </View>
 
           <Text style={styles.securityText}>
-            Your information is securely encrypted.
-          </Text>
+            <Translated text={"Your information is securely encrypted."} /></Text>
         </View>
       </View>
     </SafeAreaView>

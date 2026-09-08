@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, View } from "@/theme/components";
 import {
   Stack,
@@ -16,6 +17,7 @@ import { BackHeader } from "@/components/ui/BackButton";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function ExpenseDetailsScreen() {
+  useLanguage();
   const { id } = useLocalSearchParams<{
     id: string;
   }>();
@@ -53,8 +55,7 @@ export default function ExpenseDetailsScreen() {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>
-          Failed to load expense.
-        </Text>
+          <Translated text={"Failed to load expense."} /></Text>
       </View>
     );
   }
@@ -82,23 +83,19 @@ export default function ExpenseDetailsScreen() {
         <View style={styles.contentInner}>
           <View style={styles.header}>
             <Text style={styles.eyebrow}>
-              EXPENSE
-            </Text>
+              <Translated text={"EXPENSE"} /></Text>
 
             <Text style={styles.title}>
-              Expense Details
-            </Text>
+              <Translated text={"Expense Details"} /></Text>
 
             <Text style={styles.subtitle}>
-              Review the details of this expense.
-            </Text>
+              <Translated text={"Review the details of this expense."} /></Text>
           </View>
 
           <View style={styles.card}>
             <View style={styles.amountSection}>
               <Text style={styles.amountLabel}>
-                Amount
-              </Text>
+                <Translated text={"Amount"} /></Text>
 
               <Text style={styles.amount}>
                 $
@@ -155,8 +152,7 @@ export default function ExpenseDetailsScreen() {
 
           <View style={styles.receiptCard}>
             <Text style={styles.sectionTitle}>
-              Receipt
-            </Text>
+              <Translated text={"Receipt"} /></Text>
 
             {expense.receipt_url ? (
               <Image
@@ -172,8 +168,7 @@ export default function ExpenseDetailsScreen() {
                     styles.noReceiptText
                   }
                 >
-                  No receipt attached
-                </Text>
+                  <Translated text={"No receipt attached"} /></Text>
               </View>
             )}
           </View>
@@ -194,8 +189,7 @@ export default function ExpenseDetailsScreen() {
               <Text
                 style={styles.editButtonText}
               >
-                Edit Expense
-              </Text>
+                <Translated text={"Edit Expense"} /></Text>
             </Pressable>
 
             <Pressable
@@ -213,8 +207,7 @@ export default function ExpenseDetailsScreen() {
                   styles.deleteButtonText
                 }
               >
-                Delete Expense
-              </Text>
+                <Translated text={"Delete Expense"} /></Text>
             </Pressable>
           </View>
 
@@ -250,12 +243,13 @@ function DetailRow({
   value: string;
   isTablet: boolean;
 }) {
+  useLanguage();
   const styles = getStyles(isTablet);
 
   return (
     <View style={styles.row}>
       <Text style={styles.label}>
-        {label}
+        {<Translated text={label} />}
       </Text>
 
       <Text style={styles.value}>

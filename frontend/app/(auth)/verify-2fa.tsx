@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, SafeAreaView, Text, TextInput, View } from "@/theme/components";
 import { ActivityIndicator, Keyboard, StyleSheet } from "react-native";
 import { useState } from "react";
@@ -10,6 +11,7 @@ import { saveTokens } from "@/features/auth/services/auth-service.service";
 import { clearTemporaryToken } from "@/features/auth/services/twofa-storage.service";
 
 export default function Verify2FAScreen() {
+  useLanguage();
   const [code, setCode] = useState("");
 
   const { signIn } = useAuth();
@@ -61,23 +63,18 @@ export default function Verify2FAScreen() {
 
             <View style={styles.header}>
               <Text style={styles.eyebrow}>
-                ACCOUNT SECURITY
-              </Text>
+                <Translated text={"ACCOUNT SECURITY"} /></Text>
 
               <Text style={styles.title}>
-                Verify your identity
-              </Text>
+                <Translated text={"Verify your identity"} /></Text>
 
               <Text style={styles.subtitle}>
-                Enter the six-digit code from your
-                authenticator app to continue.
-              </Text>
+                <Translated text={"Enter the six-digit code from your authenticator app to continue."} /></Text>
             </View>
 
             <View style={styles.form}>
               <Text style={styles.label}>
-                AUTHENTICATION CODE
-              </Text>
+                <Translated text={"AUTHENTICATION CODE"} /></Text>
 
               <TextInput
                 value={code}
@@ -100,9 +97,7 @@ export default function Verify2FAScreen() {
               />
 
               <Text style={styles.helperText}>
-                Open your authenticator app to find
-                your current verification code.
-              </Text>
+                <Translated text={"Open your authenticator app to find your current verification code."} /></Text>
 
               {verify2FAMutation.isError && (
                 <View style={styles.errorContainer}>
@@ -111,10 +106,7 @@ export default function Verify2FAScreen() {
                   </Text>
 
                   <Text style={styles.errorText}>
-                    That code isn't correct. Check
-                    your authenticator app and try
-                    again.
-                  </Text>
+                    <Translated text={"That code isn't correct. Check your authenticator app and try again."} /></Text>
                 </View>
               )}
 
@@ -135,13 +127,11 @@ export default function Verify2FAScreen() {
                     />
 
                     <Text style={styles.buttonText}>
-                      Verifying...
-                    </Text>
+                      <Translated text={"Verifying..."} /></Text>
                   </>
                 ) : (
                   <Text style={styles.buttonText}>
-                    Verify & Continue
-                  </Text>
+                    <Translated text={"Verify & Continue"} /></Text>
                 )}
               </Pressable>
             </View>
@@ -155,13 +145,10 @@ export default function Verify2FAScreen() {
 
               <View style={styles.securityContent}>
                 <Text style={styles.securityTitle}>
-                  Your account is protected
-                </Text>
+                  <Translated text={"Your account is protected"} /></Text>
 
                 <Text style={styles.securityText}>
-                  Two-factor authentication helps keep
-                  your Deduckly account secure.
-                </Text>
+                  <Translated text={"Two-factor authentication helps keep your Deduckly account secure."} /></Text>
               </View>
             </View>
           </View>

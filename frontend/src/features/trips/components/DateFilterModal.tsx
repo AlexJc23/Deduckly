@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable, AnimatedView } from "@/theme/components";
 import { Modal, Animated, Easing, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
@@ -25,6 +26,7 @@ export function DateFilterModal({
   onEndDateChange,
   onClear,
 }: DateFilterModalProps) {
+  const { locale } = useLanguage();
   const [isMounted, setIsMounted] = useState(visible);
 
   const translateY = useRef(
@@ -92,10 +94,9 @@ export function DateFilterModal({
               marginBottom: 8,
             }}
           >
-            Start Date
-          </Text>
+            <Translated text={"Start Date"} /></Text>
 
-          <DateTimePicker
+          <DateTimePicker locale={locale}
             value={startDate ?? new Date()}
             mode="date"
             display="inline"
@@ -113,10 +114,9 @@ export function DateFilterModal({
               marginBottom: 8,
             }}
           >
-            End Date
-          </Text>
+            <Translated text={"End Date"} /></Text>
 
-          <DateTimePicker
+          <DateTimePicker locale={locale}
             value={endDate ?? new Date()}
             mode="date"
             display="inline"
@@ -134,7 +134,7 @@ export function DateFilterModal({
               alignItems: "center",
             }}
           >
-            <Text>Clear Filters</Text>
+            <Text><Translated text={"Clear Filters"} /></Text>
           </Pressable>
 
           <Pressable
@@ -144,7 +144,7 @@ export function DateFilterModal({
               alignItems: "center",
             }}
           >
-            <Text>Done</Text>
+            <Text><Translated text={"Done"} /></Text>
           </Pressable>
         </AnimatedView>
       </View>

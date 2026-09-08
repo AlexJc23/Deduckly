@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, Text } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
@@ -11,6 +12,7 @@ export function ActivityDateFilter({
   label,
   onPress,
 }: Props) {
+  useLanguage();
   return (
     <Pressable
       onPress={onPress}
@@ -26,7 +28,7 @@ export function ActivityDateFilter({
       />
 
       <Text style={styles.text}>
-        {label}
+        {<Translated text={label} />}
       </Text>
 
       <Ionicons

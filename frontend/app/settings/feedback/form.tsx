@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, TextInput } from "@/theme/components";
 import { router, useLocalSearchParams } from "expo-router";
 import { KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
@@ -8,6 +9,7 @@ import { useSubmitFeedback } from "@/features/feedback/hooks/use-submit-feedback
 import { getFeedbackMetadata } from "@/features/feedback/utils/feedback-metadata";
 
 export default function FeedbackFormScreen() {
+  useLanguage();
   const { type } = useLocalSearchParams<{
     type: "bug" | "feature" | "general";
   }>();
@@ -102,7 +104,7 @@ export default function FeedbackFormScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.title}>
-          {screen.title}
+          {<Translated text={screen.title} />}
         </Text>
 
         <Text style={styles.subtitle}>
@@ -110,8 +112,7 @@ export default function FeedbackFormScreen() {
         </Text>
 
         <Text style={styles.label}>
-          Title
-        </Text>
+          <Translated text={"Title"} /></Text>
 
         <TextInput
           style={styles.input}
@@ -124,8 +125,7 @@ export default function FeedbackFormScreen() {
         />
 
         <Text style={styles.label}>
-          Description
-        </Text>
+          <Translated text={"Description"} /></Text>
 
         <TextInput
           style={styles.description}
@@ -157,8 +157,8 @@ export default function FeedbackFormScreen() {
             }
           >
             {submitFeedback.isPending
-              ? "Submitting..."
-              : "Submit Feedback"}
+              ? <Translated text={"Submitting..."} />
+              : <Translated text={"Submit Feedback"} />}
           </Text>
         </Pressable>
       </ScrollView>

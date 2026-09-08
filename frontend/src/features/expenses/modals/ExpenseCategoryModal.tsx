@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, View, AnimatedView } from "@/theme/components";
 import React, { useEffect } from "react";
 import { Animated, Modal, StyleSheet } from "react-native";
@@ -18,6 +19,7 @@ export function ExpenseCategoryModal({
   onClose,
   onSelect,
 }: Props) {
+  useLanguage();
   const translateY = React.useRef(
     new Animated.Value(500),
   ).current;
@@ -65,12 +67,10 @@ export function ExpenseCategoryModal({
           <View style={styles.header}>
             <View>
               <Text style={styles.eyebrow}>
-                EXPENSE
-              </Text>
+                <Translated text={"EXPENSE"} /></Text>
 
               <Text style={styles.title}>
-                Category
-              </Text>
+                <Translated text={"Category"} /></Text>
             </View>
 
             <Pressable
@@ -78,8 +78,7 @@ export function ExpenseCategoryModal({
               onPress={handleClose}
             >
               <Text style={styles.closeText}>
-                x
-              </Text>
+                <Translated text={"x"} /></Text>
             </Pressable>
           </View>
 
@@ -149,8 +148,7 @@ export function ExpenseCategoryModal({
             onPress={handleClose}
           >
             <Text style={styles.cancelText}>
-              Cancel
-            </Text>
+              <Translated text={"Cancel"} /></Text>
           </Pressable>
         </AnimatedView>
       </View>

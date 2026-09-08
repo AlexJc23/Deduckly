@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { ScrollView, View, Text, Pressable } from "@/theme/components";
 import { router } from "expo-router";
 import { StyleSheet } from "react-native";
@@ -10,6 +11,7 @@ import { usePremium } from "@/features/subscriptions/hooks/use-premium";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function SettingsScreen() {
+  useLanguage();
     const { data: user } = useCurrentUser();
     const { signOut } = useAuth();
     const { isPremium } = usePremium();
@@ -25,7 +27,7 @@ export default function SettingsScreen() {
             showsVerticalScrollIndicator={false}
         >
             <View style={styles.contentInner}>
-                <Text style={styles.title}>Settings</Text>
+                <Text style={styles.title}><Translated text={"Settings"} /></Text>
 
                 {/* Profile */}
                 <Pressable
@@ -63,8 +65,7 @@ export default function SettingsScreen() {
 
                 {/* Preferences */}
                 <Text style={styles.sectionTitle}>
-                    PREFERENCES
-                </Text>
+                    <Translated text={"PREFERENCES"} /></Text>
 
                 <Pressable
                     style={styles.card}
@@ -74,12 +75,10 @@ export default function SettingsScreen() {
                 >
                     <View style={styles.rowContent}>
                         <Text style={styles.rowTitle}>
-                            Preferences
-                        </Text>
+                            <Translated text={"Preferences"} /></Text>
 
                         <Text style={styles.subtitle}>
-                            Goals, units and notifications
-                        </Text>
+                            <Translated text={"Goals, units and notifications"} /></Text>
                     </View>
 
                     <Ionicons
@@ -97,12 +96,10 @@ export default function SettingsScreen() {
                 >
                     <View style={styles.rowContent}>
                         <Text style={styles.rowTitle}>
-                            App Icon
-                        </Text>
+                            <Translated text={"App Icon"} /></Text>
 
                         <Text style={styles.subtitle}>
-                            Choose your Deduckly app icon
-                        </Text>
+                            <Translated text={"Choose your Deduckly app icon"} /></Text>
                     </View>
 
                     <Ionicons
@@ -115,8 +112,7 @@ export default function SettingsScreen() {
 
                 {/* Tax */}
                 <Text style={styles.sectionTitle}>
-                    TAX SETTINGS
-                </Text>
+                    <Translated text={"TAX SETTINGS"} /></Text>
 
                 <Pressable
                     style={styles.card}
@@ -126,12 +122,10 @@ export default function SettingsScreen() {
                 >
                     <View style={styles.rowContent}>
                         <Text style={styles.rowTitle}>
-                            Mileage Rate
-                        </Text>
+                            <Translated text={"Mileage Rate"} /></Text>
 
                         <Text style={styles.subtitle}>
-                            {currentYear} IRS Standard Mileage
-                        </Text>
+                            {currentYear} <Translated text={"IRS Standard Mileage"} /></Text>
                     </View>
 
                     <Ionicons
@@ -143,8 +137,7 @@ export default function SettingsScreen() {
 
                 {/* Security */}
                 <Text style={styles.sectionTitle}>
-                    SECURITY
-                </Text>
+                    <Translated text={"SECURITY"} /></Text>
 
                 <Pressable
                     style={styles.card}
@@ -154,12 +147,10 @@ export default function SettingsScreen() {
                 >
                     <View style={styles.rowContent}>
                         <Text style={styles.rowTitle}>
-                            Security
-                        </Text>
+                            <Translated text={"Security"} /></Text>
 
                         <Text style={styles.subtitle}>
-                            Password & two-factor authentication
-                        </Text>
+                            <Translated text={"Password & two-factor authentication"} /></Text>
                     </View>
 
                     <Ionicons
@@ -178,12 +169,10 @@ export default function SettingsScreen() {
                 >
                     <View style={styles.rowContent}>
                         <Text style={styles.rowTitle}>
-                            Privacy
-                        </Text>
+                            <Translated text={"Privacy"} /></Text>
 
                         <Text style={styles.subtitle}>
-                            Manage your privacy settings
-                        </Text>
+                            <Translated text={"Manage your privacy settings"} /></Text>
                     </View>
 
                     <Ionicons
@@ -195,8 +184,7 @@ export default function SettingsScreen() {
 
                 {/* Support */}
                 <Text style={styles.sectionTitle}>
-                    SUPPORT
-                </Text>
+                    <Translated text={"SUPPORT"} /></Text>
 
                 <Pressable
                     style={styles.card}
@@ -206,12 +194,10 @@ export default function SettingsScreen() {
                 >
                     <View style={styles.rowContent}>
                         <Text style={styles.rowTitle}>
-                            Feedback
-                        </Text>
+                            <Translated text={"Feedback"} /></Text>
 
                         <Text style={styles.subtitle}>
-                            Report bugs, request features, or share feedback.
-                        </Text>
+                            <Translated text={"Report bugs, request features, or share feedback."} /></Text>
                     </View>
 
                     <Ionicons
@@ -223,8 +209,7 @@ export default function SettingsScreen() {
 
                 {/* Legal */}
                 <Text style={styles.sectionTitle}>
-                    LEGAL
-                </Text>
+                    <Translated text={"LEGAL"} /></Text>
 
                 <Pressable
                     style={styles.card}
@@ -234,12 +219,10 @@ export default function SettingsScreen() {
                 >
                     <View style={styles.rowContent}>
                         <Text style={styles.rowTitle}>
-                            Legal
-                        </Text>
+                            <Translated text={"Legal"} /></Text>
 
                         <Text style={styles.subtitle}>
-                            Terms of Service & Privacy Policy
-                        </Text>
+                            <Translated text={"Terms of Service & Privacy Policy"} /></Text>
                     </View>
 
                     <Ionicons
@@ -255,13 +238,11 @@ export default function SettingsScreen() {
                     onPress={signOut}
                 >
                     <Text style={styles.logoutText}>
-                        Logout
-                    </Text>
+                        <Translated text={"Logout"} /></Text>
                 </Pressable>
 
                 <Text style={styles.version}>
-                    Version 1.0.0
-                </Text>
+                    <Translated text={"Version 1.0.0"} /></Text>
             </View>
         </ScrollView>
     );

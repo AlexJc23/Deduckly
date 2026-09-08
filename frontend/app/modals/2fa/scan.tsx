@@ -1,3 +1,4 @@
+import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, SafeAreaView, Text, View } from "@/theme/components";
 import QRCode from "react-native-qrcode-svg";
 import { ActivityIndicator, StyleSheet } from "react-native";
@@ -9,6 +10,7 @@ import * as Clipboard from "expo-clipboard";
 import { useEnable2FA } from "@/features/auth/hooks/use-enable-2fa";
 
 export default function TwoFAScanScreen() {
+  useLanguage();
   const enable2FAMutation = useEnable2FA();
 
   useEffect(() => {
@@ -40,18 +42,13 @@ export default function TwoFAScanScreen() {
             </View>
 
             <Text style={styles.eyebrow}>
-              STEP 1 OF 2
-            </Text>
+              <Translated text={"STEP 1 OF 2"} /></Text>
 
             <Text style={styles.title}>
-              Connect your authenticator
-            </Text>
+              <Translated text={"Connect your authenticator"} /></Text>
 
             <Text style={styles.description}>
-              Scan the QR code with your authenticator
-              app to securely connect it to your
-              Deduckly account.
-            </Text>
+              <Translated text={"Scan the QR code with your authenticator app to securely connect it to your Deduckly account."} /></Text>
           </View>
 
           <View style={styles.qrCard}>
@@ -64,8 +61,7 @@ export default function TwoFAScanScreen() {
                   />
 
                   <Text style={styles.loadingText}>
-                    Preparing secure setup...
-                  </Text>
+                    <Translated text={"Preparing secure setup..."} /></Text>
                 </View>
               ) : hasError ? (
                 <View style={styles.errorContainer}>
@@ -78,13 +74,10 @@ export default function TwoFAScanScreen() {
                   </View>
 
                   <Text style={styles.errorTitle}>
-                    Unable to start setup
-                  </Text>
+                    <Translated text={"Unable to start setup"} /></Text>
 
                   <Text style={styles.errorText}>
-                    We couldn't generate your
-                    authentication code.
-                  </Text>
+                    <Translated text={"We couldn't generate your authentication code."} /></Text>
 
                   <Pressable
                     style={styles.retryButton}
@@ -99,8 +92,7 @@ export default function TwoFAScanScreen() {
                     />
 
                     <Text style={styles.retryText}>
-                      Try Again
-                    </Text>
+                      <Translated text={"Try Again"} /></Text>
                   </Pressable>
                 </View>
               ) : otpauthUrl ? (
@@ -127,12 +119,10 @@ export default function TwoFAScanScreen() {
 
                 <View style={styles.manualHeaderText}>
                   <Text style={styles.manualLabel}>
-                    Can't scan the code?
-                  </Text>
+                    <Translated text={"Can't scan the code?"} /></Text>
 
                   <Text style={styles.manualDescription}>
-                    Enter the setup key manually.
-                  </Text>
+                    <Translated text={"Enter the setup key manually."} /></Text>
                 </View>
               </View>
 
@@ -160,8 +150,7 @@ export default function TwoFAScanScreen() {
               </Pressable>
 
               <Text style={styles.copyHint}>
-                Tap the key to copy
-              </Text>
+                <Translated text={"Tap the key to copy"} /></Text>
             </View>
           )}
 
@@ -182,8 +171,7 @@ export default function TwoFAScanScreen() {
               }
             >
               <Text style={styles.primaryText}>
-                Continue
-              </Text>
+                <Translated text={"Continue"} /></Text>
 
               <Ionicons
                 name="arrow-forward"
@@ -197,8 +185,7 @@ export default function TwoFAScanScreen() {
               onPress={() => router.dismissAll()}
             >
               <Text style={styles.cancelText}>
-                Cancel Setup
-              </Text>
+                <Translated text={"Cancel Setup"} /></Text>
             </Pressable>
           </View>
         </View>
