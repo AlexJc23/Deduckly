@@ -1,8 +1,9 @@
+import { trackingOwnerFromToken } from "@/features/tracking/services/tracking-owner";
 import {
   getAccessToken,
   getRefreshToken,
   saveTokens,
-  clearTokens,
+  invalidateSessionForToken,
 } from "@/features/auth/services/auth-service.service";
 import axios, {
   AxiosError,
@@ -11,6 +12,10 @@ import axios, {
 import { ENV } from "@/config/env";
 import { refreshAccessToken } from "@/features/auth/services/token.services";
 import { AuthTokens } from "@/features/auth/types/auth.types";
+
+declare module "axios" {
+  interface AxiosRequestConfig { deducklyOwnerId?: string; }
+}
 
 type RetryableRequestConfig =
   InternalAxiosRequestConfig & {
@@ -27,6 +32,9 @@ let refreshPromise: Promise<AuthTokens> | null = null;
 api.interceptors.request.use(async (config) => {
   const token = await getAccessToken();
 
+  if (config.deducklyOwnerId && trackingOwnerFromToken(token) !== config.deducklyOwnerId) {
+    throw new Error("Trip account changed before upload");
+  }
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -41,11 +49,14 @@ api.interceptors.response.use(
     const originalRequest =
       error.config as RetryableRequestConfig | undefined;
 
-    if (
-      error.response?.status !== 401 ||
-      !originalRequest ||
-      originalRequest._retry
-    ) {
+    if (error.response?.status !== 401 || !originalRequest) {
+      return Promise.reject(error);
+    }
+    const authorization = originalRequest.headers.Authorization;
+    const requestToken = typeof authorization === "string" && authorization.startsWith("Bearer ")
+      ? authorization.slice(7) : null;
+    if (originalRequest._retry) {
+      await invalidateSessionForToken(requestToken);
       return Promise.reject(error);
     }
 
@@ -58,7 +69,7 @@ api.interceptors.response.use(
             await getRefreshToken();
 
           if (!storedRefreshToken) {
-            throw new Error("No refresh token");
+            throw new AxiosError("No refresh token", "ERR_SESSION_EXPIRED");
           }
 
           const tokens =
@@ -84,10 +95,11 @@ api.interceptors.response.use(
 
       return api(originalRequest);
     } catch (refreshError) {
-      refreshPromise = null;
-
-      await clearTokens();
-
+      const failure = refreshError as AxiosError;
+      if (failure.code === "ERR_SESSION_EXPIRED" || failure.response?.status === 401 || failure.response?.status === 403) {
+        await invalidateSessionForToken(requestToken);
+      }
+      // A timeout, offline device, or server outage does not invalidate the session.
       return Promise.reject(refreshError);
     }
   }

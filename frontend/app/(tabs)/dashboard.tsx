@@ -1,3 +1,4 @@
+import { localizedAlert } from "@/i18n/alerts";
 import { useLanguage, Translated } from "@/i18n/language";
 import {
   Pressable,
@@ -69,6 +70,8 @@ export default function DashboardScreen() {
 
   const {
     isTracking,
+    isReady,
+    trackingNotice,
     startTrackingFromSiri,
   } = useTracking();
 
@@ -171,6 +174,7 @@ export default function DashboardScreen() {
   }, [saved]);
 
   useEffect(() => {
+    if (!isReady) return;
     const interval = setInterval(
       async () => {
         const pendingTrip =
@@ -180,9 +184,9 @@ export default function DashboardScreen() {
 
         clearInterval(interval);
 
-        await startTrackingFromSiri(
+        if (!await startTrackingFromSiri(
           pendingTrip.platform
-        );
+        )) return;
 
         router.replace(
           "/tracking/active"
@@ -192,7 +196,7 @@ export default function DashboardScreen() {
     );
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isReady, startTrackingFromSiri]);
 
   if (todayLoading) {
     return (
@@ -706,6 +710,15 @@ export default function DashboardScreen() {
         </Pressable>
       </View>
 
+      {trackingNotice && (
+        <Pressable accessibilityRole="button" onPress={() => isTracking
+          ? router.push("/tracking/active")
+          : localizedAlert("Check trip tracking", trackingNotice)} style={{ paddingHorizontal: 20, paddingVertical: 8 }}>
+          <Text style={{ fontSize: 13, textAlign: "center", textDecorationLine: "underline" }}>
+            <Translated text="Check trip tracking" />
+          </Text>
+        </Pressable>
+      )}
       <StartTripModal
         visible={showStartTripModal}
         onClose={closeStartModal}

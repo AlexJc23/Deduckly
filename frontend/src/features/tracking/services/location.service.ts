@@ -29,7 +29,8 @@ export async function getCurrentLocation() {
  * is handled separately from the active trip.
  */
 export async function watchLocation(
-  callback: (location: Location.LocationObject) => void
+  callback: (location: Location.LocationObject) => void,
+  onError?: (reason: string) => void
 ) {
   const subscription =
     await Location.watchPositionAsync(
@@ -41,7 +42,8 @@ export async function watchLocation(
           LOCATION_TIME_INTERVAL_MS,
         mayShowUserSettingsDialog: true,
       },
-      callback
+      callback,
+      onError
     );
 
   return subscription;

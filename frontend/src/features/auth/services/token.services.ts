@@ -9,6 +9,7 @@ export async function refreshAccessToken(
     `${ENV.API_URL}/api/v1/auth/refresh`,
     null,
     {
+      timeout: 10000,
       params: {
         refresh_token: refreshToken,
       },
