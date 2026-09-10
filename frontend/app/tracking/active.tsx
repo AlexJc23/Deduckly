@@ -1,5 +1,5 @@
 import { useLanguage, Translated } from "@/i18n/language";
-import { View, Text, Pressable } from "@/theme/components";
+import { View, Text, Pressable, ScrollView } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { router } from "expo-router";
 import { useState, useEffect } from "react";
@@ -66,6 +66,7 @@ export default function ActiveTripScreen() {
     platform,
     startTime,
     distanceMiles,
+    trackingNotice,
     cancelTracking,
     stopTracking,
   } = useTracking();
@@ -92,7 +93,7 @@ export default function ActiveTripScreen() {
       if (shouldCancel) {
         clearInterval(interval);
 
-        cancelTracking();
+        if (!await cancelTracking()) return;
 
         router.replace(
           "/(tabs)/dashboard"
@@ -128,8 +129,13 @@ export default function ActiveTripScreen() {
     <View style={styles.container}>
       <BackHeader />
 
-      <View style={styles.content}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
         <View style={styles.contentInner}>
+          {trackingNotice && (
+            <View style={styles.trackingNotice} accessibilityRole="alert">
+              <Text style={styles.trackingNoticeText}><Translated text={trackingNotice} /></Text>
+            </View>
+          )}
           {/* Duration */}
 
           <View style={styles.durationSection}>
@@ -307,17 +313,17 @@ export default function ActiveTripScreen() {
             </View>
           </View>
         </View>
-      </View>
+      </ScrollView>
 
       <CancelTripModal
         visible={showCancelModal}
         onClose={() => {
           setShowCancelModal(false);
         }}
-        onCancel={() => {
+        onCancel={async () => {
           setShowCancelModal(false);
 
-          cancelTracking();
+          if (!await cancelTracking()) return;
 
           router.push({
             pathname:
@@ -409,15 +415,17 @@ const getStyles = (isTablet: boolean) =>
       backgroundColor: "#F8FAFC",
     },
 
+    trackingNotice: { padding: 14, borderRadius: 14, backgroundColor: "#FEF3C7", marginBottom: 12 },
+    trackingNoticeText: { color: "#92400E", fontSize: 14, lineHeight: 21 },
     content: {
-      flex: 1,
+      flexGrow: 1,
       paddingHorizontal: isTablet ? 34 : 12,
       paddingTop: isTablet ? 18 : 28,
       paddingBottom: isTablet ? 30 : 24,
     },
 
     contentInner: {
-      flex: 1,
+      flexGrow: 1,
       width: "100%",
       maxWidth: isTablet ? 900 : undefined,
       alignSelf: isTablet ? "center" : undefined,

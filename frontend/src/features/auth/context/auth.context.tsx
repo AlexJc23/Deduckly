@@ -3,15 +3,17 @@ import {
   useContext,
   useEffect,
   useState,
+  useRef,
   PropsWithChildren,
 } from "react";
 
 import {
   getAccessToken,
   clearTokens,
+  subscribeToSessionInvalidation,
 } from "../services/auth-service.service";
 
-import { router } from "expo-router";
+import { router, useRootNavigationState } from "expo-router";
 import { logout } from "@/features/auth/api/auth.api";
 
 interface AuthContextType {
@@ -34,14 +36,18 @@ export function AuthProvider({
   const [isLoading, setIsLoading] =
     useState(true);
 
+  const sessionRevision = useRef(0);
+  const navigationState = useRootNavigationState();
+  const [sessionInvalidated, setSessionInvalidated] = useState(false);
+
   function signIn() {
+    sessionRevision.current++;
+    setSessionInvalidated(false);
     setAuthenticated(true);
   }
 
   async function clearSession() {
     await clearTokens();
-    setAuthenticated(false);
-    router.replace("/(auth)/login");
   }
 
   async function signOut() {
@@ -53,17 +59,33 @@ export function AuthProvider({
   }
 
   useEffect(() => {
+    if (sessionInvalidated && navigationState?.key) {
+      router.replace("/(auth)/login");
+      setSessionInvalidated(false);
+    }
+  }, [sessionInvalidated, navigationState?.key]);
+
+  useEffect(() => {
+    let active = true;
+    const revision = sessionRevision.current;
+    const unsubscribe = subscribeToSessionInvalidation(() => {
+      sessionRevision.current++;
+      setAuthenticated(false);
+      setIsLoading(false);
+      setSessionInvalidated(true);
+    });
     async function restoreSession() {
       try {
         const token = await getAccessToken();
-
-        setAuthenticated(!!token);
+        if (active && sessionRevision.current === revision) setAuthenticated(!!token);
+      } catch {
+        if (active && sessionRevision.current === revision) setAuthenticated(false);
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     }
-
-    restoreSession();
+    void restoreSession();
+    return () => { active = false; unsubscribe(); };
   }, []);
 
   return (

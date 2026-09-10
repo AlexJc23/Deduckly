@@ -1,3 +1,4 @@
+import { syncRecordedTrips } from "@/features/tracking/services/trip-journal-sync";
 import { createTrip } from "../api/trips.api";
 import {
   getPendingTrips,
@@ -16,6 +17,7 @@ export async function syncPendingTrips(): Promise<void> {
   isSyncing = true;
 
   try {
+    await syncRecordedTrips();
     const pendingTrips = await getPendingTrips();
 
     if (pendingTrips.length === 0) {
@@ -89,6 +91,8 @@ export async function syncPendingTrips(): Promise<void> {
         return;
       }
     }
+  } catch {
+    // Storage can be temporarily unavailable; retain the queues and retry later.
   } finally {
     isSyncing = false;
   }

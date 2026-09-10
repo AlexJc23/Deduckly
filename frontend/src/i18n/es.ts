@@ -1,5 +1,32 @@
 // App-owned interface copy. Brand names, user content, and API values are not translated.
 export const spanish: Record<string, string> = {
+  "Offline access": "Acceso sin conexión",
+  "Your trips can keep going.": "Tus viajes pueden continuar.",
+  "We can’t reach Deduckly right now. GPS tracking still works without internet, and your trips save on this device.": "No podemos conectar con Deduckly ahora. El registro por GPS sigue funcionando sin internet y tus viajes se guardan en este dispositivo.",
+  "Ready for your next trip": "Listo para tu próximo viaje",
+  "Saved trips will sync when a connection is available.": "Los viajes guardados se sincronizarán cuando haya conexión.",
+  "Reports and account updates need an internet connection.": "Los informes y las actualizaciones de tu cuenta necesitan conexión a internet.",
+  "Continue trip": "Continuar viaje",
+  "Checking connection…": "Comprobando conexión…",
+  "Try reconnecting": "Volver a conectar",
+  "Connect to the internet to finish setting up your account on this device. Once setup is complete, you can track trips offline.": "Conéctate a internet para terminar de configurar tu cuenta en este dispositivo. Después podrás registrar viajes sin conexión.",
+
+  "Check trip tracking": "Revisar el registro del viaje",
+  "Location access needed": "Se necesita acceso a la ubicación",
+  "Allow location access in Settings to record your trip.": "Permite el acceso a la ubicación en Ajustes para registrar tu viaje.",
+  "Trip couldn’t start": "No se pudo iniciar el viaje",
+  "Check location access and available storage, then try again. Your saved trip has not been discarded.": "Revisa el acceso a la ubicación y el almacenamiento disponible e inténtalo de nuevo. Tu viaje guardado no se ha descartado.",
+  "Trip couldn’t be canceled": "No se pudo cancelar el viaje",
+  "Your trip is still saved on this device. Please try again.": "Tu viaje sigue guardado en este dispositivo. Inténtalo de nuevo.",
+  "Trip couldn’t be saved": "No se pudo guardar el viaje",
+  "Trip recovery needs attention. Reopen the app to try again. Saved trip data has not been discarded.": "No se pudo recuperar el viaje. Vuelve a abrir la app para intentarlo de nuevo. Los datos guardados no se han descartado.",
+  "Recording is paused. Your saved mileage is safe. Check location access and available storage, then reopen the app.": "El registro está en pausa. Tu millaje guardado está a salvo. Revisa el acceso a la ubicación y el almacenamiento disponible y vuelve a abrir la app.",
+  "Background tracking is unavailable. Keep Deduckly open to record mileage. Allow Always location access in Settings for background tracking.": "El registro en segundo plano no está disponible. Mantén Deduckly abierto para registrar el millaje. Selecciona Siempre para el acceso a la ubicación en Ajustes.",
+  "Tracking was interrupted. Your recorded mileage was restored; miles traveled without GPS updates are not included.": "El registro se interrumpió. Tu millaje registrado se recuperó; no se incluyen las millas recorridas sin actualizaciones del GPS.",
+  "Trip recording is active": "El registro del viaje está activo",
+  "Background location": "Ubicación en segundo plano",
+  "Allow background location to keep recording your active trip when the screen is locked or you use another app. Tracking stops when you end or cancel the trip.": "Permite la ubicación en segundo plano para seguir registrando tu viaje con la pantalla bloqueada o mientras usas otra app. El registro se detiene al finalizar o cancelar el viaje.",
+
   "Account couldn’t be deleted": "No se pudo eliminar la cuenta",
   "Please try again. If you use Sign in with Apple, we also need to disconnect it before deleting your account.": "Inténtalo de nuevo. Si usas Iniciar sesión con Apple, también debemos desconectarlo antes de eliminar tu cuenta.",
 
