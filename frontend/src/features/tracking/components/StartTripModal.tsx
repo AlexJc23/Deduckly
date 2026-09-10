@@ -105,12 +105,13 @@ export function StartTripModal({
       return;
     }
 
-    await startTracking({
+    const started = await startTracking({
       category: selectedCategory,
       platform: null,
       trackingMethod: "automatic",
     });
 
+    if (!started) return;
     handleClose();
     router.push("/tracking/active");
   };
@@ -118,12 +119,13 @@ export function StartTripModal({
   const handleStartBusinessTrip = async () => {
     if (!selectedPlatform) return;
 
-    await startTracking({
+    const started = await startTracking({
       category: "business",
       platform: selectedPlatform,
       trackingMethod: "automatic",
     });
 
+    if (!started) return;
     handleClose();
     router.push("/tracking/active");
   };

@@ -5,9 +5,10 @@ import { useTracking } from "@/features/tracking/context/tracking.context";
 import { getPendingTrip } from "@/services/siri.service";
 
 export function SiriStartup() {
-  const { startTrackingFromSiri } = useTracking();
+  const { startTrackingFromSiri, isReady } = useTracking();
 
   useEffect(() => {
+    if (!isReady) return;
     const timer = setTimeout(async () => {
       const pendingTrip = await getPendingTrip();
 
@@ -15,7 +16,7 @@ export function SiriStartup() {
         return;
       }
 
-      await startTrackingFromSiri(pendingTrip.platform);
+      if (!await startTrackingFromSiri(pendingTrip.platform)) return;
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -25,7 +26,7 @@ export function SiriStartup() {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [startTrackingFromSiri]);
+  }, [startTrackingFromSiri, isReady]);
 
   return null;
 }
