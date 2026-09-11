@@ -16,8 +16,8 @@
 		5B44ED913025F381009FEF8B /* SiriBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B44ED903025F381009FEF8B /* SiriBridge.m */; };
 		5B44ED933026ACDE009FEF8B /* StopTripIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B44ED923026ACCD009FEF8B /* StopTripIntent.swift */; };
 		5B44ED9530275EFA009FEF8B /* CancelTripIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B44ED9430275EEF009FEF8B /* CancelTripIntent.swift */; };
-		5B5AE3B5303B5083002723E1 /* AppIconManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B5AE3B3303B5082002723E1 /* AppIconManager.m */; };
-		5B5AE3B6303B5083002723E1 /* AppIconManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5AE3B4303B5082002723E1 /* AppIconManager.swift */; };
+		5B5AE3B5303B5083002723E1 /* frontend/AppIconManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B5AE3B3303B5082002723E1 /* frontend/AppIconManager.m */; };
+		5B5AE3B6303B5083002723E1 /* frontend/AppIconManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5AE3B4303B5082002723E1 /* frontend/AppIconManager.swift */; };
 		78FF2A795E816E7EAD6CF6BF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4F490B7087805EB7C635E270 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		EA1291ADA5A12F13EC9548D7 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A42328A2A34F1D9A9717CE /* ExpoModulesProvider.swift */; };
@@ -51,8 +51,8 @@
 		5B44ED903025F381009FEF8B /* SiriBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SiriBridge.m; sourceTree = "<group>"; };
 		5B44ED923026ACCD009FEF8B /* StopTripIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopTripIntent.swift; sourceTree = "<group>"; };
 		5B44ED9430275EEF009FEF8B /* CancelTripIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancelTripIntent.swift; sourceTree = "<group>"; };
-		5B5AE3B3303B5082002723E1 /* AppIconManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = frontend/AppIconManager.m; sourceTree = "<group>"; };
-		5B5AE3B4303B5082002723E1 /* AppIconManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = frontend/AppIconManager.swift; sourceTree = "<group>"; };
+		5B5AE3B3303B5082002723E1 /* frontend/AppIconManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = frontend/AppIconManager.m; sourceTree = "<group>"; };
+		5B5AE3B4303B5082002723E1 /* frontend/AppIconManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = frontend/AppIconManager.swift; sourceTree = "<group>"; };
 		8CBAF9A6BA78A8FBA4AC9D13 /* Pods-frontend.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-frontend.debug.xcconfig"; path = "Target Support Files/Pods-frontend/Pods-frontend.debug.xcconfig"; sourceTree = "<group>"; };
 		A3A42328A2A34F1D9A9717CE /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-frontend/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = frontend/SplashScreen.storyboard; sourceTree = "<group>"; };
@@ -87,8 +87,8 @@
 		13B07FAE1A68108700A75B9A /* frontend */ = {
 			isa = PBXGroup;
 			children = (
-				5B5AE3B3303B5082002723E1 /* AppIconManager.m */,
-				5B5AE3B4303B5082002723E1 /* AppIconManager.swift */,
+				5B5AE3B3303B5082002723E1 /* frontend/AppIconManager.m */,
+				5B5AE3B4303B5082002723E1 /* frontend/AppIconManager.swift */,
 				5B44ED903025F381009FEF8B /* SiriBridge.m */,
 				5B44ED8C3025F1F7009FEF8B /* SiriBridge.swift */,
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
@@ -213,8 +213,9 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 2660;
-				LastUpgradeCheck = 1130;
+				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						DevelopmentTeam = G64MM7TYUG;
@@ -404,8 +405,8 @@
 			files = (
 				5B44ED893024A982009FEF8B /* Platform.swift in Sources */,
 				5B44ED913025F381009FEF8B /* SiriBridge.m in Sources */,
-				5B5AE3B5303B5083002723E1 /* AppIconManager.m in Sources */,
-				5B5AE3B6303B5083002723E1 /* AppIconManager.swift in Sources */,
+				5B5AE3B5303B5083002723E1 /* frontend/AppIconManager.m in Sources */,
+				5B5AE3B6303B5083002723E1 /* frontend/AppIconManager.swift in Sources */,
 				5B44ED8A3024A98D009FEF8B /* AppShortcuts.swift in Sources */,
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
 				5B44ED8D3025F1F7009FEF8B /* SiriBridge.swift in Sources */,
@@ -430,8 +431,8 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 9;
-				DEVELOPMENT_TEAM = G64MM7TYUG;
 				ENABLE_BITCODE = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FB_SONARKIT_ENABLED=1",
@@ -476,7 +477,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 9;
-				DEVELOPMENT_TEAM = G64MM7TYUG;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = frontend/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Deduckly;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
@@ -509,6 +510,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -528,6 +530,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -535,8 +538,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				DEVELOPMENT_TEAM = G64MM7TYUG;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -562,6 +567,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;
@@ -572,6 +578,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -591,6 +598,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -598,8 +606,10 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
+				DEVELOPMENT_TEAM = G64MM7TYUG;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -617,6 +627,8 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;
