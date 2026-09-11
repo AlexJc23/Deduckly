@@ -47,12 +47,38 @@ function harness() {
   service.subscribeToSessionInvalidation(() => { state.invalidated++; });
   load('@/api/client');
   return { disk, state, service, unauthorized: (token = 'old-access', retry = false) => response({
-    response: { status: 401 }, config: { headers: { Authorization: `Bearer ${token}` }, _retry: retry },
+    response: { status: 401 }, config: { headers: token ? { Authorization: `Bearer ${token}` } : {}, _retry: retry },
   }), request: config => request(config) };
 }
 let count = 0;
 async function test(name, fn) { await fn(); count++; console.log(`PASS ${name}`); }
 (async () => {
+  await test('logged-out startup retries never invalidate a missing session', async () => {
+    const h = harness(); h.disk.clear();
+    // Initial request plus the three native React Query retries. The root
+    // SubscriptionProvider stays mounted while Login/Register are navigated.
+    for (let attempt = 0; attempt < 4; attempt++) {
+      await assert.rejects(h.unauthorized(null));
+    }
+    assert.equal(h.state.invalidated, 0, 'guest failures must not trigger AuthProvider login redirects');
+  });
+  await test('late guest failure cannot interrupt a completed login', async () => {
+    const h = harness(); await h.service.saveTokens('new-account', 'new-refresh');
+    await assert.rejects(h.unauthorized(null, true));
+    assert.equal(h.disk.get('access_token'), 'new-account');
+    assert.equal(h.state.invalidated, 0);
+  });
+  await test('concurrent invalidations of an expired session notify exactly once', async () => {
+    const h = harness();
+    await Promise.all([h.service.invalidateSessionForToken('old-access'), h.service.invalidateSessionForToken('old-access')]);
+    assert.equal(h.state.invalidated, 1);
+    await h.service.invalidateSessionForToken(null);
+    assert.equal(h.state.invalidated, 1);
+  });
+  await test('explicit logout still notifies and clears stored credentials', async () => {
+    const h = harness(); await h.service.clearTokens();
+    assert.equal(h.disk.size, 0); assert.equal(h.state.invalidated, 1);
+  });
   await test('missing refresh token clears credentials and notifies the signed-in UI', async () => {
     const h = harness(); h.disk.delete('refresh_token'); await assert.rejects(h.unauthorized());
     assert.equal(h.disk.size, 0); assert.equal(h.state.invalidated, 1); assert.equal(h.state.refreshCalls, 0);
