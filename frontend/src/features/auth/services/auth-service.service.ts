@@ -43,10 +43,11 @@ export function clearTokens() {
   return mutate(eraseTokens);
 }
 
-// A late response from an old session must not sign out a newly signed-in account.
+// Only invalidate a real, matching session. Guest request failures must not
+// redirect auth screens, and old responses must not sign out a new account.
 export function invalidateSessionForToken(expectedToken: string | null) {
   return mutate(async () => {
-    if (await getAccessToken() !== expectedToken) return;
+    if (!expectedToken || await getAccessToken() !== expectedToken) return;
     await eraseTokens();
   });
 }
