@@ -112,7 +112,7 @@ def has_active_subscription(
         return False
 
     return (
-        sub.status == "active"
+        sub.status in {"active", "canceled"}
         and sub.expiration_date > datetime.now(timezone.utc)
     )
 
@@ -126,7 +126,7 @@ def is_user_premium(user: User) -> bool:
         key=lambda s: s.expiration_date,
     )
 
-    if subscription.status != "active":
+    if subscription.status not in {"active", "canceled"}:
         return False
 
     return (

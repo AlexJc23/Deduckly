@@ -2,7 +2,7 @@ import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, Text, View, AnimatedView } from "@/theme/components";
 import { useState } from "react";
 import { Modal, StyleSheet, Animated, Easing } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker from "@/components/ui/DateField";
 import { Ionicons } from "@/theme/icons";
 import { router } from "expo-router";
 

@@ -220,6 +220,20 @@ async def google_callback(
         ),
     )
 
+    # Google must enforce the same second factor as password and Apple login.
+    two_fa = db.query(TwoFactorAuth).filter(
+        TwoFactorAuth.user_id == user.id,
+        TwoFactorAuth.is_enabled == True,
+    ).first()
+    if two_fa:
+        return RedirectResponse(
+            url="deduckly://oauth/callback?" + urlencode({
+                "access_token": create_2fa_token(user.id),
+                "requires_2fa": "true",
+            }),
+            status_code=302,
+        )
+
     access_token = create_access_token(
         data={"sub": str(user.id)}
     )

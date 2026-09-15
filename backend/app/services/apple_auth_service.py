@@ -208,11 +208,6 @@ async def exchange_code(code, challenge):
                 },
             )
 
-            print(
-                "APPLE DEBUG: token response:",
-                response.status_code,
-                response.text,
-            )
 
             if response.status_code == 400:
                 raise HTTPException(

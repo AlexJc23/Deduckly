@@ -63,6 +63,7 @@ export default function DeleteAccountModal({
       visible={isMounted}
       transparent
       animationType="none"
+      onRequestClose={Platform.OS === "android" ? onClose : undefined}
     >
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{

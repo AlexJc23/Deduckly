@@ -1,7 +1,7 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, TextInput, View } from "@/theme/components";
 import { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 import {
   CreateIncomeRequest,
@@ -64,6 +64,7 @@ export function IncomeForm({
   }, [initialValues]);
 
   function handleSubmit() {
+    if (Platform.OS === "android" && (loading || !Number.isFinite(Number(amount)) || Number(amount) <= 0)) return;
     onSubmit({
       amount: Number(amount),
       source,
@@ -76,10 +77,12 @@ export function IncomeForm({
           ? businessName
           : undefined,
       notes: notes || undefined,
-      received_at: new Date().toISOString(),
+      received_at: Platform.OS === "android" && initialValues?.received_at
+        ? initialValues.received_at : new Date().toISOString(),
     });
 
-    router.back();
+    // Android waits for the screen mutation success callback before leaving.
+    if (Platform.OS !== "android") router.back();
   }
 
   return (
@@ -113,7 +116,7 @@ export function IncomeForm({
             style={styles.amountInput}
             keyboardType="decimal-pad"
             value={amount}
-            onChangeText={setAmount}
+            onChangeText={Platform.OS === "android" ? value => setAmount(value.replace(",", ".")) : setAmount}
             placeholder="0.00"
             placeholderTextColor="#94A3B8"
           />
@@ -234,7 +237,7 @@ export function IncomeForm({
         />
 
         <Pressable
-          disabled={loading}
+          disabled={loading || (Platform.OS === "android" && (!Number.isFinite(Number(amount)) || Number(amount) <= 0))}
           style={({ pressed }) => [
             styles.button,
             loading && styles.buttonDisabled,

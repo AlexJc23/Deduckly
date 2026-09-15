@@ -1,7 +1,7 @@
 import { localizedAlert } from "@/i18n/alerts";
 import { useLanguage, Translated } from "@/i18n/language";
 import { View, ScrollView, Text, Pressable, SafeAreaView, AnimatedView } from "@/theme/components";
-import { Animated, Dimensions, Easing, StyleSheet } from "react-native";
+import { Platform, Animated, Dimensions, Easing, StyleSheet } from "react-native";
 
 import { Ionicons } from "@/theme/icons";
 import { useState, useEffect, useRef } from "react";
@@ -233,6 +233,10 @@ export default function PaywallScreen() {
   useEffect(() => {
     async function loadOfferings() {
       try {
+        if (Platform.OS === "android" && !process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY?.trim()) {
+          localizedAlert("Plans unavailable", "Android subscriptions are not available yet. You can continue using Deduckly.");
+          return;
+        }
         const offerings =
           await revenueCatService.getOfferings();
 
@@ -311,7 +315,7 @@ export default function PaywallScreen() {
       }
 
       console.error("Purchase failed:", error);
-      localizedAlert("Purchase couldn’t be completed", "Please try again. If Apple already confirmed your purchase, use Restore Purchases before purchasing again.");
+      localizedAlert("Purchase couldn’t be completed", Platform.OS === "android" ? "Please try again. If Google Play already confirmed your purchase, use Restore Purchases before purchasing again." : "Please try again. If Apple already confirmed your purchase, use Restore Purchases before purchasing again.");
     } finally {
       setIsPurchasing(false);
     }
@@ -549,7 +553,7 @@ export default function PaywallScreen() {
               onPress={async () => {
                 try {
                   const info = await restorePurchases.mutateAsync();
-                  localizedAlert(info.entitlements.active["Deduckly Pro"] ? "Purchases restored" : "No active subscription found", info.entitlements.active["Deduckly Pro"] ? "Your Deduckly Pro subscription has been restored." : "No active Deduckly Pro subscription was found for this Apple Account.");
+                  localizedAlert(info.entitlements.active["Deduckly Pro"] ? "Purchases restored" : "No active subscription found", info.entitlements.active["Deduckly Pro"] ? "Your Deduckly Pro subscription has been restored." : Platform.OS === "android" ? "No active Deduckly Pro subscription was found for this Google Play account." : "No active Deduckly Pro subscription was found for this Apple Account.");
                 } catch (error) {
                   console.error(
                     "RevenueCat restore failed:",
@@ -571,7 +575,7 @@ export default function PaywallScreen() {
               <Pressable accessibilityRole="link" style={{ minHeight: 44, justifyContent: "center" }} onPress={() => router.push("/settings/privacy/sections/privacy-policy")}><Text style={styles.restoreText}><Translated text="Privacy Policy" /></Text></Pressable>
             </View>
             <Text style={styles.legal}>
-              <Translated text={"Payment is charged to your Apple Account. Subscriptions renew automatically unless canceled at least 24 hours before the current period ends."} /></Text>
+              <Translated text={Platform.OS === "android" ? "Payment is charged through Google Play. Subscriptions renew automatically unless canceled. Manage your subscription in Google Play." : "Payment is charged to your Apple Account. Subscriptions renew automatically unless canceled at least 24 hours before the current period ends."} /></Text>
           </View>
         </ScrollView>
       </SafeAreaView>
