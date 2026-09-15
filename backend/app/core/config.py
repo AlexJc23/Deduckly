@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     apple_team_id: str = ""
     apple_key_id: str = ""
     apple_private_key: str = ""
+    revenuecat_webhook_secret: str = ""
 
     app_name: str
     debug: bool
