@@ -1,5 +1,20 @@
 // App-owned interface copy. Brand names, user content, and API values are not translated.
 export const spanish: Record<string, string> = {
+  "Location access is required to record trip mileage. You can change it in Settings.": "Se necesita acceso a la ubicación para registrar las millas de los viajes. Puedes cambiarlo en Ajustes.",
+  "Background location is off": "La ubicación en segundo plano está desactivada",
+  "Background location is needed to record while the screen is locked or another app is open. This trip can record only while Deduckly is open.": "Se necesita ubicación en segundo plano para registrar con la pantalla bloqueada o mientras usas otra aplicación. Este viaje solo se puede registrar mientras Deduckly está abierta.",
+  "Deduckly uses background location to record your active trip while the screen is locked or you use another app. Tracking stops when you end or cancel the trip.": "Deduckly usa la ubicación en segundo plano para registrar tu viaje activo con la pantalla bloqueada o mientras usas otra aplicación. El seguimiento se detiene cuando terminas o cancelas el viaje.",
+  "Camera access is needed to photograph a receipt. You can change it in Settings or choose an existing photo.": "Se necesita acceso a la cámara para fotografiar un recibo. Puedes cambiarlo en Ajustes o elegir una foto existente.",
+  "Notifications are off": "Las notificaciones están desactivadas",
+  "You can change notification access in Settings.": "Puedes cambiar el acceso a las notificaciones en Ajustes.",
+  "Continue without access": "Continuar sin acceso",
+  "Permission settings": "Ajustes de permisos",
+  "We couldn’t check device permissions. You can continue setup and try this feature later.": "No pudimos comprobar los permisos. Puedes continuar la configuración e intentar usar esta función más tarde.",
+  "You can change permissions in Settings at any time.": "Puedes cambiar los permisos en Ajustes en cualquier momento.",
+  "Location access is required to record trip mileage. Open Settings to change location access, or continue setup without tracking.": "Se necesita acceso a la ubicación para registrar el millaje. Abre Ajustes para cambiar el acceso o continúa sin el registro.",
+  "Notifications are off. Open Settings to change notification access, or continue without reminders.": "Las notificaciones están desactivadas. Abre Ajustes para cambiar el acceso o continúa sin recordatorios.",
+  "We couldn’t finish setup. You can continue and try again in Settings.": "No pudimos completar la configuración. Puedes continuar e intentarlo de nuevo en Ajustes.",
+
   "Offline access": "Acceso sin conexión",
   "Your trips can keep going.": "Tus viajes pueden continuar.",
   "We can’t reach Deduckly right now. GPS tracking still works without internet, and your trips save on this device.": "No podemos conectar con Deduckly ahora. El registro por GPS sigue funcionando sin internet y tus viajes se guardan en este dispositivo.",

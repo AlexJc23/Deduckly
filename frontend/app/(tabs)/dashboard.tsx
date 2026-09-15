@@ -13,6 +13,7 @@ import {
   useState,
 } from "react";
 import {
+  Platform,
   ActivityIndicator,
   StyleSheet,
   Image,
@@ -36,7 +37,7 @@ import { useIsTablet } from "@/hooks/use-is-tablet";
 import {
   platformIcons,
   type PlatformName,
-} from "../constants/platform-icons";
+} from "@/constants/platform-icons";
 
 const subtitles = [
   "Making taxes slightly less terrible.",
@@ -687,7 +688,7 @@ export default function DashboardScreen() {
               )}
             </Text>
 
-            {!isTracking && (
+            {!isTracking && Platform.OS !== "android" && (
               <Text
                 style={styles.siriHint}
               >

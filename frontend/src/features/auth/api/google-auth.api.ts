@@ -4,9 +4,11 @@ import * as Linking from "expo-linking";
 import { ENV } from "@/config/env";
 import { saveTokens } from "@/features/auth/services/auth-service.service";
 
+import { setTemporaryToken } from "@/features/auth/services/twofa-storage.service";
+
 WebBrowser.maybeCompleteAuthSession();
 
-export async function startGoogleLogin(): Promise<boolean> {
+export async function startGoogleLogin(): Promise<boolean | "two-factor"> {
   const redirectUri = Linking.createURL(
     "oauth/callback",
     {
@@ -37,6 +39,12 @@ export async function startGoogleLogin(): Promise<boolean> {
 
   const refreshToken =
     parsed.searchParams.get("refresh_token");
+
+  if (parsed.searchParams.get("requires_2fa") === "true") {
+    if (!accessToken || refreshToken) return false;
+    setTemporaryToken(accessToken);
+    return "two-factor";
+  }
 
   if (!accessToken || !refreshToken) {
     return false;

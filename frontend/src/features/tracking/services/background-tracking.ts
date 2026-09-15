@@ -2,7 +2,7 @@ import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import { localizedAlert } from "@/i18n/alerts";
 import { translate } from "@/i18n/core";
-import { Platform } from "react-native";
+import { Linking, Platform } from "react-native";
 import { getCurrentLocation, toLocationPoint, watchLocation } from "./location.service";
 import { beginTrip, discardTrip, finishTrip, getActiveTrip, getRecordingTrip, recordPoints, setRecording, type TripStart } from "./trip-journal";
 
@@ -109,19 +109,29 @@ export function resumeRecording(ownerId: string | null) {
 }
 export function startRecording(ownerId: string, data: TripStart) {
   return control(async () => {
-    const foreground = await Location.requestForegroundPermissionsAsync();
+    let foreground = Platform.OS === "ios" ? await Location.getForegroundPermissionsAsync() : await Location.requestForegroundPermissionsAsync();
+    if (Platform.OS === "ios" && !foreground.granted && foreground.status === "undetermined" && foreground.canAskAgain) {
+      foreground = await Location.requestForegroundPermissionsAsync();
+    }
     if (!foreground.granted) {
-      localizedAlert("Location access needed", "Allow location access in Settings to record your trip.");
+      localizedAlert("Location access needed", "Location access is required to record trip mileage. You can change it in Settings.",
+        [{ text: "Cancel", style: "cancel" }, { text: "Open Settings", onPress: () => { void Linking.openSettings().catch(() => {}); } }]);
       return false;
     }
-    let background = Platform.OS !== "web" && (await Location.getBackgroundPermissionsAsync()).granted;
+    const backgroundPermission = Platform.OS !== "web" ? await Location.getBackgroundPermissionsAsync() : null;
+    let background = !!backgroundPermission?.granted;
     if (!background && Platform.OS !== "web") {
-      const proceed = await new Promise<boolean>(resolve => localizedAlert("Background location",
-        "Allow background location to keep recording your active trip when the screen is locked or you use another app. Tracking stops when you end or cancel the trip.",
-        [{ text: "Cancel", style: "cancel", onPress: () => resolve(false) },
-         { text: "Continue", onPress: () => resolve(true) }], { cancelable: false }));
-      if (!proceed) return false;
-      background = (await Location.requestBackgroundPermissionsAsync()).granted;
+      if (Platform.OS === "ios" && (backgroundPermission?.status === "denied" || !backgroundPermission?.canAskAgain)) {
+        localizedAlert("Background location is off", "Background location is needed to record while the screen is locked or another app is open. This trip can record only while Deduckly is open.",
+          [{ text: "OK" }, { text: "Open Settings", onPress: () => { void Linking.openSettings().catch(() => {}); } }]);
+      } else {
+        const proceed = await new Promise<boolean>(resolve => localizedAlert("Background location",
+          "Deduckly uses background location to record your active trip while the screen is locked or you use another app. Tracking stops when you end or cancel the trip.",
+          [...(Platform.OS === "ios" ? [] : [{ text: "Cancel", style: "cancel" as const, onPress: () => resolve(false) }]),
+           { text: "Continue", onPress: () => resolve(true) }], { cancelable: false }));
+        if (!proceed) return false;
+        background = (await Location.requestBackgroundPermissionsAsync()).granted;
+      }
     }
     const existing = await getActiveTrip(ownerId);
     const trip = existing ?? await beginTrip(ownerId, data, toLocationPoint(await getCurrentLocation()));

@@ -2,7 +2,7 @@ import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable, AnimatedView } from "@/theme/components";
 import { Modal, Animated, Easing, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker from "@/components/ui/DateField";
 
 type DateFilterModalProps = {
   visible: boolean;

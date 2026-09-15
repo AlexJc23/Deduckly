@@ -111,5 +111,27 @@ async function test(name, fn) { await fn(); count++; console.log(`PASS ${name}`)
     const h = harness(); await Promise.all([h.service.saveTokens('other', 'other-refresh'), h.service.invalidateSessionForToken('old-access')]);
     assert.equal(h.disk.get('access_token'), 'other'); assert.equal(h.state.invalidated, 0);
   });
+  await test('late successful refresh cannot overwrite a newer login', async () => {
+    const h = harness();
+    const pending = h.unauthorized();
+    const rejected = assert.rejects(pending, error => error.code === 'ERR_CANCELED');
+    await new Promise(resolve => setTimeout(resolve, 1));
+    await h.service.saveTokens('account-B', 'refresh-B');
+    await rejected;
+    assert.equal(h.disk.get('access_token'), 'account-B');
+    assert.equal(h.disk.get('refresh_token'), 'refresh-B');
+    assert.equal(h.state.retries, 0);
+    assert.equal(h.state.invalidated, 0);
+  });
+  await test('late successful refresh cannot resurrect a logged-out session', async () => {
+    const h = harness();
+    const rejected = assert.rejects(h.unauthorized(), error => error.code === 'ERR_CANCELED');
+    await new Promise(resolve => setTimeout(resolve, 1));
+    await h.service.clearTokens();
+    await rejected;
+    assert.equal(h.disk.size, 0);
+    assert.equal(h.state.retries, 0);
+    assert.equal(h.state.invalidated, 1);
+  });
   console.log(`${count} session recovery checks passed.`);
 })().catch(error => { console.error(error); process.exitCode = 1; });

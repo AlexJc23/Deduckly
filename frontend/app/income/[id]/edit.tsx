@@ -1,7 +1,8 @@
+import { localizedAlert } from "@/i18n/alerts";
 import { useLanguage, Translated } from "@/i18n/language";
 import { Text, View } from "@/theme/components";
 import { router, Stack, useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, StyleSheet } from "react-native";
+import { ActivityIndicator, Platform, StyleSheet } from "react-native";
 
 import { IncomeForm } from "@/features/income/components/IncomeForm";
 import { useIncomeDetail } from "@/features/income/hooks/use-income-detail";
@@ -27,6 +28,7 @@ export default function EditIncomeScreen() {
         income: values,
       },
       {
+        ...(Platform.OS === "android" ? { onError: () => localizedAlert("Income could not be saved", "Check your connection and try again. Your entries are still on this screen.") } : {}),
         onSuccess: () => {
           router.back();
         },

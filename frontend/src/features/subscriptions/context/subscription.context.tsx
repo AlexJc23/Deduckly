@@ -31,20 +31,7 @@ export function SubscriptionProvider({
       try {
         await revenueCatService.configure();
 
-        const customerInfo =
-          await revenueCatService.logIn(
-            String(user.id),
-          );
-
-        console.log(
-          "RevenueCat logged in as:",
-          user.id,
-        );
-
-        console.log(
-          "RevenueCat customer:",
-          customerInfo.originalAppUserId,
-        );
+        await revenueCatService.logIn(String(user.id));
       } catch (error) {
         console.error(
           "RevenueCat setup failed:",

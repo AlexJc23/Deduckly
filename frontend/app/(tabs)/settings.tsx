@@ -1,7 +1,7 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { ScrollView, View, Text, Pressable } from "@/theme/components";
 import { router } from "expo-router";
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
 
 import { useAuth } from "@/features/auth/context/auth.context";
@@ -87,8 +87,8 @@ export default function SettingsScreen() {
                         color="#9CA3AF"
                     />
                 </Pressable>
-                {/* app icon change */}
-                <Pressable
+                {/* App icon switching is implemented by the Apple native module. */}
+                {Platform.OS !== "android" && <Pressable
                     style={styles.card}
                     onPress={() =>
                         router.push("/settings/app-icons")
@@ -107,7 +107,7 @@ export default function SettingsScreen() {
                         size={isTablet ? 24 : 20}
                         color="#9CA3AF"
                     />
-                </Pressable>
+                </Pressable>}
 
 
                 {/* Tax */}

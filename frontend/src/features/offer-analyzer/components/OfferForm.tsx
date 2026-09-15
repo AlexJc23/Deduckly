@@ -1,7 +1,7 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, TextInput, Pressable } from "@/theme/components";
 import { useState } from "react";
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
 import { OfferInput } from "../types/offer.types";
 import { useIsTablet } from "@/hooks/use-is-tablet";
@@ -23,9 +23,13 @@ export function OfferForm({
     useState("");
 
   const isAnalyzeDisabled =
-    !payout || !distance;
+    !payout || !distance || (Platform.OS === "android" &&
+      (!Number.isFinite(Number(payout)) || Number(payout) <= 0 ||
+       !Number.isFinite(Number(distance)) || Number(distance) <= 0 ||
+       !Number.isFinite(Number(estimatedTime)) || Number(estimatedTime) < 0));
 
   function handleAnalyze() {
+    if (Platform.OS === "android" && isAnalyzeDisabled) return;
     const offer: OfferInput = {
       payout: Number(payout),
       distance: Number(distance),
@@ -65,7 +69,7 @@ export function OfferForm({
             placeholderTextColor="#94A3B8"
             keyboardType="decimal-pad"
             value={payout}
-            onChangeText={setPayout}
+            onChangeText={Platform.OS === "android" ? value => setPayout(value.replace(",", ".")) : setPayout}
             style={styles.input}
           />
         </View>
@@ -81,7 +85,7 @@ export function OfferForm({
             placeholderTextColor="#94A3B8"
             keyboardType="decimal-pad"
             value={distance}
-            onChangeText={setDistance}
+            onChangeText={Platform.OS === "android" ? value => setDistance(value.replace(",", ".")) : setDistance}
             style={styles.input}
           />
         </View>
@@ -97,7 +101,7 @@ export function OfferForm({
             placeholderTextColor="#94A3B8"
             keyboardType="number-pad"
             value={estimatedTime}
-            onChangeText={setEstimatedTime}
+            onChangeText={Platform.OS === "android" ? value => setEstimatedTime(value.replace(",", ".")) : setEstimatedTime}
             style={styles.input}
           />
         </View>
