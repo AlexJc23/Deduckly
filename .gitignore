@@ -48,3 +48,4 @@ expo-env.d.ts
 .env.development
 .env.production
 backups/
+frontend/credentials.json
