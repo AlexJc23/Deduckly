@@ -2,7 +2,7 @@ import { trackingOwnerFromToken } from "@/features/tracking/services/tracking-ow
 import {
   getAccessToken,
   getRefreshToken,
-  saveTokens,
+  saveRefreshedTokens,
   invalidateSessionForToken,
 } from "@/features/auth/services/auth-service.service";
 import axios, {
@@ -77,10 +77,12 @@ api.interceptors.response.use(
               storedRefreshToken
             );
 
-          await saveTokens(
+          const saved = await saveRefreshedTokens(
+            storedRefreshToken,
             tokens.access_token,
             tokens.refresh_token
           );
+          if (!saved) throw new AxiosError("Session changed during refresh", "ERR_CANCELED");
 
           return tokens;
         })().finally(() => {

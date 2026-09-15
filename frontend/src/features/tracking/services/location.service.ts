@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import * as Location from "expo-location";
 
 /**
@@ -10,8 +11,9 @@ const LOCATION_TIME_INTERVAL_MS = 1000;
 const LOCATION_DISTANCE_INTERVAL_METERS = 0;
 
 export async function requestLocationPermission() {
-  const { status } =
-    await Location.requestForegroundPermissionsAsync();
+  const current = await Location.getForegroundPermissionsAsync();
+  if (Platform.OS === "ios" && (current.granted || current.status === "denied" || !current.canAskAgain)) return current.granted;
+  const { status } = await Location.requestForegroundPermissionsAsync();
 
   return status === "granted";
 }

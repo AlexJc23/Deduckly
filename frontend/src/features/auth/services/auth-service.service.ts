@@ -24,6 +24,16 @@ export function saveTokens(accessToken: string, refreshToken: string) {
   });
 }
 
+// A refresh response belongs only to the session whose refresh token it used.
+export function saveRefreshedTokens(expectedRefreshToken: string, accessToken: string, refreshToken: string) {
+  return mutate(async () => {
+    if (await getRefreshToken() !== expectedRefreshToken) return false;
+    await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+    return true;
+  });
+}
+
 export function getAccessToken() {
   return SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
 }

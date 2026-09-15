@@ -34,6 +34,11 @@ export default function RegisterScreen() {
         return;
       }
 
+      if (success === "two-factor") {
+        router.push("/(auth)/verify-2fa");
+        return;
+      }
+
       signIn();
 
       router.replace("/(tabs)/dashboard");

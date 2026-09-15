@@ -3,7 +3,7 @@ import { View, Text, Pressable, AnimatedView } from "@/theme/components";
 import { useState, useRef, useEffect } from "react";
 import { Modal, StyleSheet, Animated, Easing } from "react-native";
 import { Ionicons } from "@/theme/icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker from "@/components/ui/DateField";
 
 type Props = {
   visible: boolean;

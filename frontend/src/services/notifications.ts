@@ -1,7 +1,8 @@
-import { Platform } from "react-native";
+import { Linking, Platform } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 
+import { localizedAlert } from "@/i18n/alerts";
 import { savePushToken } from "@/api/notification";
 
 Notifications.setNotificationHandler({
@@ -27,9 +28,15 @@ export async function registerForPushNotifications(): Promise<string> {
         });
     }
 
-    const { status: existingStatus } =
+    const permission =
         await Notifications.getPermissionsAsync();
 
+    const existingStatus = permission.status;
+    if (Platform.OS === "ios" && !permission.granted && (existingStatus === "denied" || !permission.canAskAgain)) {
+        localizedAlert("Notifications are off", "You can change notification access in Settings.",
+            [{ text: "Cancel", style: "cancel" }, { text: "Open Settings", onPress: () => { void Linking.openSettings().catch(() => {}); } }]);
+        throw new Error("Notification permission was denied.");
+    }
     let finalStatus = existingStatus;
 
     if (existingStatus !== "granted") {

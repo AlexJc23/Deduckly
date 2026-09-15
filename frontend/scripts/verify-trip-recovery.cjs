@@ -32,12 +32,18 @@ function harness(disk = new Map()) {
       requestBackgroundPermissionsAsync: async () => ({ granted: state.background }),
       getBackgroundPermissionsAsync: async () => ({ granted: state.background }),
       hasStartedLocationUpdatesAsync: async () => state.native,
-      startLocationUpdatesAsync: async () => { state.native = true; state.starts++; },
+      startLocationUpdatesAsync: async (_name, options) => {
+        if (process.env.DEDUCKLY_TEST_PLATFORM === 'android') {
+          assert.equal(options.foregroundService.notificationTitle, 'Deduckly');
+          assert.equal(options.foregroundService.killServiceOnDestroy, false);
+        } else assert.equal(options.foregroundService, undefined);
+        state.native = true; state.starts++;
+      },
       stopLocationUpdatesAsync: async () => { state.native = false; state.stops++; },
       watchPositionAsync: async (_, callback) => { state.watch = callback; return { remove: () => { state.watch = null; } }; },
     },
     'expo-task-manager': { isTaskDefined: name => tasks.has(name), defineTask: (name, callback) => tasks.set(name, callback), isAvailableAsync: async () => true },
-    'react-native': { Platform: { OS: 'ios' } },
+    'react-native': { Platform: { OS: process.env.DEDUCKLY_TEST_PLATFORM || 'ios' }, Linking: { openSettings: async () => {} } },
     '@/i18n/alerts': { localizedAlert: (_title, _message, buttons) => buttons?.at(-1).onPress() },
     '@/i18n/core': { translate: text => text },
     '@/features/auth/services/auth-service.service': { getAccessToken: async () => state.owner ? token() : null },

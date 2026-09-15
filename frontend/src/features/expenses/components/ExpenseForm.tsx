@@ -2,9 +2,9 @@ import { useLanguage, Translated } from "@/i18n/language";
 import { localizedAlert } from "@/i18n/alerts";
 import { Pressable, ScrollView, Text, TextInput, View } from "@/theme/components";
 import { useEffect, useMemo, useState } from "react";
-import {  Image, StyleSheet } from "react-native";
+import { Linking, Platform, Image, StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker from "@/components/ui/DateField";
 import * as ImagePicker from "expo-image-picker";
 
 import { ExpenseCategory } from "../types/expense";
@@ -113,13 +113,16 @@ export function ExpenseForm({
   ]);
 
   async function onTakePhoto() {
-    const permission =
-      await ImagePicker.requestCameraPermissionsAsync();
+    let permission = await ImagePicker.getCameraPermissionsAsync();
+    if (!permission.granted && permission.canAskAgain && (Platform.OS !== "ios" || permission.status === "undetermined")) {
+      permission = await ImagePicker.requestCameraPermissionsAsync();
+    }
 
     if (!permission.granted) {
       localizedAlert(
         "Camera Permission",
-        "Camera permission is required.",
+        "Camera access is needed to photograph a receipt. You can change it in Settings or choose an existing photo.",
+        [{ text: "Cancel", style: "cancel" }, { text: "Open Settings", onPress: () => { void Linking.openSettings().catch(() => {}); } }],
       );
       return;
     }
@@ -138,17 +141,8 @@ export function ExpenseForm({
   }
 
   async function onChoosePhoto() {
-    const permission =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permission.granted) {
-      localizedAlert(
-        "Photos Permission",
-        "Photo library permission is required.",
-      );
-      return;
-    }
-
+    // The system image picker grants access to the selected receipt only.
+    // No full-library permission is needed for this image-only selection flow.
     const result =
       await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],
@@ -199,7 +193,7 @@ export function ExpenseForm({
 
           <TextInput
             value={amount}
-            onChangeText={setAmount}
+            onChangeText={Platform.OS === "android" ? value => setAmount(value.replace(",", ".")) : setAmount}
             keyboardType="decimal-pad"
             style={styles.amountInput}
             placeholder="0.00"
@@ -284,7 +278,7 @@ export function ExpenseForm({
           <TextInput
             value={businessPercentage}
             onChangeText={
-              setBusinessPercentage
+              Platform.OS === "android" ? value => setBusinessPercentage(value.replace(",", ".")) : setBusinessPercentage
             }
             keyboardType="decimal-pad"
             style={styles.input}
