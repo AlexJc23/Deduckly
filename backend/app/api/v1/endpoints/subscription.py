@@ -1,21 +1,18 @@
+import secrets
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.dependencies.auth import get_current_user
+from app.core.config import settings
 from app.db.session import get_db
 from app.models import User
-from app.schemas.v1.subscription import (
-    SubscriptionCreate,
-    SubscriptionResponse,
-)
 from app.services.subscription_service import (
     get_user_subscription,
     has_active_subscription,
     process_subscription,
 )
-from app.api.dependencies.auth import get_current_user
-
 
 router = APIRouter(
     prefix="/subscriptions",
@@ -48,8 +45,28 @@ def get_my_subscription(
 @router.post("/webhooks/revenuecat")
 def revenuecat_webhook(
     payload: dict,
+    authorization: str | None = Header(default=None),
     db: Session = Depends(get_db),
 ):
+    expected_secret = settings.revenuecat_webhook_secret
+
+    if not expected_secret:
+        raise HTTPException(
+            status_code=500,
+            detail="RevenueCat webhook authentication is not configured",
+        )
+
+    expected_authorization = f"Bearer {expected_secret}"
+
+    if not secrets.compare_digest(
+        authorization or "",
+        expected_authorization,
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized",
+        )
+
     event = payload.get("event")
 
     if not event:
@@ -60,21 +77,6 @@ def revenuecat_webhook(
 
     event_type = event.get("type")
     app_user_id = event.get("app_user_id")
-
-    print(
-        "REVENUECAT:",
-        {
-            "type": event_type,
-            "app_user_id": app_user_id,
-            "product_id": event.get("product_id"),
-            "new_product_id": event.get("new_product_id"),
-            "transaction_id": event.get("transaction_id"),
-            "original_transaction_id": event.get(
-                "original_transaction_id"
-            ),
-        },
-        flush=True,
-    )
 
     if event_type == "TEST":
         return {
@@ -94,9 +96,6 @@ def revenuecat_webhook(
             detail="Missing app_user_id",
         )
 
-    # RevenueCat sends app_user_id as a string.
-    # Deduckly user IDs are integers, so explicitly
-    # convert it before querying the database.
     try:
         user_id = int(app_user_id)
     except (TypeError, ValueError):
@@ -142,11 +141,6 @@ def revenuecat_webhook(
         status = "expired"
 
     else:
-        print(
-            f"REVENUECAT: ignoring unsupported event type {event_type}",
-            flush=True,
-        )
-
         return {
             "success": True,
             "message": f"Ignored RevenueCat event type: {event_type}",
@@ -182,17 +176,6 @@ def revenuecat_webhook(
             detail=f"Missing transaction_id for {event_type}",
         )
 
-    print(
-        "REVENUECAT PROCESSING SUBSCRIPTION:",
-        {
-            "user_id": user.id,
-            "product_id": product_id,
-            "event_type": event_type,
-            "environment": event.get("environment"),
-        },
-        flush=True,
-    )
-
     subscription_data = {
         "status": status,
         "product_id": product_id,
@@ -215,58 +198,32 @@ def revenuecat_webhook(
         "provider_response": event,
     }
 
-    subscription = process_subscription(
+    process_subscription(
         db,
         user.id,
         subscription_data,
     )
 
-    print(
-        "REVENUECAT SUBSCRIPTION SAVED:",
-        {
-            "subscription_id": subscription.id,
-            "user_id": subscription.user_id,
-            "product_id": subscription.product_id,
-            "status": subscription.status,
-        },
-        flush=True,
-    )
-
     return {
         "success": True,
-        "subscription": subscription,
     }
 
 
-@router.post(
-    "/restore",
-    response_model=SubscriptionResponse,
-)
+@router.post("/restore")
 def restore_subscription(
-    subscription_data: SubscriptionCreate,
-    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return process_subscription(
-        db,
-        current_user.id,
-        subscription_data.model_dump(),
+    raise HTTPException(
+        status_code=410,
+        detail="Client-driven subscription restore is no longer supported",
     )
 
 
 @router.post("/sync")
 def sync_subscription(
-    payload: dict,
-    db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    subscription = process_subscription(
-        db,
-        current_user.id,
-        payload,
+    raise HTTPException(
+        status_code=410,
+        detail="Client-driven subscription sync is no longer supported",
     )
-
-    return {
-        "success": True,
-        "subscription": subscription,
-    }

@@ -24,7 +24,12 @@ def process_subscription(
             .first()
         )
 
-        # JSONB cannot store datetime objects directly
+        if existing and existing.user_id != user_id:
+            raise HTTPException(
+                status_code=409,
+                detail="Subscription transaction belongs to another user",
+            )
+
         provider_response = {
             **data,
             "purchase_date": (
@@ -39,7 +44,6 @@ def process_subscription(
             ),
         }
 
-        # UPDATE EXISTING SUBSCRIPTION
         if existing:
             existing.status = data["status"]
             existing.latest_transaction_id = data[
@@ -56,7 +60,6 @@ def process_subscription(
 
             return existing
 
-        # CREATE NEW SUBSCRIPTION
         new_sub = Subscription(
             user_id=user_id,
             status=data["status"],
@@ -78,8 +81,8 @@ def process_subscription(
         db.commit()
         db.refresh(new_sub)
 
-
         return new_sub
+
 
     except SQLAlchemyError:
         db.rollback()
