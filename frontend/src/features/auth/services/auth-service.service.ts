@@ -1,3 +1,4 @@
+import { beginAccountBoundary, finishAccountBoundary } from "./account-boundary";
 import { pauseRecording } from "@/features/tracking/services/background-tracking";
 import * as SecureStore from "expo-secure-store";
 
@@ -19,8 +20,11 @@ export function subscribeToSessionInvalidation(listener: () => void) {
 
 export function saveTokens(accessToken: string, refreshToken: string) {
   return mutate(async () => {
-    await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
-    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+    beginAccountBoundary();
+    try {
+      await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+    } finally { finishAccountBoundary(); }
   });
 }
 
@@ -43,10 +47,13 @@ export function getRefreshToken() {
 }
 
 async function eraseTokens() {
-  await pauseRecording();
-  await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-  await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
-  invalidationListeners.forEach(listener => listener());
+  beginAccountBoundary();
+  try {
+    await pauseRecording();
+    await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    invalidationListeners.forEach(listener => listener());
+  } finally { finishAccountBoundary(); }
 }
 
 export function clearTokens() {

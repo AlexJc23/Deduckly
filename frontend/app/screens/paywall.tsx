@@ -1,3 +1,4 @@
+import { useSubscription } from "@/features/subscriptions/context/subscription.context";
 import { localizedAlert } from "@/i18n/alerts";
 import { useLanguage, Translated } from "@/i18n/language";
 import { View, ScrollView, Text, Pressable, SafeAreaView, AnimatedView } from "@/theme/components";
@@ -229,8 +230,16 @@ export default function PaywallScreen() {
       : null;
 
   const restorePurchases = useRestorePurchases();
+  const { isIdentityReady, generation } = useSubscription();
+  const purchaseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (purchaseTimer.current) clearTimeout(purchaseTimer.current); }, [generation, isIdentityReady]);
 
   useEffect(() => {
+    let active = true;
+    setAnnualPackage(null);
+    setMonthlyPackage(null);
+    if (!isIdentityReady) { setLoadingOfferings(false); return; }
+    setLoadingOfferings(true);
     async function loadOfferings() {
       try {
         if (Platform.OS === "android" && !process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY?.trim()) {
@@ -245,6 +254,7 @@ export default function PaywallScreen() {
           offerings,
         );
 
+        if (!active) return;
         const offering = offerings.current;
 
         if (!offering || (!offering.annual && !offering.monthly)) {
@@ -263,21 +273,23 @@ export default function PaywallScreen() {
           offering.monthly ?? null,
         );
       } catch (error) {
+        if (!active) return;
         console.error(
           "Failed to load RevenueCat offerings:",
           error,
         );
         localizedAlert("Plans unavailable", "We couldn’t load subscription plans. Please reopen this screen and try again.");
       } finally {
-        setLoadingOfferings(false);
+        if (active) setLoadingOfferings(false);
       }
     }
 
-    loadOfferings();
-  }, []);
+    void loadOfferings();
+    return () => { active = false; };
+  }, [isIdentityReady, generation]);
 
   async function handlePurchase() {
-    if (isPurchasing) {
+    if (isPurchasing || !isIdentityReady) {
       return;
     }
 
@@ -304,9 +316,11 @@ export default function PaywallScreen() {
         return;
       }
 
+      if (revenueCatService.getSnapshot().generation !== generation || !revenueCatService.getSnapshot().ready) return;
       setShowConfetti(true);
 
-      setTimeout(() => {
+      purchaseTimer.current = setTimeout(() => {
+        if (revenueCatService.getSnapshot().generation !== generation || !revenueCatService.getSnapshot().ready) return;
         router.replace("/(tabs)/dashboard");
       }, 1800);
     } catch (error: any) {
@@ -501,7 +515,7 @@ export default function PaywallScreen() {
 
             <Pressable
               disabled={
-                isPurchasing ||
+                !isIdentityReady || isPurchasing ||
                 loadingOfferings ||
                 !(
                   selectedPlan === "annual"
@@ -548,11 +562,12 @@ export default function PaywallScreen() {
               <Translated text={"Cancel anytime"} /></Text>
 
             <Pressable
-              disabled={restorePurchases.isPending}
+              disabled={restorePurchases.isPending || !isIdentityReady}
               style={styles.restoreButton}
               onPress={async () => {
                 try {
                   const info = await restorePurchases.mutateAsync();
+                  if (revenueCatService.getSnapshot().generation !== generation || !revenueCatService.getSnapshot().ready) return;
                   localizedAlert(info.entitlements.active["Deduckly Pro"] ? "Purchases restored" : "No active subscription found", info.entitlements.active["Deduckly Pro"] ? "Your Deduckly Pro subscription has been restored." : Platform.OS === "android" ? "No active Deduckly Pro subscription was found for this Google Play account." : "No active Deduckly Pro subscription was found for this Apple Account.");
                 } catch (error) {
                   console.error(

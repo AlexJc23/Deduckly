@@ -1,3 +1,4 @@
+import { getAccountGeneration, isAccountChanging } from "@/features/auth/services/account-boundary";
 import { trackingOwnerFromToken } from "@/features/tracking/services/tracking-owner";
 import {
   getAccessToken,
@@ -14,7 +15,7 @@ import { refreshAccessToken } from "@/features/auth/services/token.services";
 import { AuthTokens } from "@/features/auth/types/auth.types";
 
 declare module "axios" {
-  interface AxiosRequestConfig { deducklyOwnerId?: string; }
+  interface AxiosRequestConfig { deducklyOwnerId?: string; deducklyGeneration?: number; }
 }
 
 type RetryableRequestConfig =
@@ -27,15 +28,23 @@ export const api = axios.create({
   timeout: 10000,
 });
 
-let refreshPromise: Promise<AuthTokens> | null = null;
+let refreshPromise: { generation: number; promise: Promise<AuthTokens> } | null = null;
+function assertCurrent(generation: number | undefined) {
+  if (isAccountChanging() || (generation !== undefined && generation !== getAccountGeneration())) {
+    throw new AxiosError("Account session changed", "ERR_CANCELED");
+  }
+}
 
 api.interceptors.request.use(async (config) => {
+  config.deducklyGeneration ??= getAccountGeneration();
+  assertCurrent(config.deducklyGeneration);
   const token = await getAccessToken();
+  assertCurrent(config.deducklyGeneration);
 
   if (config.deducklyOwnerId && trackingOwnerFromToken(token) !== config.deducklyOwnerId) {
     throw new Error("Trip account changed before upload");
   }
-  if (token) {
+  if (token && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
@@ -43,12 +52,16 @@ api.interceptors.request.use(async (config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    assertCurrent(response.config.deducklyGeneration);
+    return response;
+  },
 
   async (error: AxiosError) => {
     const originalRequest =
       error.config as RetryableRequestConfig | undefined;
 
+    assertCurrent(originalRequest?.deducklyGeneration);
     if (error.response?.status !== 401 || !originalRequest) {
       return Promise.reject(error);
     }
@@ -63,11 +76,13 @@ api.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
-      if (!refreshPromise) {
-        refreshPromise = (async () => {
+      const generation = originalRequest.deducklyGeneration ?? getAccountGeneration();
+      if (!refreshPromise || refreshPromise.generation !== generation) {
+        const promise = (async () => {
           const storedRefreshToken =
             await getRefreshToken();
 
+          assertCurrent(generation);
           if (!storedRefreshToken) {
             throw new AxiosError("No refresh token", "ERR_SESSION_EXPIRED");
           }
@@ -86,11 +101,13 @@ api.interceptors.response.use(
 
           return tokens;
         })().finally(() => {
-          refreshPromise = null;
+          if (refreshPromise?.generation === generation) refreshPromise = null;
         });
+        refreshPromise = { generation, promise };
       }
 
-      const tokens = await refreshPromise;
+      const tokens = await refreshPromise.promise;
+      assertCurrent(generation);
 
       originalRequest.headers.Authorization =
         `Bearer ${tokens.access_token}`;
