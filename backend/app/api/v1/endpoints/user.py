@@ -9,6 +9,7 @@ from app.models.enums import UserRole
 from app.api.dependencies.auth import get_current_user
 from app.schemas.v1.user import UserResponse, UserUpdate
 from app.services.subscription_service import is_user_premium
+from app.services.storage_service import delete_user_files_from_s3
 from app.services.user_service import (
     get_daily_income,
     get_monthly_income,
@@ -120,14 +121,41 @@ async def delete_user(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    await revoke_apple_accounts(current_user)
     try:
-        db.delete(current_user)
+        locked_user = (
+            db.query(User)
+            .filter(User.id == current_user.id)
+            .with_for_update()
+            .first()
+        )
+
+        if not locked_user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+
+        locked_user.is_active = False
+        db.flush()
+
+        delete_user_files_from_s3(
+            locked_user.id,
+        )
+
+        await revoke_apple_accounts(
+            locked_user,
+        )
+
+        db.delete(locked_user)
         db.commit()
 
         return {
             "detail": "User deleted successfully",
         }
+
+    except HTTPException:
+        db.rollback()
+        raise
 
     except Exception:
         db.rollback()
