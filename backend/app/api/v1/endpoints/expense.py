@@ -30,9 +30,8 @@ from app.services.storage_service import (
     delete_file_from_s3,
     generate_presigned_url,
 )
-from app.api.dependencies.auth import (
-    get_current_user,
-)
+from app.api.dependencies.auth import get_current_user
+
 
 router = APIRouter(
     prefix="/expenses",
@@ -73,6 +72,19 @@ async def upload_expense_receipt(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    locked_user = (
+        db.query(User)
+        .filter(User.id == current_user.id)
+        .with_for_update()
+        .first()
+    )
+
+    if not locked_user or not locked_user.is_active:
+        raise HTTPException(
+            status_code=401,
+            detail="Account is inactive",
+        )
+
     expense = get_expense(
         db,
         expense_id,
@@ -85,26 +97,27 @@ async def upload_expense_receipt(
                 expense.receipt_url,
             )
 
-        expense.receipt_url = (
-            upload_file_to_s3(
-                file,
-                current_user.id,
-            )
+        expense.receipt_url = upload_file_to_s3(
+            file,
+            locked_user.id,
         )
 
         db.commit()
         db.refresh(expense)
 
-        expense.receipt_url = (
-            generate_presigned_url(
-                expense.receipt_url,
-            )
+        expense.receipt_url = generate_presigned_url(
+            expense.receipt_url,
         )
 
         return expense
 
+    except HTTPException:
+        db.rollback()
+        raise
+
     except Exception:
         db.rollback()
+
         raise HTTPException(
             status_code=500,
             detail="Failed to upload receipt",
@@ -126,10 +139,8 @@ def get_expense_endpoint(
         user_id=current_user.id,
     )
 
-    expense.receipt_url = (
-        generate_presigned_url(
-            expense.receipt_url,
-        )
+    expense.receipt_url = generate_presigned_url(
+        expense.receipt_url,
     )
 
     return expense
@@ -158,10 +169,8 @@ def get_expenses_endpoint(
     )
 
     for expense in expenses:
-        expense.receipt_url = (
-            generate_presigned_url(
-                expense.receipt_url,
-            )
+        expense.receipt_url = generate_presigned_url(
+            expense.receipt_url,
         )
 
     return expenses
@@ -185,10 +194,8 @@ async def update_expense_endpoint(
         timezone_name=current_user.timezone,
     )
 
-    expense.receipt_url = (
-        generate_presigned_url(
-            expense.receipt_url,
-        )
+    expense.receipt_url = generate_presigned_url(
+        expense.receipt_url,
     )
 
     return expense
@@ -258,8 +265,13 @@ def delete_expense_receipt(
 
         return expense
 
+    except HTTPException:
+        db.rollback()
+        raise
+
     except Exception:
         db.rollback()
+
         raise HTTPException(
             status_code=500,
             detail="Failed to delete receipt",
