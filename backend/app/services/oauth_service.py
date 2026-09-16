@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.models.user_oauth import UserOAuth
 from app.models.user import User
 import httpx
+from fastapi import HTTPException
 
 
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -13,7 +14,7 @@ GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 
 
-def get_google_authorization_url() -> str:
+def get_google_authorization_url(state: str, challenge: str) -> str:
     """
     Build the Google OAuth authorization URL.
 
@@ -22,6 +23,9 @@ def get_google_authorization_url() -> str:
     """
 
     params = {
+        "state": state,
+        "code_challenge": challenge,
+        "code_challenge_method": "S256",
         "response_type": "code",
         "client_id": settings.google_client_id,
         "redirect_uri": settings.google_redirect_uri,
@@ -45,12 +49,17 @@ def get_or_create_oauth_user(
     ).first()
 
     if oauth:
+        if not oauth.user.is_active:
+            raise HTTPException(status_code=403, detail="Account unavailable")
         return oauth.user
 
     # 2. Check if user exists by email
     user = db.query(User).filter(
         User.email == data.email
     ).first()
+
+    if user and not user.is_active:
+        raise HTTPException(status_code=403, detail="Account unavailable")
 
     if not user:
         # 3. Create user
@@ -82,12 +91,14 @@ def get_or_create_oauth_user(
 
 async def exchange_google_code_for_tokens(
     code: str,
+    code_verifier: str,
 ):
     async with httpx.AsyncClient() as client:
         response = await client.post(
             GOOGLE_TOKEN_URL,
             data={
                 "code": code,
+                "code_verifier": code_verifier,
                 "client_id": settings.google_client_id,
                 "client_secret": settings.google_client_secret,
                 "redirect_uri": settings.google_redirect_uri,

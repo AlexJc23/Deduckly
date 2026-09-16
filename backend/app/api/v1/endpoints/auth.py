@@ -1,8 +1,9 @@
 from datetime import timedelta, datetime
 import secrets
 
-from app.schemas.v1.oauth import OAuthUserCreate
-from fastapi import APIRouter, Depends, HTTPException, Cookie
+from app.schemas.v1.oauth import OAuthUserCreate, GoogleStart, GoogleExchange
+from app.services import google_transaction_service as google_transactions
+from fastapi import APIRouter, Depends, HTTPException, Cookie, Response
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from urllib.parse import urlencode
@@ -53,10 +54,7 @@ from fastapi.security import (
 )
 from app.models import User, TwoFactorAuth, Session as DBSession
 from app.services.oauth_service import (
-    exchange_google_code_for_tokens,
-    get_google_user_info,
     get_or_create_oauth_user,
-    get_google_authorization_url
 )
 from app.services.email_service import send_email
 
@@ -183,90 +181,39 @@ def login(
 
 @router.get("/google/login")
 def google_login():
-    return RedirectResponse(
-        url=get_google_authorization_url()
-    )
+    raise HTTPException(status_code=410, detail="Please update Deduckly to sign in with Google.")
+
+
+@router.post("/google/start")
+def google_start(payload: GoogleStart, db: Session = Depends(get_db), response: Response = None):
+    if response is not None: response.headers["Cache-Control"] = "no-store"
+    return google_transactions.begin(db, payload.code_challenge)
 
 
 @router.get("/google/callback")
-async def google_callback(
-    code: str,
-    db: Session = Depends(get_db),
-):
-    token_data = await exchange_google_code_for_tokens(
-        code
-    )
+async def google_callback(state: str = "", code: str | None = None, error: str | None = None, db: Session = Depends(get_db)):
+    params = await google_transactions.complete_callback(db, state, code, error)
+    return RedirectResponse(url="deduckly://oauth/callback?" + urlencode(params), status_code=302,
+        headers={"Cache-Control": "no-store", "Referrer-Policy": "no-referrer"})
 
-    google_token = token_data.get("access_token")
 
-    user_info = await get_google_user_info(
-        google_token
-    )
-
-    user = get_or_create_oauth_user(
-        db,
-        OAuthUserCreate(
-            email=user_info["email"],
-            first_name=user_info.get(
-                "given_name",
-                "",
-            ),
-            last_name=user_info.get(
-                "family_name",
-                "",
-            ),
-            provider="google",
-            provider_user_id=user_info["sub"],
-        ),
-    )
-
-    # Google must enforce the same second factor as password and Apple login.
-    two_fa = db.query(TwoFactorAuth).filter(
-        TwoFactorAuth.user_id == user.id,
-        TwoFactorAuth.is_enabled == True,
-    ).first()
+@router.post("/google/exchange")
+def google_exchange(payload: GoogleExchange, db: Session = Depends(get_db), response: Response = None):
+    if response is not None: response.headers["Cache-Control"] = "no-store"
+    identity = google_transactions.redeem(db, payload.state, payload.code, payload.code_verifier)
+    user = get_or_create_oauth_user(db, OAuthUserCreate(email=identity["email"],
+        first_name=identity.get("given_name", ""), last_name=identity.get("family_name", ""),
+        provider="google", provider_user_id=identity["sub"]))
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Account unavailable")
+    two_fa = db.query(TwoFactorAuth).filter(TwoFactorAuth.user_id == user.id, TwoFactorAuth.is_enabled == True).first()
     if two_fa:
-        return RedirectResponse(
-            url="deduckly://oauth/callback?" + urlencode({
-                "access_token": create_2fa_token(user.id),
-                "requires_2fa": "true",
-            }),
-            status_code=302,
-        )
-
-    access_token = create_access_token(
-        data={"sub": str(user.id)}
-    )
-
-    refresh_token = create_session(
-        db,
-        user.id,
-    )
-
-    create_security_event(
-        db,
-        event_type="google_login_success",
-        user_id=user.id,
-    )
-
-    create_analytics_event(
-        db,
-        event_type="google_login_success",
-        user_id=user.id,
-    )
-
-    redirect_url = (
-        "deduckly://oauth/callback?"
-        + urlencode({
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-        })
-    )
-
-    return RedirectResponse(
-        url=redirect_url,
-        status_code=302,
-    )
+        return {"access_token": create_2fa_token(user.id), "requires_2fa": True}
+    access_token = create_access_token(data={"sub": str(user.id)})
+    refresh_token = create_session(db, user.id)
+    create_security_event(db, event_type="google_login_success", user_id=user.id)
+    create_analytics_event(db, event_type="google_login_success", user_id=user.id)
+    return {"access_token": access_token, "refresh_token": refresh_token}
 
 
 @router.post(

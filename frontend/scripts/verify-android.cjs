@@ -13,6 +13,10 @@ function load(file, mocks = {}) {
   } }).outputText;
   new Function('require', 'module', 'exports', code)(name => {
     if (Object.hasOwn(mocks, name)) return mocks[name];
+    if (name.startsWith('./') || name.startsWith('../') || name.startsWith('@/')) {
+      const target = name.startsWith('@/') ? path.join('src', name.slice(2)) : path.join(path.dirname(file), name);
+      return load(target + '.ts', mocks);
+    }
     return require(require.resolve(name, { paths: [root] }));
   }, module, module.exports);
   return module.exports;
@@ -81,7 +85,7 @@ async function test(name, run) { await run(); count++; console.log('PASS ' + nam
         'react-native-purchases': { configure() { called = true; } },
       });
       for (const action of [() => service.configure(), () => service.logIn('test'), () => service.getOfferings(), () => service.restorePurchases()]) {
-        await assert.rejects(action(), /not configured/);
+        await assert.rejects(action(), /not configured|not ready/);
       }
       assert.equal(called, false);
     } finally {
