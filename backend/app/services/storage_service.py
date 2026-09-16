@@ -94,3 +94,57 @@ def delete_file_from_s3(file_url: str):
             status_code=500,
             detail=f"Failed to delete file: {str(e)}",
         )
+
+def delete_user_files_from_s3(user_id: int) -> None:
+    s3_client = get_s3_client()
+
+    bucket_name = settings.s3_bucket
+    prefix = f"{user_id}/"
+
+    try:
+        while True:
+            response = s3_client.list_objects_v2(
+                Bucket=bucket_name,
+                Prefix=prefix,
+                MaxKeys=1000,
+            )
+
+            objects = response.get("Contents", [])
+
+            if not objects:
+                break
+
+            delete_response = s3_client.delete_objects(
+                Bucket=bucket_name,
+                Delete={
+                    "Objects": [
+                        {"Key": obj["Key"]}
+                        for obj in objects
+                    ],
+                    "Quiet": True,
+                },
+            )
+
+            errors = delete_response.get("Errors", [])
+
+            if errors:
+                raise RuntimeError(
+                    "Failed to delete one or more user receipt files"
+                )
+
+        verification = s3_client.list_objects_v2(
+            Bucket=bucket_name,
+            Prefix=prefix,
+            MaxKeys=1,
+        )
+
+        if verification.get("Contents"):
+            raise RuntimeError(
+                "User receipt files remain after deletion"
+            )
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete account receipt files",
+        ) from exc
