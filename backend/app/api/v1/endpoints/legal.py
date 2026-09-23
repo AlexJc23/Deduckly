@@ -1,3 +1,4 @@
+from pathlib import Path
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
@@ -503,3 +504,9 @@ footer a { text-decoration:none; }
 </body>
 </html>
 """
+
+
+@public_router.get("", response_class=HTMLResponse)
+@public_router.get("/marketing", response_class=HTMLResponse, include_in_schema=False)
+def marketing_page():
+    return (Path(__file__).resolve().parents[3] / "static" / "deduckly-marketing.html").read_text(encoding="utf-8")
