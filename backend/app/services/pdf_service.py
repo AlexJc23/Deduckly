@@ -137,7 +137,7 @@ def build_tax_report_pdf(buffer, data):
 
     # Mileage
     section("Mileage")
-    row("Total Miles", f"{data['total_miles']:.1f}")
+    row("Business Miles", f"{data['total_miles']:.1f}")
     row(
         "Mileage Deduction",
         money(data["mileage_deduction"]),

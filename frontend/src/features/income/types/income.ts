@@ -19,6 +19,7 @@ export type TripPlatform =
   | "other";
 
 export interface Income {
+  trip_id: number | null;
   id: number;
   user_id: number;
 

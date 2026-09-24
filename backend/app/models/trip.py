@@ -48,5 +48,9 @@ class Trip(Base):
     user = relationship("User", back_populates="trips")
     income = relationship( "Income", back_populates="trip",uselist=False, cascade="all, delete-orphan" )
 
+    @property
+    def income_amount(self):
+        return self.income.amount if self.income else None
+
     def __repr__(self):
         return f"<Trip(id={self.id}, user_id={self.user_id}, platform='{self.platform}', category='{self.category}')>"

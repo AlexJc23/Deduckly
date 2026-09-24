@@ -30,7 +30,7 @@ export function ReportOverview({ report }: { report: CurrentReport }) {
     style={[s.metrics, !columns && s.stacked]}>
     {[{ label: "Recorded income", impact: reportImpact(report.total_income), value: money(report.total_income), detail: "Income entries in this period" },
       { label: "Recorded expenses", impact: reportImpact(report.total_expenses, true), value: money(report.total_expenses), detail: "Spending before tax adjustments" },
-      { label: "Recorded mileage", impact: undefined, value: miles(report.total_miles), detail: "Distance across your recorded trips" }].map(item =>
+      { label: "Business mileage", impact: undefined, value: miles(report.total_miles), detail: "Distance across your business trips" }].map(item =>
       <View key={item.label} style={[s.metric, columns ? s.metricColumn : s.metricFull, item.impact && { borderColor: item.impact.borderColor, backgroundColor: item.impact.backgroundColor }]}>
         <Text style={s.label}>{<Translated text={item.label} />}</Text>
         <Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[s.metricValue, item.impact && { color: item.impact.color }]}>{item.value}</Text>
@@ -44,7 +44,7 @@ export function ReportDeductions({ report }: { report: CurrentReport }) {
   return <View style={s.card}>
     <Text style={s.method}>{standard ? <Translated text={"Standard mileage method"} /> : <Translated text={"Actual expense method"} />}</Text>
     <Text style={s.description}><Translated text={"Deductions reduce the income used in the tax estimate. They are different from the money you spent."} /></Text>
-    {standard && <ReportRow label="Mileage deduction" value={money(report.mileage_deduction)} detail="Deduction recorded for your mileage" />}
+    {standard && <ReportRow label="Mileage deduction" value={money(report.mileage_deduction)} detail="Deduction recorded for your business mileage" />}
     <ReportRow label="Deductible expenses" value={money(report.deductible_expense_total)} detail={standard ? "Eligible expenses after the mileage-method adjustment" : "Eligible expense amounts after business-use adjustments"} />
     <ReportRow label="Total deductions" value={money(report.total_deductions)} detail={standard ? "Mileage deduction + deductible expenses" : "Deductible expenses under your selected method"} />
     <View style={[s.highlight, { backgroundColor: reportImpact(report.net_profit).backgroundColor }]}><Text style={s.label}><Translated text={"Income after deductions"} /></Text><Text selectable numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={[s.heroValue, { color: reportImpact(report.net_profit).color }]}>{money(report.net_profit)}</Text>

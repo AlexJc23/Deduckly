@@ -15,8 +15,6 @@ export interface Trip {
   platform: string;
   category: string;
 
-  purpose: string | null;
-
   deduction_amount: string | null;
 
   created_at: string;

@@ -43,6 +43,7 @@ class IncomeUpdate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class IncomeResponse(IncomeBase):
+    trip_id: Optional[int] = None
     id: int
     user_id: int
 

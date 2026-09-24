@@ -36,6 +36,13 @@ def _existing_creation(db, user_id, client_id, fingerprint):
     return trip
 
 
+def _trip_deduction(db, category, start_time, distance):
+    if category == TripCategory.PERSONAL:
+        return Decimal("0.00")
+    rate = get_business_rate_for_date(db, start_time.date())
+    return (distance * rate.business_rate).quantize(Decimal("0.01"))
+
+
 def create_trip(db: Session, trip_in: TripCreate, user_id: int) -> Trip:
     if trip_in.distance_miles is None or trip_in.distance_miles <= 0:
         raise HTTPException(status_code=400, detail="Invalid distance")
@@ -46,8 +53,7 @@ def create_trip(db: Session, trip_in: TripCreate, user_id: int) -> Trip:
     existing = _existing_creation(db, user_id, trip_in.client_id, fingerprint)
     if existing:
         return existing
-    rate = get_business_rate_for_date(db, trip_in.start_time.date())
-    deduction = (trip_in.distance_miles * rate.business_rate).quantize(Decimal("0.01"))
+    deduction = _trip_deduction(db, trip_in.category, trip_in.start_time, trip_in.distance_miles)
     values = trip_in.model_dump(exclude={"income_amount"})
     db_trip = Trip(**values, user_id=user_id, deduction_amount=deduction,
                    creation_fingerprint=fingerprint if trip_in.client_id else None)
@@ -162,66 +168,30 @@ def update_trip(
     trip_in: TripUpdate
 ) -> Trip:
 
-    trip = get_trip(db, trip_id, user_id)
-
-    update_data = trip_in.dict(exclude_unset=True)
-
-    allowed_fields = {
-        "start_time",
-        "end_time",
-        "distance_miles",
-        "start_lat",
-        "start_lng",
-        "end_lat",
-        "end_lng",
-        "start_address",
-        "end_address",
-        "platform",
-        "category",
-        "purpose",
-    }
-
-    for field, value in update_data.items():
-        if field in allowed_fields:
+    trip = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user_id).with_for_update().first()
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found")
+    update_data = trip_in.model_dump(exclude_unset=True)
+    try:
+        for field, value in update_data.items():
+            if field == "income_amount":
+                continue
+            if value is None and field not in {"start_address", "end_address"}:
+                raise HTTPException(status_code=400, detail=f"{field} cannot be null")
             setattr(trip, field, value)
-
-    if "income_amount" in update_data:
-        upsert_income_for_trip(
-            db,
-            trip_id=trip.id,
-            user_id=user_id,
-            amount=update_data["income_amount"]
-        )
-
-    # validate + recalc distance
-    if "distance_miles" in update_data:
-        distance = trip.distance_miles
-
-        if distance is None or distance <= 0:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid distance"
-            )
-
-        if distance > 1000:
-            raise HTTPException(
-                status_code=400,
-                detail="Distance too large"
-            )
-
-        rate = get_business_rate_for_date(
-            db,
-            trip.start_time.date()
-        )
-
-        trip.deduction_amount = (
-            distance * rate.business_rate
-        ).quantize(Decimal("0.01"))
-
-    db.commit()
-    db.refresh(trip)
-
-    return trip
+        if trip.distance_miles is None or not 0 < trip.distance_miles <= 1000:
+            raise HTTPException(status_code=400, detail="Invalid distance")
+        if {"distance_miles", "category", "start_time"} & update_data.keys():
+            trip.deduction_amount = _trip_deduction(db, trip.category, trip.start_time, trip.distance_miles)
+        if "income_amount" in update_data:
+            upsert_income_for_trip(db, trip_id=trip.id, user_id=user_id,
+                                   amount=update_data["income_amount"], commit=False)
+        db.commit()
+        db.refresh(trip)
+        return trip
+    except Exception:
+        db.rollback()
+        raise
 
 
 def delete_trip(
