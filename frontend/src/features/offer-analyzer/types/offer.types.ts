@@ -1,13 +1,13 @@
 export type OfferInput = {
     payout: number;
     distance: number;
-    estimatedTime: number;
+    estimatedTime?: number | null;
 };
 
 
 export type OfferResult = {
   dollarsPerMile: number;
-  hourlyRate: number;
+  hourlyRate: number | null;
   verdict: "great" | "good" | "average" | "skip";
   color: string;
   reasons: string[];
@@ -42,7 +42,7 @@ export type PremiumRecommendation =
 export type PremiumOfferResult = OfferResult & {
   vehicleCost: number;
   estimatedProfit: number;
-  profitHourlyRate: number;
+  profitHourlyRate: number | null;
 
   score: number;
   recommendation: PremiumRecommendation;

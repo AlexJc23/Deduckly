@@ -1,5 +1,11 @@
 // App-owned interface copy. Brand names, user content, and API values are not translated.
 export const spanish: Record<string, string> = {
+  "Estimated Time (optional)": "Tiempo estimado (opcional)",
+  "Unavailable without duration": "No disponible sin duración",
+  "Business mileage": "Millaje de negocios",
+  "Distance across your business trips": "Distancia de tus viajes de negocios",
+  "Deduction recorded for your business mileage": "Deducción registrada por tu millaje de negocios",
+
   "Location access is required to record trip mileage. You can change it in Settings.": "Se necesita acceso a la ubicación para registrar las millas de los viajes. Puedes cambiarlo en Ajustes.",
   "Background location is off": "La ubicación en segundo plano está desactivada",
   "Background location is needed to record while the screen is locked or another app is open. This trip can record only while Deduckly is open.": "Se necesita ubicación en segundo plano para registrar con la pantalla bloqueada o mientras usas otra aplicación. Este viaje solo se puede registrar mientras Deduckly está abierta.",

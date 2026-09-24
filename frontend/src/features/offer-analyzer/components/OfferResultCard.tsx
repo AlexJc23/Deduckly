@@ -113,11 +113,8 @@ export function OfferResultCard({
               <Translated text={"Profit / Hour"} /></Text>
 
             <Text style={styles.value}>
-              $
-              {result.profitHourlyRate.toFixed(
-                2
-              )}
-              <Translated text={"/hr"} /></Text>
+              {result.profitHourlyRate === null ? <Translated text={"Unavailable without duration"} /> : `$${result.profitHourlyRate.toFixed(2)}`}
+              {result.profitHourlyRate !== null && <Translated text={"/hr"} />}</Text>
           </View>
 
           <View style={styles.statRow}>
@@ -147,9 +144,8 @@ export function OfferResultCard({
               <Translated text={"Gross Hourly"} /></Text>
 
             <Text style={styles.value}>
-              $
-              {result.hourlyRate.toFixed(2)}
-              <Translated text={"/hr"} /></Text>
+              {result.hourlyRate === null ? <Translated text={"Unavailable without duration"} /> : `$${result.hourlyRate.toFixed(2)}`}
+              {result.hourlyRate !== null && <Translated text={"/hr"} />}</Text>
           </View>
         </>
       ) : (
@@ -171,9 +167,8 @@ export function OfferResultCard({
               <Translated text={"Hourly"} /></Text>
 
             <Text style={styles.value}>
-              $
-              {result.hourlyRate.toFixed(2)}
-              <Translated text={"/hr"} /></Text>
+              {result.hourlyRate === null ? <Translated text={"Unavailable without duration"} /> : `$${result.hourlyRate.toFixed(2)}`}
+              {result.hourlyRate !== null && <Translated text={"/hr"} />}</Text>
           </View>
         </>
       )}

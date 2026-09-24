@@ -16,10 +16,7 @@ export function analyzeOffer(
     input.distance
   );
 
-  const hasTime = input.estimatedTime > 0;
-  const hourlyRate = hasTime
-    ? calculateHourlyRate(input.payout, input.estimatedTime)
-    : 0;
+  const hourlyRate = calculateHourlyRate(input.payout, input.estimatedTime);
 
   let verdict: OfferResult["verdict"] = "skip";
   const reasons: string[] = [];
@@ -28,7 +25,7 @@ export function analyzeOffer(
   // Verdict :) 
   // -----------------------------
 
-  if (hasTime) {
+  if (hourlyRate !== null) {
     if (
       dollarsPerMile >= THRESHOLDS.GREAT.dollarsPerMile &&
       hourlyRate >= THRESHOLDS.GREAT.hourlyRate
@@ -71,7 +68,7 @@ export function analyzeOffer(
     reasons.push("Low dollars per mile.");
   }
 
-  if (hasTime) {
+  if (hourlyRate !== null) {
     if (
       hourlyRate >= THRESHOLDS.GREAT.hourlyRate
     ) {

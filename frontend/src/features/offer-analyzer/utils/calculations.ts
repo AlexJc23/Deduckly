@@ -2,6 +2,9 @@ export function calculateDollarsPerMile(
   payout: number,
   distance: number
 ): number {
+  if (!Number.isFinite(payout) || payout <= 0 || !Number.isFinite(distance) || distance <= 0) {
+    throw new Error("Payout and distance must be positive numbers.");
+  }
   return Number(
     (payout / distance).toFixed(2)
   );
@@ -9,8 +12,10 @@ export function calculateDollarsPerMile(
 
 export function calculateHourlyRate(
   payout: number,
-  estimatedTime: number
-): number {
+  estimatedTime?: number | null
+): number | null {
+  if (estimatedTime == null || estimatedTime === 0) return null;
+  if (!Number.isFinite(estimatedTime) || estimatedTime < 0) throw new Error("Invalid duration.");
   const minutes = Math.max(estimatedTime, 10);
   const hours = minutes / 60;
 
@@ -41,8 +46,10 @@ export function calculateEstimatedProfit(
 
 export function calculateProfitHourlyRate(
   estimatedProfit: number,
-  estimatedTime: number
-): number {
+  estimatedTime?: number | null
+): number | null {
+  if (estimatedTime == null || estimatedTime === 0) return null;
+  if (!Number.isFinite(estimatedTime) || estimatedTime < 0) throw new Error("Invalid duration.");
   const minutes = Math.max(estimatedTime, 10);
   const hours = minutes / 60;
 

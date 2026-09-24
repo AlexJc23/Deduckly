@@ -62,19 +62,15 @@ export function analyzePremiumOffer(
   // Hourly Earnings
   // -----------------------------
 
-  const hourlyPassed =
-    profitHourlyRate >=
-    preferences.minimumHourRate;
-
-  premiumChecks.push({
-    title: "Hourly Earnings",
-    passed: hourlyPassed,
-    actual: profitHourlyRate,
-    target: preferences.minimumHourRate,
-  });
-
-  if (!hourlyPassed) {
-    score -= 30;
+  if (profitHourlyRate !== null) {
+    const hourlyPassed = profitHourlyRate >= preferences.minimumHourRate;
+    premiumChecks.push({
+      title: "Hourly Earnings",
+      passed: hourlyPassed,
+      actual: profitHourlyRate,
+      target: preferences.minimumHourRate,
+    });
+    if (!hourlyPassed) score -= 30;
   }
 
   // -----------------------------
@@ -117,7 +113,9 @@ export function analyzePremiumOffer(
     score -= 15;
   }
 
-  score = Math.max(0, score);
+  // Omitted hourly checks contribute neither a pass nor a failure.
+  const availableWeight = profitHourlyRate === null ? 70 : 100;
+  score = Math.max(0, Math.round((availableWeight - (100 - score)) / availableWeight * 100));
 
   let recommendation:
     | "accept"
