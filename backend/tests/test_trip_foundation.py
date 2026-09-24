@@ -93,7 +93,6 @@ class TripFoundationTests(unittest.TestCase):
         self.assertEqual(TripResponse.model_validate(trip).income_amount, Decimal("30"))
         self.assertEqual(IncomeResponse.model_validate(trip.income).trip_id, trip.id)
         update_trip(self.db, trip.id, 1, TripUpdate(income_amount=None))
-        self.db.expire(trip, ["income"])
         self.assertIsNone(TripResponse.model_validate(trip).income_amount)
     def test_report_excludes_historical_personal_deduction_but_history_keeps_trip(self):
         from types import SimpleNamespace
@@ -109,6 +108,20 @@ class TripFoundationTests(unittest.TestCase):
         self.assertEqual(report["total_miles"], business.distance_miles)
         self.assertEqual(report["mileage_deduction"], business.deduction_amount)
         self.assertEqual(len(get_trips_for_user(self.db, 1)), 2)
+
+    def test_unique_race_recovers_existing_creation(self):
+        from app.services import trip_service
+        trip = create_trip(self.db, self.payload(), 1)
+        original = trip_service._existing_creation
+        calls = 0
+        def lookup(*args):
+            nonlocal calls
+            calls += 1
+            return None if calls == 1 else original(*args)
+        with patch.object(trip_service, "_existing_creation", side_effect=lookup):
+            self.assertEqual(create_trip(self.db, self.payload(), 1).id, trip.id)
+        self.assertEqual(self.db.query(Trip).count(), 1)
+        self.assertEqual(self.db.query(Income).count(), 1)
 
 if __name__ == "__main__":
     unittest.main()

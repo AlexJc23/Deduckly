@@ -168,7 +168,7 @@ def update_trip(
     trip_in: TripUpdate
 ) -> Trip:
 
-    trip = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user_id).with_for_update().first()
+    trip = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user_id).with_for_update().populate_existing().first()
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
     update_data = trip_in.model_dump(exclude_unset=True)

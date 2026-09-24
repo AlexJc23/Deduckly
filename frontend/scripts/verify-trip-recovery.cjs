@@ -6,7 +6,7 @@ const ts = require(require.resolve('typescript', { paths: [root] }));
 let count = 0;
 function harness(disk = new Map()) {
   const cache = new Map(), tasks = new Map();
-  const state = { failWrite: false, foreground: true, background: true, native: false, starts: 0, stops: 0, watch: null, posts: 0, lostResponse: false, remote: [], owner: '1' };
+  const state = { generation: 0, invalidations: [], switchAfterPost: false, rejectUpload: false, failWrite: false, foreground: true, background: true, native: false, starts: 0, stops: 0, watch: null, posts: 0, lostResponse: false, remote: [], owner: '1' };
   const now = Date.now();
   const point = (n = 0, time = now + n * 1000) => ({ latitude: 40 + n * .0001, longitude: -74, timestamp: time, accuracy: 5, heading: 0, speed: 11 });
   const location = p => ({ timestamp: p.timestamp, coords: p });
@@ -15,10 +15,12 @@ function harness(disk = new Map()) {
     get: async (_, cfg) => { assert.equal(cfg.deducklyOwnerId, state.owner); return { data: state.remote }; },
     post: async (_, payload, cfg) => {
       assert.equal(cfg.deducklyOwnerId, state.owner); state.posts++;
+      if (state.rejectUpload) throw Error("Conflict");
       if (!payload.client_id || !state.remote.some(trip => trip.client_id === payload.client_id)) {
         state.remote.push({ ...payload, distance_miles: String(payload.distance_miles), id: state.posts });
       }
       if (state.lostResponse) throw Error('Response lost');
+      if (state.switchAfterPost) { state.owner = '2'; state.generation++; }
     },
   };
   const mocks = {
@@ -50,8 +52,8 @@ function harness(disk = new Map()) {
     '@/i18n/core': { translate: text => text },
     '@/features/auth/services/auth-service.service': { getAccessToken: async () => state.owner ? token() : null },
     '@/api/client': { api },
-    '@/providers/query-client': { queryClient: { invalidateQueries: async () => {} } },
-    '@/features/auth/services/account-boundary': { getAccountGeneration: () => 0, isAccountChanging: () => false },
+    '@/providers/query-client': { queryClient: { invalidateQueries: async ({ queryKey }) => state.invalidations.push(queryKey[0]) } },
+    '@/features/auth/services/account-boundary': { getAccountGeneration: () => state.generation, isAccountChanging: () => false },
   };
   function load(spec, parent = root + '/index.js') {
     if (mocks[spec]) return mocks[spec];
@@ -140,6 +142,25 @@ async function test(name, fn) { await fn(); count++; console.log(`PASS ${name}`)
     await Promise.all([sync.syncRecordedTrips(), sync.syncRecordedTrips()]); assert.equal(h.state.posts, 1); assert.equal((await j.pendingTrips('1')).length, 1);
     const restarted = harness(h.disk); restarted.state.remote = h.state.remote;
     await restarted.load('@/features/tracking/services/trip-journal-sync').syncRecordedTrips(); assert.equal(restarted.state.posts, 1); assert.equal(restarted.state.remote.length, 1); assert.equal((await restarted.journal().pendingTrips('1')).length, 0);
+  });
+  await test('successful sync refreshes financial queries but a changed session does not', async () => {
+    for (const switchAfterPost of [false, true]) {
+      const h = harness(), j = h.journal();
+      const trip = await j.beginTrip('1', data, h.point());
+      await j.recordPoints(trip.id, [h.point(1), h.point(2), h.point(3), h.point(4)]);
+      await j.finishTrip('1'); h.state.switchAfterPost = switchAfterPost;
+      await h.load('@/features/tracking/services/trip-journal-sync').syncRecordedTrips();
+      assert.deepEqual(h.state.invalidations, switchAfterPost ? [] : ['trips','income','daily-goal','monthly-goal','report','today-report']);
+    }
+  });
+  await test('conflicting upload is retained for recovery rather than acknowledged', async () => {
+    const h = harness(), j = h.journal();
+    const trip = await j.beginTrip('1', data, h.point());
+    await j.recordPoints(trip.id, [h.point(1), h.point(2), h.point(3), h.point(4)]);
+    await j.finishTrip('1'); h.state.rejectUpload = true;
+    await h.load('@/features/tracking/services/trip-journal-sync').syncRecordedTrips();
+    assert.equal((await j.pendingTrips('1')).length, 1);
+    assert.deepEqual(h.state.invalidations, []);
   });
   await test('legacy ownerless records are retained and never uploaded by another account', async () => {
     const h = harness();

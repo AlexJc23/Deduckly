@@ -27,7 +27,7 @@ async function upload() {
     const ownerId = trackingOwnerFromToken(await getAccessToken());
     if (!ownerId) return;
     for (const pending of await pendingTrips(ownerId)) {
-      const config = { deducklyOwnerId: ownerId };
+      const config = { deducklyOwnerId: ownerId, deducklyGeneration: generation };
       if (pending.attempted && !pending.payload.client_id) {
         // The previous POST may have succeeded before its response was lost.
         // Legacy journal records predate server-enforced identity. Keep their fallback.
