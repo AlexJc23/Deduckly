@@ -1,4 +1,5 @@
 export interface Trip {
+  client_id?: string | null;
   id: number;
   user_id: number;
 
@@ -24,6 +25,7 @@ export interface Trip {
 
 
 export type TripCreate = {
+  client_id?: string;
   start_time: string;
   end_time: string;
 

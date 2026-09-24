@@ -15,7 +15,9 @@ function harness(disk = new Map()) {
     get: async (_, cfg) => { assert.equal(cfg.deducklyOwnerId, state.owner); return { data: state.remote }; },
     post: async (_, payload, cfg) => {
       assert.equal(cfg.deducklyOwnerId, state.owner); state.posts++;
-      state.remote.push({ ...payload, distance_miles: String(payload.distance_miles), id: state.posts });
+      if (!payload.client_id || !state.remote.some(trip => trip.client_id === payload.client_id)) {
+        state.remote.push({ ...payload, distance_miles: String(payload.distance_miles), id: state.posts });
+      }
       if (state.lostResponse) throw Error('Response lost');
     },
   };
@@ -135,7 +137,7 @@ async function test(name, fn) { await fn(); count++; console.log(`PASS ${name}`)
     const sync = h.load('@/features/tracking/services/trip-journal-sync'); h.state.lostResponse = true;
     await Promise.all([sync.syncRecordedTrips(), sync.syncRecordedTrips()]); assert.equal(h.state.posts, 1); assert.equal((await j.pendingTrips('1')).length, 1);
     const restarted = harness(h.disk); restarted.state.remote = h.state.remote;
-    await restarted.load('@/features/tracking/services/trip-journal-sync').syncRecordedTrips(); assert.equal(restarted.state.posts, 0); assert.equal((await restarted.journal().pendingTrips('1')).length, 0);
+    await restarted.load('@/features/tracking/services/trip-journal-sync').syncRecordedTrips(); assert.equal(restarted.state.posts, 1); assert.equal(restarted.state.remote.length, 1); assert.equal((await restarted.journal().pendingTrips('1')).length, 0);
   });
   await test('offline owner’s completed trip is not uploaded by another account', async () => {
     const h = harness(), j = h.journal(); const trip = await j.beginTrip('1', data, h.point()); await j.recordPoints(trip.id, [h.point(4)]); await j.finishTrip('1'); h.state.owner = '2';

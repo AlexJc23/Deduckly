@@ -9,10 +9,14 @@ class Trip(Base):
 
     __table_args__ = (
         UniqueConstraint("user_id", "start_time", "end_time"),
+        UniqueConstraint("user_id", "client_id", name="uq_trips_user_client_id"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+
+    client_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    creation_fingerprint: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     start_time: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=False)
     end_time: Mapped[DateTime] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -22,8 +26,8 @@ class Trip(Base):
     end_lat: Mapped[Decimal] = mapped_column(Numeric(9, 6), nullable=False)
     end_lng: Mapped[Decimal] = mapped_column(Numeric(9, 6), nullable=False)
 
-    start_address: Mapped[str] = mapped_column(String(100), nullable=False)
-    end_address: Mapped[str] = mapped_column(String(100), nullable=False)
+    start_address: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    end_address: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     distance_miles: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
 

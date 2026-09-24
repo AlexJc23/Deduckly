@@ -17,9 +17,9 @@ async function upload() {
     if (!ownerId) return;
     for (const pending of await pendingTrips(ownerId)) {
       const config = { deducklyOwnerId: ownerId };
-      if (pending.attempted) {
+      if (pending.attempted && !pending.payload.client_id) {
         // The previous POST may have succeeded before its response was lost.
-        // Use the existing list API to reconcile that response before retrying.
+        // Legacy journal records predate server-enforced identity. Keep their fallback.
         const response = await api.get<Trip[]>("/api/v1/trips/", config);
         if (!Array.isArray(response.data)) return;
         const existing = response.data.find(trip =>
