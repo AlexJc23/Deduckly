@@ -50,6 +50,8 @@ function harness(disk = new Map()) {
     '@/i18n/core': { translate: text => text },
     '@/features/auth/services/auth-service.service': { getAccessToken: async () => state.owner ? token() : null },
     '@/api/client': { api },
+    '@/providers/query-client': { queryClient: { invalidateQueries: async () => {} } },
+    '@/features/auth/services/account-boundary': { getAccountGeneration: () => 0, isAccountChanging: () => false },
   };
   function load(spec, parent = root + '/index.js') {
     if (mocks[spec]) return mocks[spec];
@@ -138,6 +140,29 @@ async function test(name, fn) { await fn(); count++; console.log(`PASS ${name}`)
     await Promise.all([sync.syncRecordedTrips(), sync.syncRecordedTrips()]); assert.equal(h.state.posts, 1); assert.equal((await j.pendingTrips('1')).length, 1);
     const restarted = harness(h.disk); restarted.state.remote = h.state.remote;
     await restarted.load('@/features/tracking/services/trip-journal-sync').syncRecordedTrips(); assert.equal(restarted.state.posts, 1); assert.equal(restarted.state.remote.length, 1); assert.equal((await restarted.journal().pendingTrips('1')).length, 0);
+  });
+  await test('legacy ownerless records are retained and never uploaded by another account', async () => {
+    const h = harness();
+    const original = JSON.stringify([{ id: 'legacy-A', payload: { distance_miles: 12 } }]);
+    h.disk.set('@deduckly/pending-trips', original);
+    h.state.owner = '2';
+    await h.load('@/features/trips/services/trip-sync.service').syncPendingTrips();
+    assert.equal(h.state.posts, 0);
+    assert.equal(h.disk.get('@deduckly/pending-trips'), original);
+  });
+  await test('legacy owner-bound journal still reconciles an already saved trip', async () => {
+    const h = harness(), j = h.journal();
+    const trip = await j.beginTrip('1', data, h.point());
+    await j.recordPoints(trip.id, [h.point(1), h.point(2), h.point(3), h.point(4)]);
+    await j.finishTrip('1');
+    const saved = JSON.parse(h.disk.get('@deduckly/trip-journal:v1'));
+    delete saved.pending[0].payload.client_id;
+    saved.pending[0].attempted = true;
+    h.disk.set('@deduckly/trip-journal:v1', JSON.stringify(saved));
+    h.state.remote.push({ ...saved.pending[0].payload, id: 1 });
+    await h.load('@/features/tracking/services/trip-journal-sync').syncRecordedTrips();
+    assert.equal(h.state.posts, 0);
+    assert.equal((await j.pendingTrips('1')).length, 0);
   });
   await test('offline owner’s completed trip is not uploaded by another account', async () => {
     const h = harness(), j = h.journal(); const trip = await j.beginTrip('1', data, h.point()); await j.recordPoints(trip.id, [h.point(4)]); await j.finishTrip('1'); h.state.owner = '2';

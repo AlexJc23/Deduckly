@@ -77,7 +77,7 @@ export function IncomeForm({
           ? businessName
           : undefined,
       notes: notes || undefined,
-      received_at: Platform.OS === "android" && initialValues?.received_at
+      received_at: initialValues?.received_at
         ? initialValues.received_at : new Date().toISOString(),
     });
 

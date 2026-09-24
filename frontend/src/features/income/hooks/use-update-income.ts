@@ -36,6 +36,7 @@ export function useUpdateIncome() {
       variables,
     ) => {
       await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["daily-goal"] }),
         queryClient.invalidateQueries({
           queryKey: ["income"],
         }),
