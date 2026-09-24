@@ -757,6 +757,7 @@ def update_password(
 @router.post("/logout")
 def logout(
     refresh_token: str,
+    expo_push_token: str | None = None,
     db: Session = Depends(get_db),
 ):
     session = (
@@ -778,6 +779,7 @@ def logout(
     result = logout_user(
         db,
         refresh_token,
+        expo_push_token=expo_push_token,
     )
 
     create_security_event(

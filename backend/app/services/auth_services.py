@@ -1,4 +1,4 @@
-from http.client import HTTPException
+from fastapi import HTTPException
 
 from sqlalchemy.orm import Session
 from app.models import User, TwoFactorAuth
@@ -47,7 +47,7 @@ def verify_2fa_code(db: Session, user: User, code: str) -> bool:
 
     return True
 
-def logout_user(db: Session, refresh_token: str):
+def logout_user(db: Session, refresh_token: str, expo_push_token: str | None = None):
     try:
         session = db.query(DBSession).filter(
             DBSession.refresh_token == refresh_token
@@ -56,8 +56,11 @@ def logout_user(db: Session, refresh_token: str):
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
 
+        from app.services.push_registration_service import unregister_push_token
+        unregister_push_token(db, session.user_id, expo_push_token)
         if session.is_revoked:
-            return {"message": "Already logged out"}  # idempotent
+            db.commit()
+            return {"message": "Already logged out"}
 
         session.is_revoked = True
 

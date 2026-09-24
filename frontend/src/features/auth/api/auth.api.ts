@@ -1,4 +1,5 @@
 import { api } from "@/api/client";
+import { prepareNotificationLogout } from "@/api/notification";
 import {
   AuthTokens,
   LoginPayload,
@@ -160,9 +161,11 @@ export async function logout() {
     return;
   }
 
+  const pushToken = await prepareNotificationLogout();
   await api.post("/api/v1/auth/logout", null, {
   params: {
     refresh_token: refreshToken,
+    expo_push_token: pushToken ?? undefined,
   },
 });
 }

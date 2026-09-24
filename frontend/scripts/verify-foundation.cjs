@@ -1,3 +1,4 @@
+/* global __dirname */
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -51,6 +52,59 @@ function flatten(element) {
   return [element, ...[element.props?.children].flat(Infinity).flatMap(flatten)];
 }
 (async () => {
+  for (const os of ['ios', 'android']) {
+    let generation = 0, saveCalls = [];
+    const tokenMock = { getPermissionsAsync: async () => ({ granted: true, status: 'granted' }),
+      getExpoPushTokenAsync: async () => ({ data: 'X' }), setNotificationHandler() {},
+      setNotificationChannelAsync: async () => {}, AndroidImportance: { DEFAULT: 3 } };
+    const service = load(`src/services/notifications${os === 'android' ? '.android' : ''}.ts`, {
+      '@/features/auth/services/account-boundary': { getAccountGeneration: () => generation, isAccountChanging: () => false },
+      'react-native': { Platform: { OS: os } }, 'expo-device': { isDevice: true },
+      'expo-notifications': tokenMock, 'expo-constants': { expoConfig: { extra: { eas: { projectId: 'test' } } } },
+      '@/api/notification': { savePushToken: async token => saveCalls.push(token) }, '@/i18n/alerts': {},
+    });
+    await service.syncNotificationRegistration();
+    await service.syncNotificationRegistration();
+    assert.deepEqual(saveCalls, ['X', 'X']);
+    tokenMock.getExpoPushTokenAsync = async () => { generation++; return { data: 'stale' }; };
+    await service.syncNotificationRegistration();
+    assert.deepEqual(saveCalls, ['X', 'X']);
+    await assert.rejects(() => service.registerForPushNotifications(), /Account session changed/);
+  }
+  console.log('PASS iOS/Android startup re-registration and stale account notification callbacks');
+  let generation = 0, stored = null, release;
+  const pending = new Promise(resolve => { release = resolve; });
+  const registrations = [];
+  const registration = load('src/api/notification.ts', {
+    './client': { api: { post: async (_, payload) => { registrations.push(payload.expo_push_token); await pending; return { data: {} }; } } },
+    'expo-secure-store': { setItemAsync: async (_, token) => { stored = token; }, getItemAsync: async () => stored },
+    '@/features/auth/services/account-boundary': { getAccountGeneration: () => generation, isAccountChanging: () => false },
+  });
+  const first = registration.savePushToken('X');
+  await new Promise(resolve => setImmediate(resolve));
+  let finished = false;
+  const logoutDestination = registration.prepareNotificationLogout().then(value => { finished = true; return value; });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(finished, false);
+  release(); await first;
+  assert.equal(await logoutDestination, 'X');
+  await registration.savePushToken('late-X');
+  assert.deepEqual(registrations, ['X']);
+  generation++;
+  await registration.savePushToken('B-X');
+  assert.deepEqual(registrations, ['X', 'B-X']);
+  console.log('PASS logout drains pending registration, blocks late callbacks, and re-enables for a new session');
+  let logoutRequest;
+  const auth = load('src/features/auth/api/auth.api.ts', {
+    '@/api/client': { api: { post: async (...args) => { logoutRequest = args; } } },
+    '@/api/notification': { prepareNotificationLogout: async () => 'installation-X' },
+    '@/features/auth/services/auth-service.service': { getRefreshToken: async () => 'test-refresh' },
+    '../services/twofa-storage.service': {},
+  });
+  await auth.logout();
+  assert.equal(logoutRequest[0], '/api/v1/auth/logout');
+  assert.equal(logoutRequest[2].params.expo_push_token, 'installation-X');
+  console.log('PASS logout includes only this installation’s registered destination');
   for (const os of ['ios', 'android']) {
     let submitted;
     const values = ['75', 'gig_platform', 'uber', '', ''];
