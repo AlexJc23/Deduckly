@@ -76,7 +76,7 @@ footer a { text-decoration:none; }
 <path d="M270.062 182.257C266.784 155.554 249.38 158.146 239.866 163.493C239.288 163.818 238.793 164.271 238.435 164.83C233.524 172.489 233.062 186.074 265.227 187.396C268.08 187.513 270.41 185.091 270.062 182.257Z" fill="currentColor" stroke="currentColor"/>
 <path d="M0.5 467.5V5.5C0.5 2.73858 2.73858 0.5 5.5 0.5H274.122C274.374 0.5 274.626 0.519089 274.875 0.557351C324.702 8.22613 365.035 33.3625 379 45C478.33 114.412 473.527 245.952 458.622 303.533C458.539 303.854 458.493 304.149 458.47 304.48C457.24 322.344 442.757 368.829 394 416C346.099 462.343 267.139 472.951 230.856 472.556C229.077 472.537 227.471 471.541 226.647 469.964C203.46 425.613 199.855 371.414 201 349.5C213.4 271.1 262.5 248.5 285.5 247C308.5 248.667 360.4 251 384 247C402.958 243.787 411.57 235.626 414.656 229.776C415.753 227.696 414.41 225.386 412.218 224.533C352.209 201.196 322.815 186.869 313.721 181.552C312.597 180.895 311.851 179.81 311.531 178.548C303.241 145.772 267.446 87.1691 185.5 100.5C101.9 114.1 75.3333 174.167 72.5 202.5V467.5C72.5 470.261 70.2614 472.5 67.5 472.5H5.5C2.73858 472.5 0.5 470.261 0.5 467.5Z" fill="currentColor" stroke="currentColor"/>
 </svg>
-<span>Deduckly</span></div><nav aria-label="Main navigation"><a href="/deduckly/support">Support</a><a href="/deduckly/privacy" aria-current="page">Privacy</a></nav></header><div class="policy-layout"><details class="contents"><summary>In this policy</summary><ol><li><a href="#section-1">Introduction</a></li><li><a href="#section-2">Information We Collect</a></li><li><a href="#section-3">How We Use Information</a></li><li><a href="#section-4">Third-Party Services</a></li><li><a href="#section-5">Advertising &amp; Analytics</a></li><li><a href="#section-6">Data Retention</a></li><li><a href="#section-7">Account &amp; Data Deletion</a></li><li><a href="#section-8">Data Security</a></li><li><a href="#section-9">Children's Privacy</a></li><li><a href="#section-10">Your Privacy Rights (GDPR, CCPA/CPRA)</a></li><li><a href="#section-11">International Users</a></li><li><a href="#section-12">Tax &amp; Financial Disclaimer</a></li><li><a href="#section-13">Changes to this Privacy Policy</a></li><li><a href="#section-14">Contact Information</a></li></ol></details><main class="policy">
+<span>Deduckly</span></div><nav aria-label="Main navigation"><a href="https://drivededuckly.com/support">Support</a><a href="https://drivededuckly.com/privacy" aria-current="page">Privacy</a></nav></header><div class="policy-layout"><details class="contents"><summary>In this policy</summary><ol><li><a href="#section-1">Introduction</a></li><li><a href="#section-2">Information We Collect</a></li><li><a href="#section-3">How We Use Information</a></li><li><a href="#section-4">Third-Party Services</a></li><li><a href="#section-5">Advertising &amp; Analytics</a></li><li><a href="#section-6">Data Retention</a></li><li><a href="#section-7">Account &amp; Data Deletion</a></li><li><a href="#section-8">Data Security</a></li><li><a href="#section-9">Children's Privacy</a></li><li><a href="#section-10">Your Privacy Rights (GDPR, CCPA/CPRA)</a></li><li><a href="#section-11">International Users</a></li><li><a href="#section-12">Tax &amp; Financial Disclaimer</a></li><li><a href="#section-13">Changes to this Privacy Policy</a></li><li><a href="#section-14">Contact Information</a></li></ol></details><main class="policy">
 
 <h1>Deduckly Privacy Policy</h1>
 
@@ -428,7 +428,7 @@ requirements and applicable privacy laws, including GDPR, CCPA, and CPRA
 where applicable.
 </p>
 
-</main></div><footer><span>Deduckly · Your miles, money, and work.</span><a href="/deduckly/support">Deduckly Support</a></footer></div>
+</main></div><footer><span>Deduckly · Your miles, money, and work.</span><a href="https://drivededuckly.com/support">Deduckly Support</a></footer></div>
 </body>
 </html>
 """
@@ -485,7 +485,7 @@ footer a { text-decoration:none; }
 <path d="M270.062 182.257C266.784 155.554 249.38 158.146 239.866 163.493C239.288 163.818 238.793 164.271 238.435 164.83C233.524 172.489 233.062 186.074 265.227 187.396C268.08 187.513 270.41 185.091 270.062 182.257Z" fill="currentColor" stroke="currentColor"/>
 <path d="M0.5 467.5V5.5C0.5 2.73858 2.73858 0.5 5.5 0.5H274.122C274.374 0.5 274.626 0.519089 274.875 0.557351C324.702 8.22613 365.035 33.3625 379 45C478.33 114.412 473.527 245.952 458.622 303.533C458.539 303.854 458.493 304.149 458.47 304.48C457.24 322.344 442.757 368.829 394 416C346.099 462.343 267.139 472.951 230.856 472.556C229.077 472.537 227.471 471.541 226.647 469.964C203.46 425.613 199.855 371.414 201 349.5C213.4 271.1 262.5 248.5 285.5 247C308.5 248.667 360.4 251 384 247C402.958 243.787 411.57 235.626 414.656 229.776C415.753 227.696 414.41 225.386 412.218 224.533C352.209 201.196 322.815 186.869 313.721 181.552C312.597 180.895 311.851 179.81 311.531 178.548C303.241 145.772 267.446 87.1691 185.5 100.5C101.9 114.1 75.3333 174.167 72.5 202.5V467.5C72.5 470.261 70.2614 472.5 67.5 472.5H5.5C2.73858 472.5 0.5 470.261 0.5 467.5Z" fill="currentColor" stroke="currentColor"/>
 </svg>
-<span>Deduckly</span></div><nav aria-label="Main navigation"><a href="#contact">Contact</a><a href="/deduckly/privacy">Privacy</a></nav></header>
+<span>Deduckly</span></div><nav aria-label="Main navigation"><a href="#contact">Contact</a><a href="https://drivededuckly.com/privacy">Privacy</a></nav></header>
 <main>
 <section class="hero"><p class="eyebrow">Deduckly Support</p><h1>Let’s get you<br>back to your day.</h1><p class="lead">A question about your account, a trip that needs a second look, or something that isn’t working? We’re here to help you move forward.</p></section>
 <div class="grid">
@@ -496,10 +496,10 @@ footer a { text-decoration:none; }
 <details><summary>I’m having trouble signing in</summary><p>If you registered with email, open the verification link in your inbox before signing in. You can request another verification email from the app. If you joined with Google, choose “Continue with Google.” For a forgotten password, select “Forgot password?” on the sign-in screen.</p></details>
 <details><summary>How do I enable location or notifications?</summary><p>Open your device settings, find Deduckly, and review its location and notification permissions. You can manage notification preferences in Deduckly’s Settings. Location access does not, by itself, start a trip.</p></details>
 <details><summary>I have a question about my records</summary><p>Email our support team with the date of the trip, income entry, or expense you need help with, and describe what looks wrong. Include a screenshot if it helps show the issue.</p></details>
-<details><summary>How do I contact you about my account or data?</summary><p>Email <a href="mailto:deducklysupport@karlsonworks.com">deducklysupport@karlsonworks.com</a> with your request. You can also read our <a href="/deduckly/privacy">privacy policy</a> for information about how Deduckly handles your data.</p></details>
+<details><summary>How do I contact you about my account or data?</summary><p>Email <a href="mailto:deducklysupport@karlsonworks.com">deducklysupport@karlsonworks.com</a> with your request. You can also read our <a href="https://drivededuckly.com/privacy">privacy policy</a> for information about how Deduckly handles your data.</p></details>
 </section>
 </main>
-<footer><span>Deduckly · Your miles, money, and work.</span><a href="/deduckly/privacy">Privacy policy</a></footer>
+<footer><span>Deduckly · Your miles, money, and work.</span><a href="https://drivededuckly.com/privacy">Privacy policy</a></footer>
 </div>
 </body>
 </html>

@@ -414,7 +414,7 @@ async def register(
     )
 
     verification_link = (
-        f"https://api.karlsonworks.com/api/v1/auth/verify-email-link"
+        f"https://api.drivededuckly.com/api/v1/auth/verify-email-link"
         f"?token={token}&email={user.email}"
     )
 
@@ -539,7 +539,7 @@ async def forgot_password(
     )
 
     reset_link = (
-        f"https://api.karlsonworks.com/api/v1/auth/reset-password-link"
+        f"https://api.drivededuckly.com/api/v1/auth/reset-password-link"
         f"?token={token}"
     )
 
@@ -638,7 +638,7 @@ async def resend_verification(
     )
 
     verification_link = (
-        f"https://api.karlsonworks.com/api/v1/auth/verify-email-link"
+        f"https://api.drivededuckly.com/api/v1/auth/verify-email-link"
         f"?token={token}&email={user.email}"
     )
 
