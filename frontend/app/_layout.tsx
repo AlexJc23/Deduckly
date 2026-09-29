@@ -1,3 +1,4 @@
+import { ShiftProvider } from "@/features/shifts/context";
 import { LanguageProvider } from "@/i18n/language";
 import { AppThemeProvider } from "@/theme/theme";
 import { Stack } from "expo-router";
@@ -27,6 +28,7 @@ export default function RootLayout() {
     <LanguageProvider>
     <QueryProvider>
       <AuthProvider>
+        <ShiftProvider>
         <NotificationSync />
 
 
@@ -55,6 +57,7 @@ export default function RootLayout() {
             </AppThemeProvider>
           </SubscriptionProvider>
         </TrackingProvider>
+      </ShiftProvider>
       </AuthProvider>
     </QueryProvider>
     </LanguageProvider>

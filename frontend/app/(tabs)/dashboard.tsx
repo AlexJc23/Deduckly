@@ -1,3 +1,4 @@
+import { ShiftEntryPoint } from "@/features/shifts/entry-point";
 import { localizedAlert } from "@/i18n/alerts";
 import { useLanguage, Translated } from "@/i18n/language";
 import {
@@ -217,6 +218,7 @@ export default function DashboardScreen() {
       style={styles.safeArea}
       edges={["top"]}
     >
+      <ShiftEntryPoint />
       {showBanner && (
         <View style={styles.banner}>
           <Ionicons
