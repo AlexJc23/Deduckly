@@ -1,7 +1,7 @@
 """Additive Shift storage; deliberately independent of Trip/report accounting."""
 from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import (CheckConstraint, DateTime, Enum as SqlEnum, ForeignKey,
+from sqlalchemy import (Boolean, CheckConstraint, DateTime, Enum as SqlEnum, ForeignKey,
     ForeignKeyConstraint, Index, Integer, Numeric, String, UniqueConstraint, func)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
@@ -27,6 +27,8 @@ class Shift(ShiftTimestamps, Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     client_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    sync_fingerprint: Mapped[str | None] = mapped_column(String(64), nullable=True)
     planned_end_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # DB cascades cover account deletion without adding queries to User paths.
     user = relationship("User")
@@ -68,6 +70,7 @@ class ShiftSegment(ShiftTimestamps, Base):
     client_id: Mapped[str] = mapped_column(String(128), nullable=False)
     platform_session_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     distance_miles: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    excluded: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
     category: Mapped[TripCategory] = mapped_column(SqlEnum(TripCategory, native_enum=False, create_constraint=True, name="ck_shift_segment_category"), nullable=False)
     shift = relationship("Shift", back_populates="segments", foreign_keys=[shift_id])
     # Only the session ID is writable through this relationship. The composite

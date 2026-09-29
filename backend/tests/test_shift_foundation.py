@@ -14,8 +14,8 @@ from sqlalchemy.orm import Session
 from app.models import User, Shift, ShiftPlatformSession, ShiftSegment, TripCategory, TripPlatform
 
 
-def migration():
-    path = Path(__file__).resolve().parents[1] / 'alembic/versions/ab61d728e546_shift_foundation.py'
+def migration(name="ab61d728e546_shift_foundation.py"):
+    path = Path(__file__).resolve().parents[1] / 'alembic/versions' / name
     spec = importlib.util.spec_from_file_location('shift_migration', path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -33,6 +33,9 @@ class ShiftFoundationTests(unittest.TestCase):
             change = migration()
             change.op = Operations(MigrationContext.configure(connection))
             change.upgrade()
+            extension = migration("bc72e839f657_shift_sync.py")
+            extension.op = Operations(MigrationContext.configure(connection))
+            extension.upgrade()
         self.db = Session(self.engine)
         self.db.add_all([User(id=i, first_name='Test', last_name='User', email=f'{i}@example.com') for i in (1, 2)])
         self.db.commit()
