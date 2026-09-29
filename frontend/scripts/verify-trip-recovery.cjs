@@ -6,13 +6,22 @@ const ts = require(require.resolve('typescript', { paths: [root] }));
 let count = 0;
 function harness(disk = new Map()) {
   const cache = new Map(), tasks = new Map();
-  const state = { generation: 0, invalidations: [], switchAfterPost: false, rejectUpload: false, failWrite: false, foreground: true, background: true, native: false, starts: 0, stops: 0, watch: null, posts: 0, lostResponse: false, remote: [], owner: '1' };
+  const state = { generation: 0, invalidations: [], switchAfterPost: false, rejectUpload: false, failWrite: false, foreground: true, background: true, native: false, starts: 0, stops: 0, watch: null, posts: 0, lostResponse: false, remote: [], remoteShifts: [], owner: '1' };
   const now = Date.now();
   const point = (n = 0, time = now + n * 1000) => ({ latitude: 40 + n * .0001, longitude: -74, timestamp: time, accuracy: 5, heading: 0, speed: 11 });
   const location = p => ({ timestamp: p.timestamp, coords: p });
   const token = () => `x.${Buffer.from(JSON.stringify({ sub: state.owner, type: 'access' })).toString('base64url')}.x`;
   const api = {
-    get: async (_, cfg) => { assert.equal(cfg.deducklyOwnerId, state.owner); return { data: state.remote }; },
+    get: async (url, cfg) => { assert.equal(cfg.deducklyOwnerId, state.owner); return { data: url.includes('/shifts') ? state.remoteShifts : state.remote }; },
+    put: async (_, payload, cfg) => {
+      assert.equal(cfg.deducklyOwnerId, state.owner);
+      if (state.rejectUpload) throw Error('Conflict');
+      const existing = state.remoteShifts.find(s => s.client_id === payload.client_id);
+      if (existing) Object.assign(existing, payload); else state.remoteShifts.push(payload);
+      if (state.lostResponse) throw Error('Response lost');
+      if (state.switchAfterPost) { state.owner = '2'; state.generation++; }
+      return { data: payload };
+    },
     post: async (_, payload, cfg) => {
       assert.equal(cfg.deducklyOwnerId, state.owner); state.posts++;
       if (state.rejectUpload) throw Error("Conflict");
@@ -72,7 +81,8 @@ function harness(disk = new Map()) {
 }
 const data = { category: 'business', platform: 'uber', trackingMethod: 'automatic' };
 async function test(name, fn) { await fn(); count++; console.log(`PASS ${name}`); }
-(async () => {
+module.exports = { harness };
+if (require.main === module) (async () => {
   await test('restart restores original start, platform, and mileage', async () => {
     const h = harness(), j = h.journal(); const trip = await j.beginTrip('1', data, h.point());
     await j.recordPoints(trip.id, [h.point(1), h.point(2), h.point(3), h.point(4)]);
