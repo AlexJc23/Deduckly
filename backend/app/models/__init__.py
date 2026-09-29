@@ -16,3 +16,4 @@ from .password_reset import PasswordResetToken
 from .notification_occurrence import NotificationOccurrence
 
 from .google_oauth_transaction import GoogleOAuthTransaction
+from .shift import Shift, ShiftPlatformSession, ShiftSegment
