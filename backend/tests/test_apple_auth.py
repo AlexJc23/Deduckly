@@ -1,4 +1,6 @@
 import unittest
+import base64
+import hashlib
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
@@ -9,6 +11,12 @@ from fastapi import HTTPException
 from app.services import apple_auth_service as apple
 
 class IdentityTests(unittest.TestCase):
+    access_token = "synthetic-apple-access-token"
+
+    def access_token_hash(self):
+        digest = hashlib.sha256(self.access_token.encode()).digest()
+        return base64.urlsafe_b64encode(digest[:16]).rstrip(b"=").decode()
+
     @classmethod
     def setUpClass(cls):
         key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -16,20 +24,34 @@ class IdentityTests(unittest.TestCase):
         cls.public = jwk.construct(key.public_key().public_bytes(serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo), "RS256").to_dict()
         cls.public["kid"] = "test-key"
     def claims(self, **changes):
-        return dict({"sub":"apple-user", "iss":apple.APPLE, "aud":apple.settings.apple_client_id, "exp":datetime.now(timezone.utc)+timedelta(minutes=5), "nonce":"test-nonce", "email":"private@privaterelay.appleid.com", "email_verified":"true"}, **changes)
+        return dict({"sub":"apple-user", "at_hash":self.access_token_hash(), "iss":apple.APPLE, "aud":apple.settings.apple_client_id, "exp":datetime.now(timezone.utc)+timedelta(minutes=5), "nonce":"test-nonce", "email":"private@privaterelay.appleid.com", "email_verified":"true"}, **changes)
     def token(self, **changes):
         return jwt.encode(self.claims(**changes), self.private, algorithm="RS256", headers={"kid":"test-key"})
     def test_valid_signed_identity(self):
-        self.assertEqual(apple.verify_identity(self.token(), {"keys":[self.public]}, "test-nonce")["sub"], "apple-user")
+        self.assertEqual(apple.verify_identity(self.token(), {"keys":[self.public]}, "test-nonce", self.access_token)["sub"], "apple-user")
     def test_rejects_wrong_nonce_audience_issuer_expiry(self):
         for changes in ({"nonce":"wrong"}, {"aud":"another-app"}, {"iss":"https://attacker.invalid"}, {"exp":datetime.now(timezone.utc)-timedelta(minutes=1)}):
             with self.subTest(changes=changes), self.assertRaises(HTTPException):
-                apple.verify_identity(self.token(**changes), {"keys":[self.public]}, "test-nonce")
+                apple.verify_identity(self.token(**changes), {"keys":[self.public]}, "test-nonce", self.access_token)
     def test_unknown_signing_key(self):
-        with self.assertRaises(HTTPException): apple.verify_identity(self.token(), {"keys":[]}, "test-nonce")
+        with self.assertRaises(HTTPException): apple.verify_identity(self.token(), {"keys":[]}, "test-nonce", self.access_token)
     def test_rejects_unsigned_or_symmetric_identity(self):
         token = jwt.encode(self.claims(), "fake-key", algorithm="HS256")
-        with self.assertRaises(HTTPException): apple.verify_identity(token, {"keys":[self.public]}, "test-nonce")
+        with self.assertRaises(HTTPException): apple.verify_identity(token, {"keys":[self.public]}, "test-nonce", self.access_token)
+    def test_rejects_missing_or_mismatched_access_token(self):
+        for access_token in (None, "wrong-access-token"):
+            with self.subTest(access_token=access_token), self.assertRaises(HTTPException) as error:
+                apple.verify_identity(self.token(), {"keys":[self.public]}, "test-nonce", access_token)
+            self.assertEqual(error.exception.status_code, 401)
+
+    def test_inactive_user_cannot_access_account_api(self):
+        from app.api.dependencies import auth
+        from app.core.security import create_access_token
+        with patch.object(auth, "get_user", return_value=SimpleNamespace(id=42, is_active=False)):
+            with self.assertRaises(HTTPException) as error:
+                auth.get_current_user(create_access_token({"sub":"42"}), Mock())
+        self.assertEqual(error.exception.status_code, 401)
+
     def test_temporary_two_factor_token_cannot_access_account_api(self):
         from app.api.dependencies import auth
         from app.core.security import create_2fa_token
@@ -40,7 +62,7 @@ class IdentityTests(unittest.TestCase):
     def test_completed_access_token_still_works(self):
         from app.api.dependencies import auth
         from app.core.security import create_access_token
-        expected=object()
+        expected=SimpleNamespace(id=42, is_active=True)
         with patch.object(auth,"get_user",return_value=expected):
             self.assertIs(auth.get_current_user(create_access_token({"sub":"42"}),Mock()),expected)
 

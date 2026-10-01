@@ -22,3 +22,6 @@ api_router.include_router(mileage_rate.router)
 api_router.include_router(notification.router)
 api_router.include_router(feedback.router)
 api_router.include_router(legal.router)
+
+from app.api.v1.endpoints import shift
+api_router.include_router(shift.router)

@@ -1,3 +1,4 @@
+import { ShiftEntryPoint } from "@/features/shifts/entry-point";
 import { localizedAlert } from "@/i18n/alerts";
 import { useLanguage, Translated } from "@/i18n/language";
 import {
@@ -96,10 +97,6 @@ export default function DashboardScreen() {
     data: todayReport,
     isLoading: todayLoading,
   } = useTodayReport();
-
-  const todayExpenses =
-    todayReport?.total_expenses.toFixed(2) ??
-    "--";
 
   const tripBreakdown =
     todayReport?.trip_breakdown ?? [];
@@ -520,49 +517,7 @@ export default function DashboardScreen() {
         </Pressable>
       </View>
 
-      <View style={styles.expenseCard}>
-        <View
-          style={styles.expenseHeader}
-        >
-          <View
-            style={styles.expenseIcon}
-          >
-            <Ionicons
-              name="receipt-outline"
-              size={isTablet ? 20 : 17}
-              color="#F4B942"
-            />
-          </View>
-
-          <View>
-            <Text
-              style={styles.expenseTitle}
-            >
-              <Translated
-                text={"EXPENSES"}
-              />
-            </Text>
-
-            <Text
-              style={
-                styles.expenseSubtitle
-              }
-            >
-              <Translated
-                text={
-                  "Expenses recorded today"
-                }
-              />
-            </Text>
-          </View>
-
-          <Text
-            style={styles.expenseAmount}
-          >
-            ${todayExpenses}
-          </Text>
-        </View>
-      </View>
+      <ShiftEntryPoint manualActive={isTracking} />
 
       <View
         style={styles.actionsContainer}
@@ -1291,103 +1246,17 @@ const getStyles = (
       color: "#64748B",
     },
 
-    expenseCard: {
-      marginTop: isTablet
-        ? 14
-        : isSmallPhone
-        ? 9
-        : 12,
-      backgroundColor: "#FFFFFF",
-      borderRadius: isTablet
-        ? 18
-        : isSmallPhone
-        ? 14
-        : 16,
-      borderWidth: 1,
-      borderColor: "#E5E7EB",
-      padding: isTablet
-        ? 18
-        : isSmallPhone
-        ? 13
-        : 15,
-      maxWidth: isTablet
-        ? 1200
-        : undefined,
-      alignSelf: isTablet
-        ? "center"
-        : undefined,
-      width: isTablet
-        ? "100%"
-        : undefined,
 
-      shadowColor: "#111827",
-      shadowOpacity: 0.03,
-      shadowRadius: 7,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
 
-      elevation: 1,
-    },
 
-    expenseHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
 
-    expenseIcon: {
-      width: isTablet
-        ? 38
-        : isSmallPhone
-        ? 32
-        : 34,
-      height: isTablet
-        ? 38
-        : isSmallPhone
-        ? 32
-        : 34,
-      borderRadius: isTablet
-        ? 11
-        : 10,
-      backgroundColor: "#FFF7DB",
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: 10,
-    },
 
-    expenseTitle: {
-      fontSize: isTablet
-        ? 11
-        : isSmallPhone
-        ? 9
-        : 10,
-      fontWeight: "800",
-      letterSpacing: 1.05,
-      color: "#64748B",
-    },
 
-    expenseSubtitle: {
-      marginTop: 2,
-      fontSize: isTablet
-        ? 12
-        : isSmallPhone
-        ? 10
-        : 11,
-      color: "#94A3B8",
-      fontWeight: "500",
-    },
 
-    expenseAmount: {
-      marginLeft: "auto",
-      fontSize: isTablet
-        ? 16
-        : isSmallPhone
-        ? 13
-        : 14,
-      fontWeight: "800",
-      color: "#111827",
-    },
+
+
+
+
 
     actionsContainer: {
       marginTop: 8,

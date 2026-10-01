@@ -1,4 +1,6 @@
 import logging
+import asyncio
+from app.services.push_registration_service import lock_push_token
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from sqlalchemy.exc import IntegrityError
@@ -42,14 +44,19 @@ async def check_goal_reminder(db, user, now=None):
             db.commit()
         except IntegrityError:
             continue
-        # Recheck preferences after claiming in case they changed during the scan.
-        db.refresh(user, attribute_names=["notifications_enabled", "goal_reminders_enabled", "expo_push_token"])
-        if not user.notifications_enabled or not user.goal_reminders_enabled or not user.expo_push_token:
+        # Serialize reassignment with the handoff. Acquire blocking PostgreSQL
+        # locks off the event loop so registration cannot deadlock an Expo await.
+        expected_token = user.expo_push_token
+        if db.get_bind().dialect.name == "postgresql":
+            await asyncio.to_thread(lock_push_token, db, expected_token)
+        db.refresh(user, attribute_names=["is_active", "notifications_enabled", "goal_reminders_enabled", "expo_push_token"])
+        if (not user.is_active or not user.notifications_enabled or not user.goal_reminders_enabled
+                or not user.expo_push_token or user.expo_push_token != expected_token):
             occurrence.status = "skipped"
             db.commit()
             continue
         occurrence.push_token = user.expo_push_token
-        db.commit()
+        # Keep the ownership lock until Expo handoff completes (or is uncertain).
         try:
             result = await send_push_notification(occurrence.push_token, title, body)
             ticket = result.get("data", {})

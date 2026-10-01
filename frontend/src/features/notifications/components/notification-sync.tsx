@@ -14,9 +14,9 @@ export function NotificationSync() {
       running = true;
       try {
         await syncNotificationRegistration(() => active);
-      } catch (error) {
+      } catch {
         // Retry on the next foreground event; never block app startup.
-        console.warn("Unable to sync notification registration", error);
+        console.warn("Unable to sync notification registration; will retry on foreground.");
       } finally {
         running = false;
       }

@@ -5,6 +5,16 @@ import { trackingOwnerFromToken } from "./tracking-owner";
 import { acknowledgeTrip, markUploadAttempt, pendingTrips } from "./trip-journal";
 import type { Trip } from "@/features/trips/types/trips.types";
 
+import { queryClient } from "@/providers/query-client";
+import { getAccountGeneration, isAccountChanging } from "@/features/auth/services/account-boundary";
+
+function invalidateSavedTrips(generation: number) {
+  if (isAccountChanging() || getAccountGeneration() !== generation) return;
+  for (const key of ["trips", "income", "daily-goal", "monthly-goal", "report", "today-report"]) {
+    void queryClient.invalidateQueries({ queryKey: [key] });
+  }
+}
+
 let syncing: Promise<void> | null = null;
 export function syncRecordedTrips(): Promise<void> {
   if (syncing) return syncing;
@@ -13,13 +23,14 @@ export function syncRecordedTrips(): Promise<void> {
 }
 async function upload() {
   try {
+    const generation = getAccountGeneration();
     const ownerId = trackingOwnerFromToken(await getAccessToken());
     if (!ownerId) return;
     for (const pending of await pendingTrips(ownerId)) {
-      const config = { deducklyOwnerId: ownerId };
-      if (pending.attempted) {
+      const config = { deducklyOwnerId: ownerId, deducklyGeneration: generation };
+      if (pending.attempted && !pending.payload.client_id) {
         // The previous POST may have succeeded before its response was lost.
-        // Use the existing list API to reconcile that response before retrying.
+        // Legacy journal records predate server-enforced identity. Keep their fallback.
         const response = await api.get<Trip[]>("/api/v1/trips/", config);
         if (!Array.isArray(response.data)) return;
         const existing = response.data.find(trip =>
@@ -27,7 +38,7 @@ async function upload() {
           new Date(trip.end_time).getTime() === new Date(pending.payload.end_time).getTime() &&
           trip.category === pending.payload.category && trip.platform === pending.payload.platform &&
           Math.abs(Number(trip.distance_miles) - pending.payload.distance_miles) < 0.011);
-        if (existing) { await acknowledgeTrip(pending.id, ownerId); continue; }
+        if (existing) { await acknowledgeTrip(pending.id, ownerId); invalidateSavedTrips(generation); continue; }
       }
       const payload = { ...pending.payload };
       try {
@@ -37,6 +48,7 @@ async function upload() {
       await markUploadAttempt(pending.id, ownerId);
       await api.post("/api/v1/trips/", payload, config);
       await acknowledgeTrip(pending.id, ownerId);
+      invalidateSavedTrips(generation);
     }
   } catch {
     // Keep the complete payload on disk. Retry when connectivity/app focus returns.

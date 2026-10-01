@@ -137,13 +137,13 @@ export function finishTrip(ownerId: string, incomeAmount?: number | null) {
     if (!trip) return false;
     const discarded = trip.distanceMiles < 0.02;
     if (!discarded) {
-      journal.pending.push({ id: trip.id, ownerId, payload: buildTripPayload({
+      journal.pending.push({ id: trip.id, ownerId, payload: { client_id: trip.id, ...buildTripPayload({
         startTime: new Date(trip.startTime), endTime: new Date(), distanceMiles: trip.distanceMiles,
         startLatitude: trip.start.latitude, startLongitude: trip.start.longitude,
         endLatitude: trip.last.latitude, endLongitude: trip.last.longitude,
         start_address: null, end_address: null, category: trip.category,
         platform: trip.category === "personal" ? "personal" : trip.platform ?? "", incomeAmount,
-      }) });
+      }) } });
     }
     journal.active = journal.active.filter(item => item.id !== trip.id);
     if (journal.recordingId === trip.id) journal.recordingId = null;

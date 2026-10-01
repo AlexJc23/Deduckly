@@ -45,7 +45,7 @@ def build_tax_report_csv(buffer, data):
 
     # Mileage
     writer.writerow(["Mileage"])
-    writer.writerow(["Total Miles", data["total_miles"]])
+    writer.writerow(["Business Miles", data["total_miles"]])
     writer.writerow(
         ["Mileage Deduction", data["mileage_deduction"]]
     )

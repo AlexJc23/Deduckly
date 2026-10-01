@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from sqlalchemy import (
     String,
+    Index,
     Integer,
     DateTime,
     Numeric,
@@ -29,6 +30,7 @@ from datetime import datetime
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = (Index("uq_users_expo_push_token", "expo_push_token", unique=True),)
 
     # ------------------------------------------------------------------
     # Identity

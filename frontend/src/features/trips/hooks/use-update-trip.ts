@@ -15,6 +15,9 @@ export function useUpdateTrip() {
     }) => updateTrip(tripId, trip),
 
     onSuccess: (_, variables) => {
+      for (const key of ["income", "daily-goal", "monthly-goal", "report", "today-report"]) {
+        void queryClient.invalidateQueries({ queryKey: [key] });
+      }
       queryClient.invalidateQueries({
         queryKey: ["trip", variables.tripId],
       });

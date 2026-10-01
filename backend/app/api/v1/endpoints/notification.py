@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -14,24 +15,20 @@ from app.services.notification_service import (
 )
 from fastapi import HTTPException
 
+from app.services.push_registration_service import register_push_token, lock_push_token
+
 router = APIRouter(
     prefix="/notifications",
     tags=["Notifications"],
 )
 
 @router.post("/push-token")
-async def save_push_token(
+def save_push_token(
     payload: PushTokenUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    current_user.expo_push_token = payload.expo_push_token or None
-    if payload.timezone is not None:
-        current_user.timezone = payload.timezone
-
-    db.commit()
-
-    db.refresh(current_user)
+    register_push_token(db, current_user.id, payload.expo_push_token, payload.timezone)
 
     return {
         "message": "Push token saved successfully."
@@ -44,6 +41,12 @@ async def send_test_push_notification(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    expected_token = current_user.expo_push_token
+    if db.get_bind().dialect.name == "postgresql":
+        await asyncio.to_thread(lock_push_token, db, expected_token)
+    db.refresh(current_user, attribute_names=["expo_push_token", "notifications_enabled", "is_active"])
+    if not current_user.is_active or current_user.expo_push_token != expected_token:
+        raise HTTPException(status_code=409, detail="Notification registration changed.")
     if not current_user.notifications_enabled:
         raise HTTPException(status_code=403, detail="Notifications are disabled.")
     if not current_user.expo_push_token:
@@ -59,6 +62,7 @@ async def send_test_push_notification(
         body=body,
     )
 
+    db.commit()
     return {
         "message": "Push notification sent successfully.",
         "response": response,

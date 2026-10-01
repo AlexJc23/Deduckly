@@ -1,3 +1,7 @@
+import { reconcileShiftNotifications } from '@/features/shifts/notifications';
+import { getAccessToken } from "@/features/auth/services/auth-service.service";
+import { trackingOwnerFromToken } from "./tracking-owner";
+import { getAccountGeneration, isAccountChanging } from "@/features/auth/services/account-boundary";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import { localizedAlert } from "@/i18n/alerts";
@@ -5,6 +9,28 @@ import { translate } from "@/i18n/core";
 import { Linking, Platform } from "react-native";
 import { getCurrentLocation, toLocationPoint, watchLocation } from "./location.service";
 import { beginTrip, discardTrip, finishTrip, getActiveTrip, getRecordingTrip, recordPoints, setRecording, type TripStart } from "./trip-journal";
+
+import { activeShift, recordingShift, recordShiftPoints, setShiftRecording, startShift, endShift, autoEndIfDue, listShifts } from '@/features/shifts/journal';
+
+async function dispatchPoints(points: ReturnType<typeof toLocationPoint>[], owner?: string) {
+  const states = await Promise.allSettled([getRecordingTrip(), recordingShift()]);
+  const trip = states[0].status === 'fulfilled' ? states[0].value : null;
+  const shift = states[1].status === 'fulfilled' ? states[1].value : null;
+  if (trip && shift && trip.ownerId !== shift.owner) throw Error("Recording owner mismatch");
+  const writes: Promise<unknown>[] = [];
+  if (trip && (!owner || trip.ownerId === owner)) writes.push(recordPoints(trip.id, points));
+  if (shift && (!owner || shift.owner === owner)) writes.push(recordShiftPoints(shift.data.client_id, points, !!await getActiveTrip(shift.owner)));
+  const results = await Promise.allSettled(writes);
+  if (states.some(result => result.status === 'rejected') || results.some(result => result.status === 'rejected')) throw Error('Recording storage failure');
+  if (shift && (!owner || shift.owner === owner)) {
+    if (await autoEndIfDue(shift.owner, !!await getActiveTrip(shift.owner)) || !await activeShift(shift.owner)) {
+      // Only stop the recorder when no independent manual Trip still needs it.
+      if (!await getRecordingTrip()) await stopNative();
+      await reconcileShiftNotifications(shift.owner, await listShifts(shift.owner));
+    }
+  }
+  return !!(await getRecordingTrip() || await recordingShift());
+}
 
 export const TRIP_LOCATION_TASK = "deduckly-active-trip-location-v1";
 export type RecordingMode = "background" | "foreground" | "paused";
@@ -34,13 +60,9 @@ if (!TaskManager.isTaskDefined(TRIP_LOCATION_TASK)) {
   TaskManager.defineTask<{ locations: Location.LocationObject[] }>(TRIP_LOCATION_TASK, async ({ data, error }) => {
     if (error) { recordingError(); return; }
     try {
-      const trip = await getRecordingTrip();
-      if (!trip) {
-        // Recover a termination between the durable stop and native task cleanup.
-        await control(async () => { if (!await getRecordingTrip()) await stopNative(); });
-        return;
-      }
-      await recordPoints(trip.id, (data?.locations ?? []).map(toLocationPoint));
+      await control(async () => {
+        if (!await dispatchPoints((data?.locations ?? []).map(toLocationPoint))) await stopNative();
+      });
     } catch {
       // A storage failure must not silently look like successful recording.
       recordingError();
@@ -56,8 +78,11 @@ async function stopNative() {
   }
   updateMode("paused");
 }
-async function attach(id: string, backgroundGranted: boolean) {
-  await setRecording(id);
+async function attach(ownerId: string, backgroundGranted: boolean) {
+  const trip = await getActiveTrip(ownerId);
+  await setRecording(trip?.id ?? null);
+  try { await setShiftRecording(ownerId); } catch (error) { if (!trip) throw error; }
+  const id = ownerId;
   if (backgroundGranted && Platform.OS !== "web" && await TaskManager.isAvailableAsync()) {
     try {
       if (!await Location.hasStartedLocationUpdatesAsync(TRIP_LOCATION_TASK)) {
@@ -68,7 +93,7 @@ async function attach(id: string, backgroundGranted: boolean) {
           pausesUpdatesAutomatically: false,
           showsBackgroundLocationIndicator: true,
           ...(Platform.OS === "android" ? { foregroundService: {
-            notificationTitle: "Deduckly", notificationBody: translate("Trip recording is active"),
+            notificationTitle: "Deduckly", notificationBody: translate("Mileage recording is active"),
             killServiceOnDestroy: false,
           } } : {}),
         });
@@ -86,28 +111,33 @@ async function attach(id: string, backgroundGranted: boolean) {
   if (!watcher || watchingId !== id) {
     watcher?.remove(); watcher = null;
     watcher = await watchLocation(location => {
-      void recordPoints(id, [toLocationPoint(location)]).catch(recordingError);
+      void control(async () => { if (!await dispatchPoints([toLocationPoint(location)], ownerId)) await stopNative(); }).catch(recordingError);
     }, recordingError);
     watchingId = id;
   }
   updateMode("foreground");
 }
-export function resumeRecording(ownerId: string | null) {
-  return control(async () => {
-    if (!ownerId) {
-      await stopNative();
-      await setRecording(null);
-      return;
-    }
-    const trip = await getActiveTrip(ownerId);
-    if (!trip) { await stopNative(); await setRecording(null); return; }
-    const foreground = await Location.getForegroundPermissionsAsync();
-    if (!foreground.granted) { await stopNative(); await setRecording(null); return; }
-    const background = Platform.OS !== "web" && (await Location.getBackgroundPermissionsAsync()).granted;
-    await attach(trip.id, background);
-  });
+async function restoreConsumers(ownerId: string | null) {
+  if (!ownerId) {
+    await stopNative();
+    await setRecording(null);
+    await setShiftRecording(null);
+    return;
+  }
+  const trip = await getActiveTrip(ownerId);
+  let shift;
+  try { shift = await activeShift(ownerId); } catch (error) { if (!trip) throw error; }
+  if (!trip && !shift) { await stopNative(); await setRecording(null); await setShiftRecording(null); return; }
+  const foreground = await Location.getForegroundPermissionsAsync();
+  if (!foreground.granted) { await stopNative(); await setRecording(null); await setShiftRecording(null); return; }
+  const background = Platform.OS !== "web" && (await Location.getBackgroundPermissionsAsync()).granted;
+  await attach(ownerId, background);
 }
-export function startRecording(ownerId: string, data: TripStart) {
+export function resumeRecording(ownerId: string | null) {
+  return control(() => restoreConsumers(ownerId));
+}
+export function startRecording(ownerId: string, data: TripStart, shiftOptions?: { planned: string | null }) {
+  const generation = getAccountGeneration();
   return control(async () => {
     let foreground = Platform.OS === "ios" ? await Location.getForegroundPermissionsAsync() : await Location.requestForegroundPermissionsAsync();
     if (Platform.OS === "ios" && !foreground.granted && foreground.status === "undetermined" && foreground.canAskAgain) {
@@ -126,16 +156,20 @@ export function startRecording(ownerId: string, data: TripStart) {
           [{ text: "OK" }, { text: "Open Settings", onPress: () => { void Linking.openSettings().catch(() => {}); } }]);
       } else {
         const proceed = await new Promise<boolean>(resolve => localizedAlert("Background location",
-          "Deduckly uses background location to record your active trip while the screen is locked or you use another app. Tracking stops when you end or cancel the trip.",
+          shiftOptions ? "Deduckly uses background location to detect driving during your active Shift while the screen is locked or you use another app. Shift recording stops when you end the Shift." : "Deduckly uses background location to record your active trip while the screen is locked or you use another app. Tracking stops when you end or cancel the trip.",
           [...(Platform.OS === "ios" ? [] : [{ text: "Cancel", style: "cancel" as const, onPress: () => resolve(false) }]),
            { text: "Continue", onPress: () => resolve(true) }], { cancelable: false }));
         if (!proceed) return false;
         background = (await Location.requestBackgroundPermissionsAsync()).granted;
       }
     }
-    const existing = await getActiveTrip(ownerId);
-    const trip = existing ?? await beginTrip(ownerId, data, toLocationPoint(await getCurrentLocation()));
-    try { await attach(trip.id, background); }
+    if (trackingOwnerFromToken(await getAccessToken()) !== ownerId || isAccountChanging() || generation !== getAccountGeneration()) return false;
+    if (shiftOptions) await startShift(ownerId, data.platform, shiftOptions.planned);
+    else {
+      const existing = await getActiveTrip(ownerId);
+      if (!existing) await beginTrip(ownerId, data, toLocationPoint(await getCurrentLocation()));
+    }
+    try { await attach(ownerId, background); }
     catch { recordingError(); /* Preserve the trip even if the native listener fails. */ }
     return true;
   });
@@ -144,20 +178,20 @@ export function endRecording(ownerId: string, income?: number | null) {
   return control(async () => {
     // Commit locally before stopping. If storage fails, the active trip keeps recording.
     const result = await finishTrip(ownerId, income);
-    try { await stopNative(); } catch { recordingError(); }
+    try { await restoreConsumers(ownerId); } catch { recordingError(); }
     return result;
   });
 }
 export function cancelRecording(ownerId: string) {
   return control(async () => {
     await discardTrip(ownerId);
-    try { await stopNative(); } catch { recordingError(); }
+    try { await restoreConsumers(ownerId); } catch { recordingError(); }
   });
 }
 export function pauseRecording() {
   return control(async () => {
     // Stop native updates even if local storage is unavailable during sign-out.
-    try { await setRecording(null); } finally { await stopNative(); }
+    try { await setRecording(null); await setShiftRecording(null); } finally { await stopNative(); }
   });
 }
 
@@ -165,7 +199,27 @@ export function suspendForegroundRecording() {
   return control(async () => {
     if (mode === "foreground") {
       await setRecording(null);
+      await setShiftRecording(null);
       await stopNative();
     }
+  });
+}
+
+export function startShiftRecording(owner: string, platform: string | null, planned: string | null) {
+  return startRecording(owner, { category: 'personal', platform, trackingMethod: 'automatic' }, { planned });
+}
+export function endShiftRecording(owner: string, clientId: string) {
+  return control(async () => {
+    await endShift(owner, clientId);
+    try { await restoreConsumers(owner); } catch { recordingError(); }
+  });
+}
+
+export function checkShiftDeadline(owner: string) {
+  const generation = getAccountGeneration();
+  return control(async () => {
+    if (isAccountChanging() || generation !== getAccountGeneration() || trackingOwnerFromToken(await getAccessToken()) !== owner) return;
+    if (await autoEndIfDue(owner, !!await getActiveTrip(owner))) await restoreConsumers(owner);
+    await reconcileShiftNotifications(owner, await listShifts(owner));
   });
 }

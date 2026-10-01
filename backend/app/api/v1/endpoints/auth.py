@@ -414,7 +414,7 @@ async def register(
     )
 
     verification_link = (
-        f"https://api.karlsonworks.com/api/v1/auth/verify-email-link"
+        f"https://api.drivededuckly.com/api/v1/auth/verify-email-link"
         f"?token={token}&email={user.email}"
     )
 
@@ -539,7 +539,7 @@ async def forgot_password(
     )
 
     reset_link = (
-        f"https://api.karlsonworks.com/api/v1/auth/reset-password-link"
+        f"https://api.drivededuckly.com/api/v1/auth/reset-password-link"
         f"?token={token}"
     )
 
@@ -638,7 +638,7 @@ async def resend_verification(
     )
 
     verification_link = (
-        f"https://api.karlsonworks.com/api/v1/auth/verify-email-link"
+        f"https://api.drivededuckly.com/api/v1/auth/verify-email-link"
         f"?token={token}&email={user.email}"
     )
 
@@ -757,6 +757,7 @@ def update_password(
 @router.post("/logout")
 def logout(
     refresh_token: str,
+    expo_push_token: str | None = None,
     db: Session = Depends(get_db),
 ):
     session = (
@@ -778,6 +779,7 @@ def logout(
     result = logout_user(
         db,
         refresh_token,
+        expo_push_token=expo_push_token,
     )
 
     create_security_event(

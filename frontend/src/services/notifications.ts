@@ -1,3 +1,4 @@
+import { getAccountGeneration, isAccountChanging } from "@/features/auth/services/account-boundary";
 import { Linking, Platform } from "react-native";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
@@ -15,6 +16,7 @@ Notifications.setNotificationHandler({
 });
 
 export async function registerForPushNotifications(): Promise<string> {
+    const generation = getAccountGeneration();
     if (!Device.isDevice) {
         throw new Error(
             "Push notifications require a physical device."
@@ -54,6 +56,7 @@ export async function registerForPushNotifications(): Promise<string> {
 
     const token = await Notifications.getExpoPushTokenAsync();
 
+    if (isAccountChanging() || generation !== getAccountGeneration()) throw new Error("Account session changed");
     await savePushToken(token.data);
 
     return token.data;
@@ -61,13 +64,15 @@ export async function registerForPushNotifications(): Promise<string> {
 
 // Refresh registration without prompting. The server owns all reminder schedules.
 export async function syncNotificationRegistration(isCurrent: () => boolean = () => true) {
+    const generation = getAccountGeneration();
+    const current = () => isCurrent() && !isAccountChanging() && generation === getAccountGeneration();
     if (Platform.OS === "web" || !Device.isDevice) return;
     const permission = await Notifications.getPermissionsAsync();
-    if (!isCurrent()) return;
+    if (!current()) return;
     if (!permission.granted) {
         await savePushToken(null);
         return;
     }
     const token = await Notifications.getExpoPushTokenAsync();
-    if (isCurrent()) await savePushToken(token.data);
+    if (current()) await savePushToken(token.data);
 }

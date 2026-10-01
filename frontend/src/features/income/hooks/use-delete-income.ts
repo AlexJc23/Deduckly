@@ -16,6 +16,7 @@ export function useDeleteIncome() {
 
     onSuccess: async () => {
       await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["daily-goal"] }),
         queryClient.invalidateQueries({
           queryKey: ["income"],
         }),

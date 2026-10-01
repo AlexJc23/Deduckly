@@ -23,13 +23,13 @@ export function OfferForm({
     useState("");
 
   const isAnalyzeDisabled =
-    !payout || !distance || (Platform.OS === "android" &&
+    !payout || !distance ||
       (!Number.isFinite(Number(payout)) || Number(payout) <= 0 ||
        !Number.isFinite(Number(distance)) || Number(distance) <= 0 ||
-       !Number.isFinite(Number(estimatedTime)) || Number(estimatedTime) < 0));
+       !Number.isFinite(Number(estimatedTime)) || Number(estimatedTime) < 0);
 
   function handleAnalyze() {
-    if (Platform.OS === "android" && isAnalyzeDisabled) return;
+    if (isAnalyzeDisabled) return;
     const offer: OfferInput = {
       payout: Number(payout),
       distance: Number(distance),
@@ -93,7 +93,7 @@ export function OfferForm({
 
       <View style={styles.inputGroup}>
         <Text style={styles.label}>
-          <Translated text={"Estimated Time"} /></Text>
+          <Translated text={"Estimated Time (optional)"} /></Text>
 
         <View style={styles.inputWrapper}>
           <TextInput

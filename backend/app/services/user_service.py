@@ -140,7 +140,8 @@ def update_user(
             value = getattr(user_in, field)
 
             if value is not None:
-                setattr(user, field, value)
+                mapped_field = "estimated_vehicle_cost_per_mile" if field == "cost_per_mile" else field
+                setattr(user, mapped_field, value)
         db.commit()
 
         db.refresh(user)

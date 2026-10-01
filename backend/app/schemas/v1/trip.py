@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from decimal import Decimal
 from app.models.enums import TripPlatform, TripCategory
@@ -26,11 +26,13 @@ class TripBase(BaseModel):
 
 # Create (same as base)
 class TripCreate(TripBase):
+    client_id: Optional[str] = Field(default=None, min_length=1, max_length=128, pattern=r"^[A-Za-z0-9_-]+$")
     income_amount: Optional[Decimal] = None  # New field for income
 
 
 # Update (ALL optional, no inheritance)
 class TripUpdate(BaseModel):
+    income_amount: Optional[Decimal] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
 
@@ -50,8 +52,11 @@ class TripUpdate(BaseModel):
 
 # Response (clean output)
 class TripResponse(TripBase):
+    platform: Optional[TripPlatform] = None
     model_config = ConfigDict(from_attributes=True)
 
+    client_id: Optional[str] = None
+    income_amount: Optional[Decimal] = None
     id: int
     user_id: int
     deduction_amount: Optional[Decimal] = None

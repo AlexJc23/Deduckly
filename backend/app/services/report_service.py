@@ -8,7 +8,7 @@ from decimal import Decimal, InvalidOperation
 from datetime import datetime, timezone, date, timedelta
 
 from app.models import TaxBracket, User, Expense, Income, Trip
-from app.models.enums import TaxMethod, ExpenseCategory
+from app.models.enums import TaxMethod, ExpenseCategory, TripCategory
 
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -365,6 +365,7 @@ def generate_tax_report(
         #  trip filters
         trip_filters = [
             Trip.user_id == user.id,
+            Trip.category == TripCategory.BUSINESS,
             *build_date_filters(
                 Trip.start_time,
                 year,

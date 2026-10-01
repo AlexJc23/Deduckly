@@ -1,4 +1,5 @@
 export interface Trip {
+  client_id?: string | null;
   id: number;
   user_id: number;
 
@@ -11,10 +12,8 @@ export interface Trip {
   start_address: string | null;
   end_address: string | null;
 
-  platform: string;
+  platform: string | null;
   category: string;
-
-  purpose: string | null;
 
   deduction_amount: string | null;
 
@@ -24,6 +23,7 @@ export interface Trip {
 
 
 export type TripCreate = {
+  client_id?: string;
   start_time: string;
   end_time: string;
 

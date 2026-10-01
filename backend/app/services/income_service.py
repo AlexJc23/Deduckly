@@ -139,6 +139,8 @@ def upsert_income_for_trip(
     trip_id: int,
     user_id: int,
     amount: Optional[Decimal],
+    *,
+    commit: bool = True,
 ):
 
     trip = (
@@ -166,7 +168,7 @@ def upsert_income_for_trip(
         if income:
             try:
                 db.delete(income)
-                db.commit()
+                db.commit() if commit else db.flush()
             except SQLAlchemyError:
                 db.rollback()
                 raise HTTPException(
@@ -205,7 +207,7 @@ def upsert_income_for_trip(
             )
             db.add(income)
 
-        db.commit()
+        db.commit() if commit else db.flush()
         db.refresh(income)
 
         return income
