@@ -17,6 +17,11 @@ def active(db: Session = Depends(get_db), user: User = Depends(get_current_user)
     row = db.query(Shift).filter_by(user_id=user.id, ended_at=None).first()
     return snapshot(row) if row else None
 
+@router.post('/convert-pending')
+def convert(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    from app.services.shift_conversion_service import convert_pending
+    return convert_pending(db, user.id)
+
 @router.get('/{client_id}', response_model=ShiftSnapshot)
 def detail(client_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     return snapshot(get_shift(db, user.id, client_id))

@@ -139,7 +139,7 @@ def get_daily_trip_breakdown(
     breakdown = {}
 
     for trip in trips:
-        platform = trip.platform.value
+        platform = trip.platform.value if trip.platform else None
 
         if platform not in breakdown:
             breakdown[platform] = {

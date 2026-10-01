@@ -12,7 +12,7 @@ export interface Trip {
   start_address: string | null;
   end_address: string | null;
 
-  platform: string;
+  platform: string | null;
   category: string;
 
   deduction_amount: string | null;

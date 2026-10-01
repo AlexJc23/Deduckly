@@ -24,7 +24,7 @@ def snapshot(row):
     return ShiftSnapshot(**period(row), revision=row.revision, planned_end_at=iso(row.planned_end_at),
         platform_sessions=[dict(**period(p), platform=p.platform) for p in sorted(row.platform_sessions, key=lambda x: (iso(x.started_at), x.client_id))],
         segments=[dict(**period(s), distance_miles=s.distance_miles, category=s.category,
-            excluded=s.excluded, platform_client_id=sessions.get(s.platform_session_id)) for s in sorted(row.segments, key=lambda x: (iso(x.started_at), x.client_id))])
+            excluded=s.excluded, reviewed=s.reviewed, save_requested=s.save_requested, converted_at=iso(s.converted_at), trip_id=s.trip_id, platform_client_id=sessions.get(s.platform_session_id)) for s in sorted(row.segments, key=lambda x: (iso(x.started_at), x.client_id))])
 
 
 def sync_shift(db: Session, owner: int, data: ShiftSnapshot):
@@ -34,6 +34,12 @@ def sync_shift(db: Session, owner: int, data: ShiftSnapshot):
         if not user or not user.is_active:
             raise HTTPException(401, 'Account unavailable')
         canonical = data.model_dump(mode='json')
+        for segment in canonical['segments']:
+            segment.pop('converted_at', None)
+            segment.pop('trip_id', None)
+            # Preserve pre-upgrade retry fingerprints for legacy snapshots.
+            if segment.get('reviewed') is True: segment.pop('reviewed')
+            if segment.get('save_requested') is False: segment.pop('save_requested')
         for field in ('platform_sessions', 'segments'):
             canonical[field].sort(key=lambda item: item['client_id'])
         digest = hashlib.sha256(json.dumps(canonical, sort_keys=True).encode()).hexdigest()
@@ -81,6 +87,11 @@ def sync_shift(db: Session, owner: int, data: ShiftSnapshot):
             if target is None:
                 target = ShiftSegment(shift_id=row.id, client_id=s.client_id, started_at=s.started_at)
                 db.add(target)
+            # Converted source records are immutable. Old offline snapshots must
+            # not rewrite already-accounted mileage or resurrect a deleted Trip.
+            if target.converted_at:
+                continue
+            target.reviewed, target.save_requested = s.reviewed, s.save_requested
             target.ended_at, target.distance_miles = s.ended_at, s.distance_miles
             target.category, target.excluded = s.category, s.excluded
             target.platform_session_id = periods[s.platform_client_id].id if s.platform_client_id else None

@@ -22,7 +22,8 @@ function harness(disk = new Map()) {
       if (state.switchAfterPost) { state.owner = '2'; state.generation++; }
       return { data: payload };
     },
-    post: async (_, payload, cfg) => {
+    post: async (url, payload, cfg) => {
+      if (url.includes("convert-pending")) { assert.equal(cfg.deducklyOwnerId, state.owner); return { data: { created_trip_ids: [], blocked_segment_ids: [] } }; }
       assert.equal(cfg.deducklyOwnerId, state.owner); state.posts++;
       if (state.rejectUpload) throw Error("Conflict");
       if (!payload.client_id || !state.remote.some(trip => trip.client_id === payload.client_id)) {
@@ -37,6 +38,7 @@ function harness(disk = new Map()) {
       getItem: async key => disk.get(key) ?? null,
       setItem: async (key, value) => { if (state.failWrite) throw Error('Disk full'); disk.set(key, value); },
     },
+    'expo-notifications': { getPermissionsAsync: async () => ({ granted: false }), getAllScheduledNotificationsAsync: async () => [] },
     'expo-location': {
       Accuracy: { BestForNavigation: 6 }, ActivityType: { AutomotiveNavigation: 1 },
       getCurrentPositionAsync: async () => location(point()),
@@ -58,7 +60,7 @@ function harness(disk = new Map()) {
     'expo-task-manager': { isTaskDefined: name => tasks.has(name), defineTask: (name, callback) => tasks.set(name, callback), isAvailableAsync: async () => true },
     'react-native': { Platform: { OS: process.env.DEDUCKLY_TEST_PLATFORM || 'ios' }, Linking: { openSettings: async () => {} } },
     '@/i18n/alerts': { localizedAlert: (_title, _message, buttons) => buttons?.at(-1).onPress() },
-    '@/i18n/core': { translate: text => text },
+    '@/i18n/core': { translate: text => text, getLocale: () => 'en-US', getLanguage: () => 'en' },
     '@/features/auth/services/auth-service.service': { getAccessToken: async () => state.owner ? token() : null },
     '@/api/client': { api },
     '@/providers/query-client': { queryClient: { invalidateQueries: async ({ queryKey }) => state.invalidations.push(queryKey[0]) } },

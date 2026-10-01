@@ -1,12 +1,15 @@
+import { DurationPicker } from '@/features/shifts/duration-picker';
+import { plannedEndAt } from '@/features/shifts/duration';
+import { requestShiftNotifications } from '@/features/shifts/notifications';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
+import { Alert, ScrollView, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { View, Text, Pressable } from '@/theme/components';
 import { useAppTheme } from '@/theme/theme';
 import { useLanguage } from '@/i18n/language';
 import { useShifts } from '@/features/shifts/context';
-import { editShift, switchPlatform } from '@/features/shifts/journal';
+import { editShift, switchPlatform, requestTripSave } from '@/features/shifts/journal';
 import { startShiftRecording, endShiftRecording, getRecordingMode, subscribeToRecording } from '@/features/tracking/services/background-tracking';
 const platforms = ['spark', 'doordash', 'uber_eats', 'uber', 'lyft', 'grubhub', 'instacart', 'amazon_flex', 'shipt', 'other'];
 export default function ShiftsScreen() {
@@ -15,9 +18,10 @@ export default function ShiftsScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const [selected, setSelected] = useState<string | null>(params.id ?? null);
   const [platform, setPlatform] = useState<string | null>(null);
-  const [hours, setHours] = useState(''); const [busy, setBusy] = useState(false);
+  const [minutes, setMinutes] = useState(0); const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(Date.now()); const [mode, setMode] = useState(getRecordingMode());
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); const off = subscribeToRecording(() => setMode(getRecordingMode())); return () => { clearInterval(timer); off(); }; }, []);
+  useEffect(() => { if (params.id) setSelected(params.id); }, [params.id]);
   const active = entries.find(e => e.local && !e.data.ended_at);
   const entry = entries.find(e => e.data.client_id === selected) ?? active;
   const foreground = dark ? '#EDF3FA' : '#273449';
@@ -28,12 +32,7 @@ export default function ShiftsScreen() {
     catch { Alert.alert(t('Shift could not be updated'), t('Saved Shift data remains on this device. Check permissions and storage, then try again.')); }
     finally { setBusy(false); }
   }
-  function planned() {
-    if (!hours.trim()) return null;
-    const value = Number(hours.replace(',', '.'));
-    if (!Number.isFinite(value) || value <= 0 || value > 48) throw Error('Invalid duration');
-    return new Date(Date.now() + value * 3600000).toISOString();
-  }
+  const planned = () => plannedEndAt(Date.now(), minutes);
   const platformLabel = (value: string) => value === 'other' ? t('Other') : ({ spark: 'Spark', doordash: 'DoorDash', uber_eats: 'Uber Eats', uber: 'Uber', lyft: 'Lyft', grubhub: 'Grubhub', instacart: 'Instacart', amazon_flex: 'Amazon Flex', shipt: 'Shipt' }[value] ?? value);
   const date = (value: string) => new Date(value).toLocaleString(locale);
   function button(label: string, fn: () => void, chosen = false, key = label) {
@@ -54,11 +53,12 @@ export default function ShiftsScreen() {
         {!active && <View style={styles.card}>
           <Text style={styles.heading}>{t('Start Shift')}</Text>
           <Text>{t('Active platform')}</Text>{platformButtons(setPlatform, platform)}
-          <Text>{t('Planned end in hours (optional, up to 48)')}</Text>
-          <TextInput accessibilityLabel={t('Planned end in hours (optional, up to 48)')} value={hours} onChangeText={setHours} keyboardType="decimal-pad" style={[styles.input, { color: foreground }]} />
+          <Text>{t('End in (optional)')}</Text>
+          <DurationPicker value={minutes} onChange={setMinutes} />
           {button(t('Start Shift'), () => void act(async () => {
             if (!await startShiftRecording(owner!, platform, planned())) throw Error('Location unavailable');
             setSelected(null);
+            if (minutes) await requestShiftNotifications();
           }))}
         </View>}
         {entry && <View style={styles.card}>
@@ -68,10 +68,10 @@ export default function ShiftsScreen() {
           <Text>{t(entry.dirty || entry.pending ? 'Pending sync' : 'Synced')}</Text>
           {!entry.data.ended_at && <>
             <Text>{t(!entry.local ? 'This Shift was started on another device.' : mode === 'background' ? 'Background recording active' : mode === 'foreground' ? 'Keep the app open to record mileage.' : 'Recording paused. Check location access and reopen the app.')}</Text>
-            {entry.data.planned_end_at && <Text>{t('Planned end')}: {date(entry.data.planned_end_at)}{now > Date.parse(entry.data.planned_end_at) ? ` · ${t('Planned end reached; recording continues.')}` : ''}</Text>}
-            <Text>{t('Planned end in hours (optional, up to 48)')}</Text>
-            <TextInput accessibilityLabel={t('Planned end in hours (optional, up to 48)')} value={hours} onChangeText={setHours} keyboardType="decimal-pad" style={[styles.input, { color: foreground }]} />
-            {button(t('Update planned end'), () => void act(() => editShift(owner!, entry.data.client_id, e => { e.data.planned_end_at = planned(); })))}
+            {entry.data.planned_end_at && <Text>{t('Planned end')}: {date(entry.data.planned_end_at)}{now > Date.parse(entry.data.planned_end_at) ? ` · ${t('Planned end reached; waiting for the current drive to finish.')}` : ''}</Text>}
+            <Text>{t('End in (optional)')}</Text>
+            <DurationPicker value={minutes} onChange={setMinutes} />
+            {button(t('Update planned end'), () => void act(async () => { await editShift(owner!, entry.data.client_id, e => { e.data.planned_end_at = planned(); }); if (minutes) await requestShiftNotifications(); }))}
             {entry.local && <><Text style={styles.heading}>{t('Switch platform')}</Text>{platformButtons(p => void act(() => switchPlatform(owner!, entry.data.client_id, p)), entry.data.platform_sessions.find(p => !p.ended_at)?.platform ?? null)}
             {button(t('End Shift'), () => Alert.alert(t('End Shift?'), t('Saved segments will remain available for review.'), [{ text: t('Cancel'), style: 'cancel' }, { text: t('End Shift'), onPress: () => void act(() => endShiftRecording(owner!, entry.data.client_id)) }]))}</>}
           </>}
@@ -83,12 +83,19 @@ export default function ShiftsScreen() {
           {entry.data.segments.map(s => <View key={s.client_id} style={styles.card}>
             <Text>{date(s.started_at)} — {s.ended_at ? date(s.ended_at) : t('Active')}</Text>
             <Text>{Number(s.distance_miles).toFixed(2)} {t('miles')}</Text>
-            <View style={styles.row}>{(['business', 'personal'] as const).map(category => button(t(category === 'business' ? 'Business' : 'Personal'), () => void act(() => editShift(owner!, entry.data.client_id, e => { e.data.segments.find(item => item.client_id === s.client_id)!.category = category; })), s.category === category))}</View>
+            {s.converted_at ? <Text>{t('Saved as a Trip. Make further changes in Trips.')}</Text> : <>
+            {entry.blockedSegments?.includes(s.client_id) && <Text accessibilityRole="alert">{t('This segment overlaps an existing Trip or needs mileage review. It has not been saved again.')}</Text>}
+            {s.save_requested && <Text>{t('Trip save queued. Waiting for synchronization.')}</Text>}
+            {s.reviewed === false && <Text>{t('Not reviewed. Defaults to Business after midnight.')}</Text>}
+            <View style={styles.row}>{(['business', 'personal'] as const).map(category => button(t(category === 'business' ? 'Business' : 'Personal'), () => void act(() => editShift(owner!, entry.data.client_id, e => { const target = e.data.segments.find(item => item.client_id === s.client_id)!; target.category = category; target.reviewed = true; })), s.reviewed !== false && s.category === category))}</View>
             {button(t(s.excluded ? 'Include segment' : 'Exclude segment'), () => void act(() => editShift(owner!, entry.data.client_id, e => { const target = e.data.segments.find(item => item.client_id === s.client_id)!; target.excluded = !target.excluded; })))}
             <Text>{t('Assign platform period')}</Text>
             <View style={styles.row}>{button(t('No platform'), () => void act(() => editShift(owner!, entry.data.client_id, e => { e.data.segments.find(item => item.client_id === s.client_id)!.platform_client_id = null; })), !s.platform_client_id)}
             {entry.data.platform_sessions.map(p => button(`${platformLabel(p.platform)} · ${date(p.started_at)}`, () => void act(() => editShift(owner!, entry.data.client_id, e => { e.data.segments.find(item => item.client_id === s.client_id)!.platform_client_id = p.client_id; })), s.platform_client_id === p.client_id, p.client_id))}</View>
+            </>}
           </View>)}
+          <Text>{t("Save Trips converts reviewed, included segments. Unsaved segments are processed after midnight when synchronization is available.")}</Text>
+          {button(t('Save Trips'), () => void act(() => requestTripSave(owner!, entry.data.client_id)))}
         </View>}
         <Text style={styles.heading}>{t('Shift history')}</Text>
         {!entries.length && <Text>{t('No Shifts saved yet.')}</Text>}

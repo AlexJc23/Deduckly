@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, lazyload
 from sqlalchemy.pool import StaticPool
-from app.models import User, Shift, ShiftPlatformSession, ShiftSegment, TripCategory
+from app.models import User, Trip, Shift, ShiftPlatformSession, ShiftSegment, TripCategory
 from app.schemas.v1.shift import ShiftSnapshot
 from app.services.shift_service import sync_shift, get_shift, snapshot
 
@@ -16,7 +16,7 @@ class ShiftApiTests(unittest.TestCase):
         self.engine = create_engine('sqlite://', connect_args={'check_same_thread': False}, poolclass=StaticPool)
         @event.listens_for(self.engine, 'connect')
         def foreign_keys(connection, _): connection.execute('PRAGMA foreign_keys=ON')
-        for model in (User, Shift, ShiftPlatformSession, ShiftSegment): model.__table__.create(self.engine)
+        for model in (User, Trip, Shift, ShiftPlatformSession, ShiftSegment): model.__table__.create(self.engine)
         self.db = Session(self.engine)
         self.db.add_all([User(id=i, first_name='Test', last_name='User', email=f'{i}@example.com') for i in (1,2)])
         self.db.commit()

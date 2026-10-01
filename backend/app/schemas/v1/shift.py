@@ -25,6 +25,11 @@ class Segment(Period):
     category: TripCategory
     platform_client_id: ClientId | None = None
     excluded: bool = False
+    # Missing review metadata is legacy data: preserve its existing category.
+    reviewed: bool = True
+    save_requested: bool = False
+    converted_at: AwareDatetime | None = None
+    trip_id: int | None = None
 
 class ShiftSnapshot(Period):
     revision: int = Field(ge=0)

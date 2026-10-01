@@ -11,7 +11,7 @@ from alembic.operations import Operations
 from sqlalchemy import MetaData, create_engine, event, inspect, select, delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from app.models import User, Shift, ShiftPlatformSession, ShiftSegment, TripCategory, TripPlatform
+from app.models import User, Trip, Shift, ShiftPlatformSession, ShiftSegment, TripCategory, TripPlatform
 
 
 def migration(name="ab61d728e546_shift_foundation.py"):
@@ -29,6 +29,7 @@ class ShiftFoundationTests(unittest.TestCase):
         def foreign_keys(connection, _):
             connection.execute('PRAGMA foreign_keys=ON')
         User.__table__.create(self.engine)
+        Trip.__table__.create(self.engine)
         with self.engine.begin() as connection:
             change = migration()
             change.op = Operations(MigrationContext.configure(connection))
@@ -36,6 +37,9 @@ class ShiftFoundationTests(unittest.TestCase):
             extension = migration("bc72e839f657_shift_sync.py")
             extension.op = Operations(MigrationContext.configure(connection))
             extension.upgrade()
+            conversion = migration("cd83f940a768_shift_trip_conversion.py")
+            conversion.op = Operations(MigrationContext.configure(connection))
+            conversion.upgrade()
         self.db = Session(self.engine)
         self.db.add_all([User(id=i, first_name='Test', last_name='User', email=f'{i}@example.com') for i in (1, 2)])
         self.db.commit()
@@ -191,14 +195,14 @@ class ShiftFoundationTests(unittest.TestCase):
 
     def test_migration_matches_models_and_reverses_without_touching_users(self):
         metadata = MetaData()
-        for model in (User, Shift, ShiftPlatformSession, ShiftSegment):
+        for model in (User, Trip, Shift, ShiftPlatformSession, ShiftSegment):
             model.__table__.to_metadata(metadata)
         with self.engine.begin() as connection:
             self.assertEqual(compare_metadata(MigrationContext.configure(connection), metadata), [])
             change = migration()
             change.op = Operations(MigrationContext.configure(connection))
             change.downgrade()
-            self.assertEqual(inspect(connection).get_table_names(), ['users'])
+            self.assertEqual(inspect(connection).get_table_names(), ['trips', 'users'])
             self.assertEqual(len(connection.execute(select(User.id)).all()), 2)
 
     def test_postgresql_ddl_is_additive(self):

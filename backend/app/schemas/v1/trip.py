@@ -52,6 +52,7 @@ class TripUpdate(BaseModel):
 
 # Response (clean output)
 class TripResponse(TripBase):
+    platform: Optional[TripPlatform] = None
     model_config = ConfigDict(from_attributes=True)
 
     client_id: Optional[str] = None

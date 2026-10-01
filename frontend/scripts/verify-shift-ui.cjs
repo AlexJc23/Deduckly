@@ -6,11 +6,13 @@ let dark = false, entries = [], width = 320;
 const original = Module._load;
 Module._load = function(id, parent, isMain) {
   if(id === 'react-native') return {...native, useWindowDimensions:()=>({width,height:800,scale:1,fontScale:1.5})};
+  if(id === '@react-native-picker/picker') { const Picker=({children})=>React.createElement('select',{},children); Picker.Item=({label,value})=>React.createElement('option',{value},label); return {Picker}; }
+  if(id === '@/features/shifts/notifications') return {};
   if(id === 'react-native-safe-area-context') return { SafeAreaView:native.View };
   if(id === '@react-native-async-storage/async-storage') return { getItem:async()=>null, setItem:async()=>{} };
   if(id === '@/theme/theme' || (id === './theme' && parent.filename.includes('/theme/'))) return { useAppTheme:()=>({dark}) };
   if(id === 'expo-router') return { router:{back(){},push(){}}, useLocalSearchParams:()=>({id:entries[0]?.data.client_id}) };
-  if(id === '@/features/shifts/context') return { useShifts:()=>({owner:'1',entries,syncError:false,sync:async()=>{}}) };
+  if(id === '@/features/shifts/context' || (id === './context' && parent.filename.includes('/features/shifts/'))) return { useShifts:()=>({owner:'1',entries,syncError:false,sync:async()=>{}}) };
   if(id === '@/features/shifts/journal') return {};
   if(id === '@/features/tracking/services/background-tracking') return {getRecordingMode:()=> 'background',subscribeToRecording:()=>()=>{}};
   if(id.startsWith('@/')) id=path.join(root,'src',id.slice(2));
@@ -42,3 +44,15 @@ for(const language of ['en','es']) for(const w of [320,390,1024]) for(const isDa
 const source=fs.readFileSync(path.join(root,'app/shifts.tsx'),'utf8');
 assert(source.includes('maxWidth: 760'));assert(source.includes("flexWrap: 'wrap'"));assert(source.includes('minHeight: 48'));assert(source.includes('ScrollView'));
 console.log(`PASS ${renders} Shift renders (English/Spanish, light/dark, small phone/phone/tablet, empty/active/ended) and responsive constraints. Native pixel layout still needs device checks.`);
+
+const Card=require(root+'/src/features/shifts/entry-point.tsx').ShiftEntryPoint;
+core.setRuntimeLanguage('en');entries=[];
+assert(server.renderToStaticMarkup(React.createElement(Card)).includes('Start Shift'));
+entries=[JSON.parse(JSON.stringify(fixture))];
+assert(server.renderToStaticMarkup(React.createElement(Card)).includes('Shift in progress'));
+entries[0].detector.driving=true;entries[0].detector.miles=1.25;
+const drive=server.renderToStaticMarkup(React.createElement(Card));assert(drive.includes('Trip in Progress'));assert(drive.includes('1.25'));
+assert(!server.renderToStaticMarkup(React.createElement(Card,{manualActive:true})).includes('Trip in Progress'));
+const dashboard=fs.readFileSync(path.join(root,'app/(tabs)/dashboard.tsx'),'utf8');
+assert(!dashboard.includes('styles.expenseCard'));assert(dashboard.includes('Add Expense'));
+console.log('PASS dashboard idle/driving/manual precedence; Expenses feature retained');

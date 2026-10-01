@@ -16,8 +16,8 @@
 		5B44ED913025F381009FEF8B /* SiriBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B44ED903025F381009FEF8B /* SiriBridge.m */; };
 		5B44ED933026ACDE009FEF8B /* StopTripIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B44ED923026ACCD009FEF8B /* StopTripIntent.swift */; };
 		5B44ED9530275EFA009FEF8B /* CancelTripIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B44ED9430275EEF009FEF8B /* CancelTripIntent.swift */; };
-		5B5AE3B5303B5083002723E1 /* AppIconManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B5AE3B3303B5082002723E1 /* AppIconManager.m */; };
-		5B5AE3B6303B5083002723E1 /* AppIconManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5AE3B4303B5082002723E1 /* AppIconManager.swift */; };
+		5B5AE3B5303B5083002723E1 /* frontend/AppIconManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B5AE3B3303B5082002723E1 /* frontend/AppIconManager.m */; };
+		5B5AE3B6303B5083002723E1 /* frontend/AppIconManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5AE3B4303B5082002723E1 /* frontend/AppIconManager.swift */; };
 		78FF2A795E816E7EAD6CF6BF /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4F490B7087805EB7C635E270 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		EA1291ADA5A12F13EC9548D7 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A42328A2A34F1D9A9717CE /* ExpoModulesProvider.swift */; };
@@ -51,8 +51,8 @@
 		5B44ED903025F381009FEF8B /* SiriBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SiriBridge.m; sourceTree = "<group>"; };
 		5B44ED923026ACCD009FEF8B /* StopTripIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopTripIntent.swift; sourceTree = "<group>"; };
 		5B44ED9430275EEF009FEF8B /* CancelTripIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CancelTripIntent.swift; sourceTree = "<group>"; };
-		5B5AE3B3303B5082002723E1 /* AppIconManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = frontend/AppIconManager.m; sourceTree = "<group>"; };
-		5B5AE3B4303B5082002723E1 /* AppIconManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = frontend/AppIconManager.swift; sourceTree = "<group>"; };
+		5B5AE3B3303B5082002723E1 /* frontend/AppIconManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = frontend/AppIconManager.m; sourceTree = "<group>"; };
+		5B5AE3B4303B5082002723E1 /* frontend/AppIconManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = frontend/AppIconManager.swift; sourceTree = "<group>"; };
 		8CBAF9A6BA78A8FBA4AC9D13 /* Pods-frontend.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-frontend.debug.xcconfig"; path = "Target Support Files/Pods-frontend/Pods-frontend.debug.xcconfig"; sourceTree = "<group>"; };
 		A3A42328A2A34F1D9A9717CE /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-frontend/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = frontend/SplashScreen.storyboard; sourceTree = "<group>"; };
@@ -87,8 +87,8 @@
 		13B07FAE1A68108700A75B9A /* frontend */ = {
 			isa = PBXGroup;
 			children = (
-				5B5AE3B3303B5082002723E1 /* AppIconManager.m */,
-				5B5AE3B4303B5082002723E1 /* AppIconManager.swift */,
+				5B5AE3B3303B5082002723E1 /* frontend/AppIconManager.m */,
+				5B5AE3B4303B5082002723E1 /* frontend/AppIconManager.swift */,
 				5B44ED903025F381009FEF8B /* SiriBridge.m */,
 				5B44ED8C3025F1F7009FEF8B /* SiriBridge.swift */,
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
@@ -218,7 +218,7 @@
 				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = "G64MM7TYUG";
+						DevelopmentTeam = G64MM7TYUG;
 						LastSwiftMigration = 1250;
 						ProvisioningStyle = Automatic;
 					};
@@ -405,8 +405,8 @@
 			files = (
 				5B44ED893024A982009FEF8B /* Platform.swift in Sources */,
 				5B44ED913025F381009FEF8B /* SiriBridge.m in Sources */,
-				5B5AE3B5303B5083002723E1 /* AppIconManager.m in Sources */,
-				5B5AE3B6303B5083002723E1 /* AppIconManager.swift in Sources */,
+				5B5AE3B5303B5083002723E1 /* frontend/AppIconManager.m in Sources */,
+				5B5AE3B6303B5083002723E1 /* frontend/AppIconManager.swift in Sources */,
 				5B44ED8A3024A98D009FEF8B /* AppShortcuts.swift in Sources */,
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
 				5B44ED8D3025F1F7009FEF8B /* SiriBridge.swift in Sources */,
@@ -431,7 +431,8 @@
 				CODE_SIGN_ENTITLEMENTS = frontend/frontend.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 37;
+				CURRENT_PROJECT_VERSION = 40;
+				DEVELOPMENT_TEAM = G64MM7TYUG;
 				ENABLE_BITCODE = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -441,12 +442,12 @@
 				INFOPLIST_FILE = frontend/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Deduckly;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -464,7 +465,6 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
-				DEVELOPMENT_TEAM = "G64MM7TYUG";
 			};
 			name = Debug;
 		};
@@ -479,17 +479,18 @@
 				CODE_SIGN_ENTITLEMENTS = frontend/frontend.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 37;
+				CURRENT_PROJECT_VERSION = 40;
+				DEVELOPMENT_TEAM = G64MM7TYUG;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = frontend/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Deduckly;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.finance";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -506,7 +507,6 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
-				DEVELOPMENT_TEAM = "G64MM7TYUG";
 			};
 			name = Release;
 		};

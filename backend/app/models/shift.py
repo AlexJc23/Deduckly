@@ -56,6 +56,7 @@ class ShiftSegment(ShiftTimestamps, Base):
     __tablename__ = "shift_segments"
     __table_args__ = (
         UniqueConstraint("shift_id", "client_id", name="uq_shift_segments_client_id"),
+        UniqueConstraint("trip_id", name="uq_shift_segment_trip"),
         ForeignKeyConstraint(["shift_id", "platform_session_id"],
             ["shift_platform_sessions.shift_id", "shift_platform_sessions.id"],
             name="fk_shift_segments_same_shift_platform"),
@@ -71,6 +72,10 @@ class ShiftSegment(ShiftTimestamps, Base):
     platform_session_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     distance_miles: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     excluded: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    reviewed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
+    save_requested: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    converted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    trip_id: Mapped[int | None] = mapped_column(ForeignKey("trips.id", ondelete="SET NULL", name="fk_shift_segment_trip"), nullable=True)
     category: Mapped[TripCategory] = mapped_column(SqlEnum(TripCategory, native_enum=False, create_constraint=True, name="ck_shift_segment_category"), nullable=False)
     shift = relationship("Shift", back_populates="segments", foreign_keys=[shift_id])
     # Only the session ID is writable through this relationship. The composite
