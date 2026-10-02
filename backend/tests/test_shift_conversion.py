@@ -91,7 +91,43 @@ class ShiftConversionTests(ShiftApiTests):
         self.seed();row=self.db.query(Shift).one()
         old=data.model_dump(mode='json')
         for segment in old['segments']:
-            for key in ('reviewed','save_requested','converted_at','trip_id'):segment.pop(key)
+            for key in ('reviewed','save_requested','converted_at','trip_id','start_lat','start_lng','end_lat','end_lng','start_address','end_address'):segment.pop(key)
         for field in ('segments','platform_sessions'):old[field].sort(key=lambda item:item['client_id'])
         row.sync_fingerprint=hashlib.sha256(json.dumps(old,sort_keys=True).encode()).hexdigest();self.db.commit()
         self.assertEqual(sync_shift(self.db,1,data).segments[0].category,TripCategory.PERSONAL)
+
+    def test_endpoints_survive_reload_conversion_and_retry(self):
+        locations = dict(start_lat=33.75, start_lng=-84.39, end_lat=33.77, end_lng=-84.40,
+                         start_address='Start street', end_address='End street')
+        result = self.seed([self.segment('one', save_requested=True, **locations)])
+        self.db.expire_all()
+        from app.services.shift_service import get_shift, snapshot
+        restored = snapshot(get_shift(self.db, 1, result.client_id))
+        for name, value in locations.items(): self.assertEqual(getattr(restored.segments[0], name), value)
+        self.convert(); self.convert()
+        trip = self.db.query(Trip).one()
+        for name, value in locations.items():
+            actual = getattr(trip, name)
+            self.assertEqual(float(actual) if isinstance(value, float) else actual, value)
+
+    def test_older_snapshot_does_not_erase_endpoints(self):
+        result = self.seed([self.segment('one', start_lat=33.75, start_lng=-84.39)])
+        payload = result.model_dump(); payload['revision'] += 1
+        for key in ('start_lat','start_lng','end_lat','end_lng','start_address','end_address'):
+            payload['segments'][0].pop(key)
+        restored = sync_shift(self.db, 1, ShiftSnapshot.model_validate(payload))
+        self.assertEqual(restored.segments[0].start_lat, 33.75)
+        self.assertIsNone(restored.segments[0].end_address)
+
+    def test_invalid_endpoints_and_overlong_addresses_rejected(self):
+        from pydantic import ValidationError
+        for changes in (dict(start_lat=91), dict(end_lng=-181), dict(start_lat=float('nan')), dict(end_address='x'*101)):
+            with self.assertRaises(ValidationError):
+                self.data(segments=[self.segment('one', **changes)])
+
+    def test_null_address_does_not_block_coordinate_conversion(self):
+        self.seed([self.segment('one', save_requested=True, start_lat=33.75, start_lng=-84.39)])
+        self.convert()
+        trip = self.db.query(Trip).one()
+        self.assertEqual(trip.start_lat, Decimal('33.750000'))
+        self.assertIsNone(trip.start_address)

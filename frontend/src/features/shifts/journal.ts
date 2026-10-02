@@ -5,9 +5,9 @@ import { validPoint } from '@/features/tracking/services/trip-journal';
 
 export type Period = { client_id: string; started_at: string; ended_at: string | null };
 export type PlatformPeriod = Period & { platform: string };
-export type Segment = Period & { distance_miles: number; category: 'business' | 'personal'; excluded: boolean; platform_client_id: string | null; reviewed?: boolean; save_requested?: boolean; converted_at?: string | null; trip_id?: number | null };
+export type Segment = Period & { start_lat?: number | null; start_lng?: number | null; end_lat?: number | null; end_lng?: number | null; start_address?: string | null; end_address?: string | null; distance_miles: number; category: 'business' | 'personal'; excluded: boolean; platform_client_id: string | null; reviewed?: boolean; save_requested?: boolean; converted_at?: string | null; trip_id?: number | null };
 export type Snapshot = Period & { revision: number; planned_end_at: string | null; platform_sessions: PlatformPeriod[]; segments: Segment[] };
-type Detector = { last?: LocationPoint; start?: number; movingSince?: number; stoppedSince?: number; miles: number; driving: boolean };
+type Detector = { first?: LocationPoint; endpoint?: LocationPoint; stopPoint?: LocationPoint; last?: LocationPoint; start?: number; movingSince?: number; stoppedSince?: number; miles: number; driving: boolean };
 export type Entry = { owner: string; data: Snapshot; local: boolean; dirty: boolean; sequence: number; pending?: { data: Snapshot; sequence: number }; detector: Detector; waitingForStop?: boolean; autoEnded?: boolean; endedNoticeClaimed?: boolean; blockedSegments?: string[] };
 type Journal = { version: 1; recording: { owner: string; clientId: string } | null; entries: Entry[] };
 const KEY = '@deduckly/shift-journal:v1';
@@ -40,7 +40,7 @@ function finishSegment(e: Entry, end: number) {
   const d = e.detector;
   if (d.driving && d.start && d.miles >= DETECTION.minimumMiles) {
     const p = e.data.platform_sessions.find(p => !p.ended_at);
-    e.data.segments.push({ client_id: id(), started_at: iso(d.start), ended_at: iso(end), distance_miles: Math.round(d.miles * 100) / 100, category: 'personal', reviewed: false, excluded: false, platform_client_id: p?.client_id ?? null });
+    e.data.segments.push({ client_id: id(), started_at: iso(d.start), ended_at: iso(end), distance_miles: Math.round(d.miles * 100) / 100, start_lat: d.first?.latitude ?? null, start_lng: d.first?.longitude ?? null, end_lat: d.endpoint?.latitude ?? null, end_lng: d.endpoint?.longitude ?? null, category: 'personal', reviewed: false, excluded: false, platform_client_id: p?.client_id ?? null });
     touch(e);
   }
   e.detector = { miles: 0, driving: false };
@@ -69,7 +69,7 @@ export function switchPlatform(owner: string, clientId: string, platform: string
   if (e.data.ended_at) throw Error('Shift ended');
   const now = Math.max(Date.now(), e.detector.last?.timestamp ?? 0);
   const previous = e.detector; finishSegment(e, previous.last?.timestamp ?? now);
-  if (previous.driving) e.detector = { miles: 0, driving: true, start: now, movingSince: now, last: previous.last };
+  if (previous.driving) e.detector = { miles: 0, driving: true, start: now, movingSince: now, first: previous.last, endpoint: previous.last, last: previous.last };
   e.data.platform_sessions.filter(p => !p.ended_at).forEach(p => { p.ended_at = iso(now); });
   if (platform) e.data.platform_sessions.push({ client_id: id(), platform, started_at: iso(now), ended_at: null });
 }); }
@@ -95,16 +95,19 @@ export function recordShiftPoints(clientId: string, points: LocationPoint[], man
     const seconds = d.last ? (p.timestamp-d.last.timestamp)/1000 : 0;
     const speed = seconds > 0 ? miles * 1609.344 / seconds : 0;
     if (speed >= DETECTION.speed) {
+      if (d.start === undefined) d.first = d.last ?? p;
+      d.endpoint = p; d.stopPoint = undefined;
       d.movingSince ??= d.last?.timestamp ?? p.timestamp; d.start ??= d.movingSince;
       d.stoppedSince = undefined; d.miles += miles;
       if (p.timestamp-d.movingSince >= DETECTION.sustainedMs) d.driving = true;
     } else if (d.driving) {
+      d.stopPoint ??= p; d.endpoint = d.stopPoint;
       d.stoppedSince ??= p.timestamp;
       if (p.timestamp-d.stoppedSince >= DETECTION.stopMs) { finishSegment(e, d.stoppedSince); e.waitingForStop = false; d = e.detector; }
     } else {
       d.stoppedSince ??= p.timestamp;
       if (p.timestamp-d.stoppedSince >= DETECTION.stopMs) e.waitingForStop = false;
-      d.movingSince = undefined; d.start = undefined; d.miles = 0; }
+      d.movingSince = undefined; d.start = undefined; d.first = undefined; d.endpoint = undefined; d.stopPoint = undefined; d.miles = 0; }
     d.last = p; changed = true;
     if (!manualActive && e.data.planned_end_at && p.timestamp >= Date.parse(e.data.planned_end_at) && !d.driving && !d.movingSince && !e.waitingForStop) {
       e.data.ended_at = iso(p.timestamp); e.autoEnded = true;

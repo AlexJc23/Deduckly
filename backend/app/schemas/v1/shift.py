@@ -21,6 +21,12 @@ class PlatformPeriod(Period):
     platform: TripPlatform
 
 class Segment(Period):
+    start_lat: float | None = Field(default=None, ge=-90, le=90, allow_inf_nan=False)
+    start_lng: float | None = Field(default=None, ge=-180, le=180, allow_inf_nan=False)
+    end_lat: float | None = Field(default=None, ge=-90, le=90, allow_inf_nan=False)
+    end_lng: float | None = Field(default=None, ge=-180, le=180, allow_inf_nan=False)
+    start_address: str | None = Field(default=None, max_length=100)
+    end_address: str | None = Field(default=None, max_length=100)
     distance_miles: Decimal = Field(ge=0, max_digits=10, decimal_places=2, allow_inf_nan=False)
     category: TripCategory
     platform_client_id: ClientId | None = None

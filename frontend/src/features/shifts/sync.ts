@@ -1,3 +1,4 @@
+import { enrichShiftAddresses } from './addresses';
 import { queryClient } from '@/providers/query-client';
 import { getActiveTrip, pendingTrips } from '@/features/tracking/services/trip-journal';
 import { api } from '@/api/client';
@@ -17,6 +18,8 @@ async function run() {
   if (!owner || isAccountChanging()) return;
   const config = { deducklyOwnerId: owner, deducklyGeneration: generation };
   const current = () => !isAccountChanging() && generation === getAccountGeneration();
+  await enrichShiftAddresses(owner, current);
+  if (!current()) return;
   const before = new Set((await listShifts(owner)).flatMap(e => e.data.segments.filter(s => s.converted_at).map(s => `${e.data.client_id}/${s.client_id}`)));
   for (let i = 0; i < 100 && current(); i++) {
     const data = await prepareShiftUpload(owner);

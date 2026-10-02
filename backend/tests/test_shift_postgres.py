@@ -29,7 +29,7 @@ class ShiftPostgresTests(unittest.TestCase):
             User.__table__.create(engine)
             Trip.__table__.create(engine)
             changes = []
-            for name in ('ab61d728e546_shift_foundation.py', 'bc72e839f657_shift_sync.py', 'cd83f940a768_shift_trip_conversion.py'):
+            for name in ('ab61d728e546_shift_foundation.py', 'bc72e839f657_shift_sync.py', 'cd83f940a768_shift_trip_conversion.py', 'de94a051b879_shift_segment_endpoints.py'):
                 path = Path(__file__).resolve().parents[1]/'alembic/versions'/name
                 spec = importlib.util.spec_from_file_location(name,path)
                 module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
