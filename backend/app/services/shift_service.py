@@ -8,6 +8,8 @@ from app.models import User, Shift, ShiftPlatformSession, ShiftSegment
 from app.schemas.v1.shift import ShiftSnapshot
 
 
+LOCATION_FIELDS = ('start_lat', 'start_lng', 'end_lat', 'end_lng', 'start_address', 'end_address')
+
 def get_shift(db, owner, client_id):
     row = db.query(Shift).filter_by(user_id=owner, client_id=client_id).first()
     if not row:
@@ -24,6 +26,7 @@ def snapshot(row):
     return ShiftSnapshot(**period(row), revision=row.revision, planned_end_at=iso(row.planned_end_at),
         platform_sessions=[dict(**period(p), platform=p.platform) for p in sorted(row.platform_sessions, key=lambda x: (iso(x.started_at), x.client_id))],
         segments=[dict(**period(s), distance_miles=s.distance_miles, category=s.category,
+            **{field: getattr(s, field) for field in LOCATION_FIELDS},
             excluded=s.excluded, reviewed=s.reviewed, save_requested=s.save_requested, converted_at=iso(s.converted_at), trip_id=s.trip_id, platform_client_id=sessions.get(s.platform_session_id)) for s in sorted(row.segments, key=lambda x: (iso(x.started_at), x.client_id))])
 
 
@@ -37,6 +40,8 @@ def sync_shift(db: Session, owner: int, data: ShiftSnapshot):
         for segment in canonical['segments']:
             segment.pop('converted_at', None)
             segment.pop('trip_id', None)
+            for field in LOCATION_FIELDS:
+                if segment.get(field) is None: segment.pop(field, None)
             # Preserve pre-upgrade retry fingerprints for legacy snapshots.
             if segment.get('reviewed') is True: segment.pop('reviewed')
             if segment.get('save_requested') is False: segment.pop('save_requested')
@@ -91,6 +96,11 @@ def sync_shift(db: Session, owner: int, data: ShiftSnapshot):
             # not rewrite already-accounted mileage or resurrect a deleted Trip.
             if target.converted_at:
                 continue
+            # An older client omits these fields. Never erase captured endpoints.
+            for field in LOCATION_FIELDS:
+                value = getattr(s, field)
+                if value is not None:
+                    setattr(target, field, value)
             target.reviewed, target.save_requested = s.reviewed, s.save_requested
             target.ended_at, target.distance_miles = s.ended_at, s.distance_miles
             target.category, target.excluded = s.category, s.excluded

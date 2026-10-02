@@ -43,8 +43,8 @@ def convert_pending(db, owner, now=None):
             platform = segment.platform_session.platform if segment.platform_session else None
             trip = Trip(user_id=owner, client_id=f'shift-segment-{segment.id}',
                 start_time=segment.started_at, end_time=segment.ended_at,
-                start_lat=None, start_lng=None, end_lat=None, end_lng=None,
-                start_address=None, end_address=None, category=category, platform=platform,
+                start_lat=segment.start_lat, start_lng=segment.start_lng, end_lat=segment.end_lat, end_lng=segment.end_lng,
+                start_address=segment.start_address, end_address=segment.end_address, category=category, platform=platform,
                 distance_miles=segment.distance_miles,
                 deduction_amount=_trip_deduction(db, category, aware(segment.started_at), segment.distance_miles))
             db.add(trip); db.flush()
