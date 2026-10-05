@@ -79,7 +79,7 @@ const trip = { category: 'business', platform: 'spark', trackingMethod: 'automat
       for(let i=0;i<5;i++){ now+=1000; await j.recordShiftPoints(e.data.client_id,[h.point(0,now)]); }
       assert.equal((await j.activeShift('1')).data.segments.length,0);
       for(let i=1;i<=4;i++){ now+=10000; await j.recordShiftPoints(e.data.client_id,[h.point(i*10,now)]); }
-      for(let i=0;i<14;i++){ now+=10000; await j.recordShiftPoints(e.data.client_id,[h.point(40,now)]); }
+      for(let i=0;i<j.DETECTION.stopMs/10000+2;i++){ now+=10000; await j.recordShiftPoints(e.data.client_id,[{...h.point(40,now),speed:0}]); }
       const saved=await j.activeShift('1'); assert.equal(saved.data.segments.length,1); assert(saved.data.segments[0].distance_miles>.05); assert.equal(saved.data.segments[0].category,'personal');
       await j.editShift('1',e.data.client_id,entry=>{entry.data.segments[0].category='business';entry.data.segments[0].excluded=true;});
       const restored=(await harness(h.disk).load('@/features/shifts/journal').listShifts('1'))[0]; assert(restored.data.segments[0].excluded);
