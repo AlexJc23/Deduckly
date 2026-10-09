@@ -1,6 +1,8 @@
+import { subscribeAccountBoundary, getAccountGeneration } from "@/features/auth/services/account-boundary";
+import { EnergyPanel } from "@/features/vehicles/EnergyPanel";
 import { useAppTheme } from "@/theme/theme";
 import { View, ScrollView } from "@/theme/components";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, StyleSheet } from "react-native";
 
 import { BackHeader } from "@/components/ui/BackButton";
@@ -23,10 +25,15 @@ import { usePremium } from "@/features/subscriptions/hooks/use-premium";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function OfferAnalyzerScreen() {
+  const generation = useSyncExternalStore(subscribeAccountBoundary, getAccountGeneration, getAccountGeneration);
+  return <AccountOfferAnalyzer key={generation} />;
+}
+function AccountOfferAnalyzer() {
   const isTablet = useIsTablet();
   const { dark } = useAppTheme();
   const styles = getStyles(isTablet);
 
+  const [lastOffer, setLastOffer] = useState<OfferInput | null>(null);
   const [result, setResult] = useState<
     OfferResult | PremiumOfferResult | null
   >(null);
@@ -39,6 +46,7 @@ export default function OfferAnalyzerScreen() {
     offer: OfferInput,
   ) {
     Keyboard.dismiss();
+    setLastOffer(offer);
 
     if (isPremium) {
       if (!preferences) {
@@ -115,6 +123,8 @@ export default function OfferAnalyzerScreen() {
                 result={result}
               />
             )}
+
+            <EnergyPanel offer={lastOffer} />
 
             {!isPremium && (
               <View style={styles.premiumContainer}>
