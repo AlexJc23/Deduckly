@@ -25,3 +25,6 @@ api_router.include_router(legal.router)
 
 from app.api.v1.endpoints import shift
 api_router.include_router(shift.router)
+
+from app.api.v1.endpoints import vehicle
+api_router.include_router(vehicle.router)

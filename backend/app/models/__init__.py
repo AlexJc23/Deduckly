@@ -17,3 +17,5 @@ from .notification_occurrence import NotificationOccurrence
 
 from .google_oauth_transaction import GoogleOAuthTransaction
 from .shift import Shift, ShiftPlatformSession, ShiftSegment
+
+from .vehicle import UserVehicle

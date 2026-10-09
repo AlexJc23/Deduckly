@@ -12,7 +12,7 @@ async function drive(h, j, id, clock, from=0) {
       let h=harness(), j=h.load('@/features/shifts/journal'); const e=await j.startShift('1','spark',null);
       await drive(h,j,e.data.client_id,clock);
       h=harness(h.disk);j=h.load('@/features/shifts/journal');
-      for(let i=0;i<14;i++){clock.now+=10000;await j.recordShiftPoints(e.data.client_id,[h.point(40+i*.01,clock.now)]);}
+      for(let i=0;i<j.DETECTION.stopMs/10000+2;i++){clock.now+=10000;await j.recordShiftPoints(e.data.client_id,[{...h.point(40+i*.01,clock.now),speed:0}]);}
       const s=(await j.activeShift('1')).data.segments[0];
       assert.equal(s.start_lat,40); assert.equal(s.start_lng,-74);assert.equal(s.end_lat,40.004);assert(s.distance_miles>0);
     });

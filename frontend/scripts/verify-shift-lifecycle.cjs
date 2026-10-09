@@ -44,9 +44,9 @@ async function test(name, fn) { await fn(); count++; console.log(`PASS ${name}`)
       const h=harness(), j=h.load('@/features/shifts/journal'), e=await j.startShift('1','lyft',new Date(now+20000).toISOString());
       for(let i=0;i<5;i++){now+=10000;await j.recordShiftPoints(e.data.client_id,[h.point(i*10,now)]);}
       assert((await j.activeShift('1')).detector.driving);assert.equal(await j.autoEndIfDue('1',false),false);
-      now+=180000;await j.recordShiftPoints(e.data.client_id,[h.point(40,now)]);
+      now+=180000;await j.recordShiftPoints(e.data.client_id,[{...h.point(40,now),speed:0}]);
       assert.equal(await j.autoEndIfDue('1',false),false);
-      for(let i=0;i<14;i++){now+=10000;await j.recordShiftPoints(e.data.client_id,[h.point(40,now)]);}
+      for(let i=0;i<j.DETECTION.stopMs/10000+2;i++){now+=10000;await j.recordShiftPoints(e.data.client_id,[{...h.point(40,now),speed:0}]);}
       await j.autoEndIfDue('1',false);assert.equal(await j.activeShift('1'),null);const saved=(await j.listShifts('1'))[0];assert(saved.autoEnded);assert.equal(saved.data.segments.length,1);
     } finally {Date.now=original;}
   });

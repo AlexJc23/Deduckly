@@ -29,6 +29,10 @@ export default function SettingsScreen() {
             <View style={styles.contentInner}>
                 <Text style={styles.title}><Translated text={"Settings"} /></Text>
 
+                <Pressable style={styles.card} onPress={() => router.push("/settings/vehicles")}>
+                    <Text><Translated text="My Vehicles" /></Text>
+                </Pressable>
+
                 {/* Profile */}
                 <Pressable
                     style={styles.card}

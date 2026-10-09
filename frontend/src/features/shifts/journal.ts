@@ -1,17 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { LocationPoint } from '@/features/tracking/services/location.service';
 import { calculateSegmentDistanceMiles } from '@/features/tracking/services/distance.service';
+import { DETECTION, observeShiftPoint, type Detector } from './detection';
 import { validPoint } from '@/features/tracking/services/trip-journal';
+export { DETECTION } from './detection';
 
 export type Period = { client_id: string; started_at: string; ended_at: string | null };
 export type PlatformPeriod = Period & { platform: string };
 export type Segment = Period & { start_lat?: number | null; start_lng?: number | null; end_lat?: number | null; end_lng?: number | null; start_address?: string | null; end_address?: string | null; distance_miles: number; category: 'business' | 'personal'; excluded: boolean; platform_client_id: string | null; reviewed?: boolean; save_requested?: boolean; converted_at?: string | null; trip_id?: number | null };
 export type Snapshot = Period & { revision: number; planned_end_at: string | null; platform_sessions: PlatformPeriod[]; segments: Segment[] };
-type Detector = { first?: LocationPoint; endpoint?: LocationPoint; stopPoint?: LocationPoint; last?: LocationPoint; start?: number; movingSince?: number; stoppedSince?: number; miles: number; driving: boolean };
 export type Entry = { owner: string; data: Snapshot; local: boolean; dirty: boolean; sequence: number; pending?: { data: Snapshot; sequence: number }; detector: Detector; waitingForStop?: boolean; autoEnded?: boolean; endedNoticeClaimed?: boolean; blockedSegments?: string[] };
 type Journal = { version: 1; recording: { owner: string; clientId: string } | null; entries: Entry[] };
 const KEY = '@deduckly/shift-journal:v1';
-export const DETECTION = { speed: 3, sustainedMs: 15_000, stopMs: 120_000, gapMs: 120_000, minimumMiles: .05, accuracy: 50 };
 let queue: Promise<unknown> = Promise.resolve();
 const listeners = new Set<() => void>();
 export function subscribeShifts(fn: () => void) { listeners.add(fn); return () => { listeners.delete(fn); }; }
@@ -49,7 +49,7 @@ export function setShiftRecording(owner: string | null) { return serial(async ()
   const j = await read(); const target = owner ? active(j, owner) : undefined;
   const old = j.entries.find(e => e.data.client_id === j.recording?.clientId && e.owner === j.recording?.owner);
   if (old && old !== target) finishSegment(old, old.detector.last?.timestamp ?? Date.now());
-  if (target?.detector.last && Date.now() - target.detector.last.timestamp > DETECTION.gapMs) { target.waitingForStop ||= target.detector.driving; finishSegment(target, target.detector.last.timestamp); }
+  // Resume does not finalize on wall-clock silence; queued GPS fixes may still arrive.
   const next = target ? { owner: target.owner, clientId: target.data.client_id } : null;
   if (j.recording !== next || old || target) { j.recording = next; await write(j); }
 }); }
@@ -69,7 +69,7 @@ export function switchPlatform(owner: string, clientId: string, platform: string
   if (e.data.ended_at) throw Error('Shift ended');
   const now = Math.max(Date.now(), e.detector.last?.timestamp ?? 0);
   const previous = e.detector; finishSegment(e, previous.last?.timestamp ?? now);
-  if (previous.driving) e.detector = { miles: 0, driving: true, start: now, movingSince: now, first: previous.last, endpoint: previous.last, last: previous.last };
+  if (previous.driving) e.detector = { miles: 0, driving: true, start: now, movingSince: now, first: previous.last, endpoint: previous.last, anchor: previous.last, last: previous.last };
   e.data.platform_sessions.filter(p => !p.ended_at).forEach(p => { p.ended_at = iso(now); });
   if (platform) e.data.platform_sessions.push({ client_id: id(), platform, started_at: iso(now), ended_at: null });
 }); }
@@ -87,27 +87,16 @@ export function recordShiftPoints(clientId: string, points: LocationPoint[], man
   const cutoff = Math.max(Date.parse(e.data.started_at), ...e.data.platform_sessions.map(p => Date.parse(p.ended_at ?? p.started_at)));
   let changed = false;
   for (const p of [...points].sort((a,b) => a.timestamp-b.timestamp)) {
-    if (p.timestamp < cutoff || !validPoint(p) || p.accuracy > DETECTION.accuracy || p.timestamp > Date.now()+60_000 || (e.detector.last && p.timestamp <= e.detector.last.timestamp)) continue;
+    if (p.timestamp < cutoff || !validPoint(p) || !Number.isFinite(p.accuracy) || p.accuracy < 0 || p.accuracy > DETECTION.accuracy || p.timestamp > Date.now()+DETECTION.futureSkewMs || (e.detector.last && p.timestamp <= e.detector.last.timestamp)) continue;
     let d = e.detector;
-    if (d.last && p.timestamp-d.last.timestamp > DETECTION.gapMs) { e.waitingForStop ||= d.driving; finishSegment(e, d.last.timestamp); d = e.detector; }
-    const miles = d.last ? calculateSegmentDistanceMiles(d.last, p) : 0;
-    if (miles === null || !Number.isFinite(miles)) continue;
-    const seconds = d.last ? (p.timestamp-d.last.timestamp)/1000 : 0;
-    const speed = seconds > 0 ? miles * 1609.344 / seconds : 0;
-    if (speed >= DETECTION.speed) {
-      if (d.start === undefined) d.first = d.last ?? p;
-      d.endpoint = p; d.stopPoint = undefined;
-      d.movingSince ??= d.last?.timestamp ?? p.timestamp; d.start ??= d.movingSince;
-      d.stoppedSince = undefined; d.miles += miles;
-      if (p.timestamp-d.movingSince >= DETECTION.sustainedMs) d.driving = true;
-    } else if (d.driving) {
-      d.stopPoint ??= p; d.endpoint = d.stopPoint;
-      d.stoppedSince ??= p.timestamp;
-      if (p.timestamp-d.stoppedSince >= DETECTION.stopMs) { finishSegment(e, d.stoppedSince); e.waitingForStop = false; d = e.detector; }
-    } else {
-      d.stoppedSince ??= p.timestamp;
-      if (p.timestamp-d.stoppedSince >= DETECTION.stopMs) e.waitingForStop = false;
-      d.movingSince = undefined; d.start = undefined; d.first = undefined; d.endpoint = undefined; d.stopPoint = undefined; d.miles = 0; }
+    // Reject impossible jumps only within observed continuous coverage.
+    if (d.last && p.timestamp-d.last.timestamp <= DETECTION.gapMs && calculateSegmentDistanceMiles(d.last,p) === null) continue;
+    if (observeShiftPoint(d,p, !!e.waitingForStop)) {
+      const stop = d.stopPoint!;
+      d.endpoint = stop;
+      finishSegment(e, stop.timestamp); e.waitingForStop = false; d = e.detector;
+      d.recent = [p]; // Keep a trustworthy stationary anchor for the next drive.
+    }
     d.last = p; changed = true;
     if (!manualActive && e.data.planned_end_at && p.timestamp >= Date.parse(e.data.planned_end_at) && !d.driving && !d.movingSince && !e.waitingForStop) {
       e.data.ended_at = iso(p.timestamp); e.autoEnded = true;
