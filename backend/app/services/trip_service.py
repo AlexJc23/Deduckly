@@ -176,7 +176,7 @@ def update_trip(
         for field, value in update_data.items():
             if field == "income_amount":
                 continue
-            if value is None and field not in {"start_address", "end_address"}:
+            if value is None and field not in {"start_address", "end_address", "notes"}:
                 raise HTTPException(status_code=400, detail=f"{field} cannot be null")
             setattr(trip, field, value)
         if trip.distance_miles is None or not 0 < trip.distance_miles <= 1000:

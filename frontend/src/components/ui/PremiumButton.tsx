@@ -1,5 +1,5 @@
 import { Translated } from "@/i18n/language";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";

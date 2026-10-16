@@ -15,14 +15,17 @@ import {
 
 export function analyzePremiumOffer(
   input: OfferInput,
-  preferences: OfferPreferences
+  preferences: OfferPreferences,
+  fuelCost: number | null = null
 ): PremiumOfferResult {
-  const basic = analyzeOffer(input);
+  const basic = analyzeOffer(input, fuelCost);
 
-  const vehicleCost = calculateVehicleCost(
+  // The existing cost-per-mile allowance includes fuel. Use a fuel floor,
+  // rather than adding fuel again to the user's total vehicle-cost estimate.
+  const vehicleCost = Math.max(fuelCost ?? 0, calculateVehicleCost(
     input.distance,
     preferences.costPerMile
-  );
+  ));
 
   const estimatedProfit = calculateEstimatedProfit(
     input.payout,

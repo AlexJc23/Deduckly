@@ -12,6 +12,9 @@ Module._load = function(id, parent, main) {
   if (id === 'expo-router') return { router: { push() {} } };
   if (id === '@/components/ui/PremiumButton') return { __esModule: true, default: () => null };
   if (id === '@/theme/icons') return { Ionicons: () => null };
+  if (id === '@/features/auth/services/account-boundary') return {getAccountGeneration:()=>1,subscribeAccountBoundary:()=>()=>{}};
+  if (id === '@/features/vehicles/use-fuel-assumptions') return {useFuelAssumptions:()=>({owner:null,data:null,assumptions:null})};
+  if (id === '@/features/vehicles/store') return {savePrice:async()=>{}};
   if (id === '@/features/settings/hooks/usePreferences') return { usePreferences: () => ({ preferences: {} }) };
   if (id === '@/features/subscriptions/hooks/use-premium') return { usePremium: () => ({ isPremium: true }) };
   if (id.startsWith('@/')) id = path.join(root, 'src', id.slice(2));
@@ -24,20 +27,20 @@ const { ReportBody } = require(root + '/src/features/reports/components/ReportBo
 const { PreferenceSection } = require(root + '/src/features/settings/components/PreferenceSection.tsx');
 const { PreferenceInput } = require(root + '/src/features/settings/components/PreferenceInput.tsx');
 const { PreferenceToggle } = require(root + '/src/features/settings/components/PreferenceToggle.tsx');
-assert.equal(color('#FFFFFF', 'backgroundColor', true), '#1B2635');
+assert.equal(color('#FFFFFF', 'backgroundColor', true), '#102334');
 assert.equal(color('#FFFFFF', 'color', true), '#FFFFFF');
-assert.equal(color('#F0FDF4', 'backgroundColor', true), '#17382D');
+assert.equal(color('#F0FDF4', 'backgroundColor', true), '#0B2A24');
 assert.equal(color('#FFF5F5', 'backgroundColor', true), '#40252D');
-assert.equal(color('#0072B5', 'backgroundColor', true), '#0072B5');
+assert.equal(color('#0072B5', 'backgroundColor', true), '#2D6AF4');
 const style = [{ padding: 20, backgroundColor: '#FFFFFF' }, { opacity: .5 }];
 assert.equal(themedStyle(style, false), style);
-assert.deepEqual(themedStyle(style, true), { padding: 20, backgroundColor: '#1B2635', opacity: .5 });
+assert.deepEqual(themedStyle(style, true), { padding: 20, backgroundColor: '#102334', opacity: .5 });
 const report = { total_income: 5400, total_expenses: 870, total_miles: 1260, mileage_deduction: 850, deductible_expense_total: 440, total_deductions: 1290, net_profit: 4110, taxable_income: 4110, estimated_tax_owed: 411, estimated_tax_savings: 129, tax_method: 'standard_mileage', expense_breakdown: { fuel: { amount: 430, count: 8 }, supplies: { amount: 440, count: 2 } } };
 const OfferAnalyzerScreen = require(root + '/app/offer-analyzer/screens/OfferAnalyzerScreen.tsx').default;
 const output = '/tmp/deduckly-theme-qa'; fs.mkdirSync(output, { recursive: true });
 for (dark of [false, true]) for (width of [320, 390, 1024]) {
   const offerBody = server.renderToStaticMarkup(React.createElement(OfferAnalyzerScreen));
-  assert.equal(keyboardBackground, dark ? '#101722' : '#FFFFFF', 'Offer Analyzer keyboard container must follow appearance');
+  assert.equal(keyboardBackground, dark ? '#081320' : '#FFFFFF', 'Offer Analyzer keyboard container must follow appearance');
   assert.ok(offerBody.includes('Offer Analyzer'));
   fs.writeFileSync(`${output}/offer-${dark ? 'dark' : 'light'}-${width}.html`, `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}${native.StyleSheet.getSheet().textContent}</style><main style="max-width:${width}px;margin:auto">${offerBody}</main>`);
   const body = server.renderToStaticMarkup(React.createElement(View, { style: { padding: 20, maxWidth: 760, marginHorizontal: 'auto', backgroundColor: '#F8FAFC' } },

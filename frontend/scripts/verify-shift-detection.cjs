@@ -41,9 +41,9 @@ async function setup(planned=null){
   await s.stop();await s.wait(90);assert((await s.read()).detector.stopPoint);
   await s.drive();const e=await s.read();assert(e.detector.driving);assert.equal(e.detector.start,start);assert.equal(e.data.segments.length,0);assert.equal(e.detector.stopPoint,undefined);
  });
- await test('five-minute railroad stop remains one segment with no stop mileage',async()=>{
+ await test('three-minute railroad stop remains one segment with no stop mileage',async()=>{
   const s=await setup();await s.drive();await s.stop();const miles=(await s.read()).detector.miles;
-  await s.wait(300);assert.equal((await s.read()).detector.miles,miles);
+  await s.wait(180);assert.equal((await s.read()).detector.miles,miles);
   await s.drive();await s.stop();await s.wait(370);const e=await s.read();
   assert.equal(e.data.segments.length,1);assert(e.data.segments[0].distance_miles>.35);assert(e.data.segments[0].distance_miles<.40);
  });
@@ -54,7 +54,7 @@ async function setup(planned=null){
  });
  await test('stationary GPS drift cannot add miles, move endpoint or restart driving',async()=>{
   const s=await setup();await s.drive();const stop=await s.stop(),miles=(await s.read()).detector.miles;
-  await s.wait(300,5);const d=(await s.read()).detector;
+  await s.wait(180,5);const d=(await s.read()).detector;
   assert.equal(d.miles,miles);assert.deepEqual(d.stopPoint,stop);assert.equal(d.stoppedSince,stop.timestamp);
  });
  await test('confirmed stop uses original arrival coordinates and time',async()=>{
@@ -62,8 +62,8 @@ async function setup(planned=null){
   await s.wait(370,3);const e=await s.read();assert.equal(e.data.segments.length,1);
   const segment=e.data.segments[0];assert.equal(segment.end_lat,arrival.latitude);assert.equal(segment.ended_at,new Date(arrival.timestamp).toISOString());assert(!e.detector.driving);
  });
- await test('six-minute threshold retains a five-minute stop and finalizes at six',async()=>{
-  const s=await setup();await s.drive();const arrival=await s.stop();await s.wait(350);
+ await test('four-minute threshold retains a shorter stop and finalizes at four',async()=>{
+  const s=await setup();await s.drive();const arrival=await s.stop();await s.wait(230);
   assert.equal((await s.read()).data.segments.length,0);assert((await s.read()).detector.driving);
   await s.wait(10);const segments=(await s.read()).data.segments;assert.equal(segments.length,1);
   assert.equal(segments[0].ended_at,new Date(arrival.timestamp).toISOString());
@@ -74,14 +74,14 @@ async function setup(planned=null){
   assert.equal(seg.length,2);assert.notEqual(seg[0].client_id,seg[1].client_id);assert(seg[0].ended_at<seg[1].started_at);
  });
  await test('planned end waits through driving and temporary stop then ends once',async()=>{
-  const s=await setup(new Date(clock+45000).toISOString());await s.drive();await s.stop();await s.wait(300);
+  const s=await setup(new Date(clock+45000).toISOString());await s.drive();await s.stop();await s.wait(180);
   assert.equal(await s.j.autoEndIfDue('1',false),false);assert.equal((await s.read()).data.ended_at,null);
   await s.drive();const arrival=await s.stop();await s.wait(370);
   const e=await s.read();assert(e.autoEnded);assert(e.data.ended_at);assert.equal(e.data.segments.length,1);assert.equal(e.data.segments[0].ended_at,new Date(arrival.timestamp).toISOString());
   assert(await s.j.claimEndedNotice('1',s.e.data.client_id));assert.equal(await s.j.claimEndedNotice('1',s.e.data.client_id),false);
  });
  await test('restart during temporary stop preserves candidate, miles and one segment',async()=>{
-  const s=await setup();await s.drive();const stop=await s.stop();await s.wait(300);const before=await s.read();
+  const s=await setup();await s.drive();const stop=await s.stop();await s.wait(180);const before=await s.read();
   s.restart();await s.j.setShiftRecording('1');assert.deepEqual((await s.read()).detector,before.detector);
   await s.wait(70);const e=await s.read();assert.equal(e.data.segments.length,1);assert.equal(e.data.segments[0].end_lat,stop.latitude);
   await s.j.recordShiftPoints(s.e.data.client_id,[s.last]);assert.equal((await s.read()).data.segments.length,1);
@@ -93,7 +93,7 @@ async function setup(planned=null){
   await s.drive();await s.stop();await s.wait(370);assert.equal((await s.read()).data.segments.length,1);
  });
  await test('gap during possible stop restarts observation confidence',async()=>{
-  const s=await setup();await s.drive();await s.stop();await s.wait(300);clock+=300000;
+  const s=await setup();await s.drive();await s.stop();await s.wait(180);clock+=300000;
   await s.stop();assert.equal((await s.read()).data.segments.length,0);await s.wait(130);assert.equal((await s.read()).data.segments.length,0);
   await s.wait(240);assert.equal((await s.read()).data.segments.length,1);
  });
@@ -142,8 +142,8 @@ async function setup(planned=null){
   await s.j.editShift('1',s.e.data.client_id,e=>{e.waitingForStop=true;});
   await s.stop();await s.wait(370);const e=await s.read();assert(e.autoEnded);assert.equal(e.data.segments.length,0);
  });
- await test('slow queue movement resumes without losing its measured distance',async()=>{
-  const s=await setup();await s.drive();await s.stop();await s.wait(60);const before=(await s.read()).detector.miles;
+ await test('slow queue resumes before confirmed parking without losing measured distance',async()=>{
+  const s=await setup();await s.drive();await s.stop();const before=(await s.read()).detector.miles;
   for(let i=0;i<20;i++)await s.send(s.x+5,5,1);
   const e=await s.read();assert.equal(e.data.segments.length,0);assert.equal(e.detector.stopPoint,undefined);assert(e.detector.miles-before>.05);assert(e.detector.miles-before<.075);
  });
@@ -160,9 +160,39 @@ async function setup(planned=null){
   const e=await s.read();assert.equal(e.data.segments.length,1);assert.equal(e.data.segments[0].ended_at,new Date(arrival.timestamp).toISOString());
  });
  await test('failed checkpoint leaves prior state and replay finalizes only once',async()=>{
-  const s=await setup();await s.drive();await s.stop();await s.wait(350);const before=await s.read();
+  const s=await setup();await s.drive();await s.stop();await s.wait(230);const before=await s.read();
   s.h.state.failWrite=true;await assert.rejects(s.send(s.x,10,0));s.h.state.failWrite=false;assert.deepEqual(await s.read(),before);
   await s.j.recordShiftPoints(s.e.data.client_id,[s.last]);await s.j.recordShiftPoints(s.e.data.client_id,[s.last]);assert.equal((await s.read()).data.segments.length,1);
+ });
+ await test('parking then walking away finalizes at parked point without walking mileage',async()=>{
+  const s=await setup();await s.drive();const arrival=await s.stop();await s.wait(40);const miles=(await s.read()).detector.miles;
+  for(let i=0;i<42;i++)await s.send(s.x+10,5,1.2);
+  const e=await s.read();assert.equal(e.data.segments.length,1);const seg=e.data.segments[0];
+  assert.equal(seg.end_lat,arrival.latitude);assert.equal(seg.ended_at,new Date(arrival.timestamp).toISOString());assert(Math.abs(seg.distance_miles-miles)<.005);
+ });
+ await test('vehicle-speed resume after ambiguous departure continues original drive',async()=>{
+  const s=await setup();await s.drive();const start=(await s.read()).detector.start;await s.stop();await s.wait(40);
+  for(let i=0;i<16;i++)await s.send(s.x+10,5,1.2);
+  await s.drive();const e=await s.read();assert.equal(e.data.segments.length,0);assert.equal(e.detector.start,start);assert.equal(e.detector.stopPoint,undefined);assert.equal(e.detector.departureSince,undefined);
+ });
+ await test('intermittent marginal fixes do not erase valid stationary evidence',async()=>{
+  const s=await setup();await s.drive();const arrival=await s.stop();
+  for(let i=0;i<24;i++){await s.send(s.x,5,0,{accuracy:40});await s.send(s.x,5,0);}
+  const e=await s.read();assert.equal(e.data.segments.length,1);assert.equal(e.data.segments[0].end_lat,arrival.latitude);
+ });
+ await test('marginal fixes alone cannot finalize and walking recovery remains owner-bound',async()=>{
+  const s=await setup();await s.drive();const arrival=await s.stop();
+  for(let i=0;i<50;i++)await s.send(s.x,5,0,{accuracy:40});assert.equal((await s.read()).data.segments.length,0);
+  s.restart();await s.j.setShiftRecording('1');await s.wait(130);assert.equal((await s.read()).data.segments.length,1);assert.equal((await s.read()).data.segments[0].end_lat,arrival.latitude);
+  assert.equal((await s.j.listShifts('2')).length,0);
+ });
+ await test('restart during slow departure retains parked boundary and planned-end waits',async()=>{
+  const s=await setup(new Date(clock+45000).toISOString());await s.drive();const arrival=await s.stop();await s.wait(40);
+  for(let i=0;i<16;i++)await s.send(s.x+10,5,1.2);
+  const before=await s.read();assert.equal(before.data.ended_at,null);s.restart();await s.j.setShiftRecording('1');assert.deepEqual((await s.read()).detector,before.detector);
+  for(let i=0;i<26;i++)await s.send(s.x+10,5,1.2);
+  const e=await s.read();assert(e.autoEnded);assert(e.data.ended_at);assert.equal(e.data.segments.length,1);assert.equal(e.data.segments[0].end_lat,arrival.latitude);
+  assert(await s.j.claimEndedNotice('1',s.e.data.client_id));assert.equal(await s.j.claimEndedNotice('1',s.e.data.client_id),false);
  });
  console.log(`${count} deterministic Shift detection groups passed`);
 }finally{Date.now=original;}})().catch(e=>{console.error(e);process.exitCode=1;});

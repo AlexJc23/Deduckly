@@ -28,7 +28,7 @@ class ScheduleTests(unittest.TestCase):
     def test_daily_slots_and_no_old_slots(self):
         for utc_hour, slot in ((12, 8), (16, 12), (20, 16)):
             result = due_reminders(user(), instant(f"2026-09-02T{utc_hour}:00:00"))
-            self.assertEqual([x[0] for x in result], [f"daily_{slot}"])
+            self.assertEqual(result, [])
         for hour in (14, 22, 1):
             self.assertEqual(due_reminders(user(), instant(f"2026-09-02T{hour:02}:00:00")), [])
 
@@ -45,7 +45,7 @@ class ScheduleTests(unittest.TestCase):
                          ("America/New_York", "2026-03-08T12:00:00"),
                          ("America/New_York", "2026-11-01T13:00:00")):
             result = due_reminders(user(timezone=tz), instant(date))
-            self.assertIn("daily_8", [x[0] for x in result])
+            self.assertEqual([x[0] for x in result], ["monthly_kickoff"] if date.startswith("2026-11-01") else [])
         self.assertEqual(due_reminders(user(timezone="bad/zone"), instant("2026-09-02T12:00:00")), [])
 
     def test_permission_preferences_and_no_token(self):
@@ -53,8 +53,8 @@ class ScheduleTests(unittest.TestCase):
             self.assertEqual(due_reminders(user(**changes), instant("2026-09-01T12:00:00")), [])
 
     def test_grace_window_and_no_late_catchup(self):
-        self.assertTrue(due_reminders(user(), instant("2026-09-02T12:14:59")))
-        self.assertFalse(due_reminders(user(), instant("2026-09-02T12:15:00")))
+        self.assertTrue(due_reminders(user(), instant("2026-09-01T12:14:59")))
+        self.assertFalse(due_reminders(user(), instant("2026-09-01T12:15:00")))
 
     def test_missing_and_invalid_goals(self):
         for value in (None, 0, -1, "NaN", "Infinity", "invalid"):
@@ -90,19 +90,19 @@ class DeliveryTests(unittest.IsolatedAsyncioTestCase):
             send.return_value = {"data": {"status": "ok", "id": "ticket"}}
             now = instant("2026-09-01T12:00:00")
             await check_goal_reminder(self.db, self.user, now)
-            self.assertEqual(send.await_count, 2)
+            self.assertEqual(send.await_count, 1)
             self.db.close()
             self.db = Session(self.engine, expire_on_commit=False)
             self.user = self.db.get(User, 1, options=[lazyload("*")])
             await check_goal_reminder(self.db, self.user, now)
-            self.assertEqual(send.await_count, 2)
+            self.assertEqual(send.await_count, 1)
             await check_goal_reminder(self.db, self.user, instant("2026-09-01T16:00:00"))
-            self.assertEqual(send.await_count, 3)
+            self.assertEqual(send.await_count, 1)
 
     async def test_uncertain_send_is_not_retried(self):
         with patch("app.services.goal_reminder_service.send_push_notification", new_callable=AsyncMock) as send:
             send.side_effect = TimeoutError("Simulated ambiguous delivery")
-            now = instant("2026-09-02T12:00:00")
+            now = instant("2026-09-01T12:00:00")
             with self.assertLogs("app.services.goal_reminder_service", level="ERROR"):
                 await check_goal_reminder(self.db, self.user, now)
             await check_goal_reminder(self.db, self.user, now)
@@ -113,7 +113,7 @@ class DeliveryTests(unittest.IsolatedAsyncioTestCase):
         with patch("app.services.goal_reminder_service.send_push_notification", new_callable=AsyncMock) as send:
             send.return_value = {"data": {"status": "error", "details": {"error": "DeviceNotRegistered"}}}
             with self.assertLogs("app.services.goal_reminder_service", level="WARNING"):
-                await check_goal_reminder(self.db, self.user, instant("2026-09-02T12:00:00"))
+                await check_goal_reminder(self.db, self.user, instant("2026-09-01T12:00:00"))
             self.assertIsNone(self.user.expo_push_token)
             self.assertEqual(self.db.query(NotificationOccurrence).one().status, "rejected")
 
@@ -127,6 +127,16 @@ class DeliveryTests(unittest.IsolatedAsyncioTestCase):
             await check_notification_receipts(self.db, instant("2026-09-02T12:16:00"))
         self.assertEqual(self.user.expo_push_token, "ExponentPushToken[test]")
         self.assertEqual(record.status, "rejected")
+
+    async def test_retired_daily_reminders_never_send_even_with_old_claims(self):
+        self.db.add(NotificationOccurrence(user_id=1, kind="daily_8", period="2026-09-02",
+            claimed_at=instant("2026-09-02T12:00:00"), status="claimed"))
+        self.db.commit()
+        with patch("app.services.goal_reminder_service.send_push_notification", new_callable=AsyncMock) as send:
+            for date in ("2026-09-02T12:00:00", "2026-09-02T16:00:00", "2026-09-02T20:00:00"):
+                await check_goal_reminder(self.db, self.user, instant(date))
+            send.assert_not_awaited()
+        self.assertEqual(self.db.query(NotificationOccurrence).count(), 1)
 
     async def test_successful_receipt(self):
         record = NotificationOccurrence(user_id=1, kind="daily_8", period="2026-09-02",

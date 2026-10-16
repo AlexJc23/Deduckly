@@ -32,6 +32,7 @@ class TripCreate(TripBase):
 
 # Update (ALL optional, no inheritance)
 class TripUpdate(BaseModel):
+    notes: Optional[str] = Field(default=None, max_length=2000)
     income_amount: Optional[Decimal] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
@@ -52,6 +53,7 @@ class TripUpdate(BaseModel):
 
 # Response (clean output)
 class TripResponse(TripBase):
+    notes: Optional[str] = None
     platform: Optional[TripPlatform] = None
     model_config = ConfigDict(from_attributes=True)
 

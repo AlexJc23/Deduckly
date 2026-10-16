@@ -71,3 +71,8 @@ export function syncVehicles(owner: string) {
     j.vehicles = response.data; await write(j);
   });
 }
+
+export function saveFuelArea(owner: string, postalCode: string) {
+  const generation = getAccountGeneration();
+  return serial(async () => { await assertOwner(owner, generation); const j = await read(owner); j.postalCode = postalCode; await write(j); });
+}

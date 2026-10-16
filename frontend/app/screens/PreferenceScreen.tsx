@@ -1,3 +1,4 @@
+import { FuelPreferences } from "@/features/vehicles/FuelPreferences";
 import { Translated, useLanguage } from "@/i18n/language";
 import { useAppTheme, type AppearancePreference } from "@/theme/theme";
 import { ScrollView, Pressable, Text, View } from "@/theme/components";
@@ -81,6 +82,7 @@ export default function PreferenceScreen() {
                 </PreferenceSection>
 
                 <PreferenceSection title="Offer Analyzer">
+                    <FuelPreferences />
                     {isPremium ? (
                         <>
                             <PreferenceInput
@@ -190,7 +192,7 @@ export default function PreferenceScreen() {
                 </PreferenceSection>
 
                 <PreferenceSection title="Appearance">
-                    <PreferencePicker label="Theme" value={preference === "system" ? "System" : preference === "dark" ? "Dark" : "Light"} helperText="Applies after restarting the app." onPress={() => setAppearanceVisible(true)} />
+                    <PreferencePicker label="Theme" value={preference === "system" ? "System" : preference === "dark" ? "Dark" : "Light"} helperText="Applies throughout Deduckly." onPress={() => setAppearanceVisible(true)} />
                 </PreferenceSection>
 
                 <PreferenceSection title="Units">
@@ -226,8 +228,8 @@ export default function PreferenceScreen() {
                         onValueChange={(value) => updateToggle("notificationsEnabled", value)}
                     />
                     <PreferenceToggle
-                        label="Income Goal Reminders"
-                        description="Daily at 8 AM, noon, and 4 PM, plus a new-month reminder on the first. Uses your local time."
+                        label="Monthly Goal Reminder"
+                        description="A fresh-start reminder on the first of each month. Uses your local time."
                         value={preferences.goalRemindersEnabled}
                         disabled={isSaving || !preferences.notificationsEnabled}
                         onValueChange={(value) => updateToggle("goalRemindersEnabled", value)}

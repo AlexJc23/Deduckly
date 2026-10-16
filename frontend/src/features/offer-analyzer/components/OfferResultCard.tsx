@@ -1,428 +1,91 @@
-import { useLanguage, Translated } from "@/i18n/language";
-import { View, Text } from "@/theme/components";
-import { StyleSheet } from "react-native";
-import { Ionicons } from "@/theme/icons";
-import {
-  OfferResult,
-  PremiumOfferResult,
-} from "../types/offer.types";
-import { useIsTablet } from "@/hooks/use-is-tablet";
-
-type OfferResultCardProps = {
-  result: OfferResult | PremiumOfferResult;
-};
-
-export function OfferResultCard({
-  result,
-}: OfferResultCardProps) {
-  useLanguage();
-  const isTablet = useIsTablet();
-  const styles = getStyles(isTablet);
-
-  const isPremium = "score" in result;
-
-  const recommendationColor = isPremium
-    ? result.recommendation === "accept"
-      ? "#22C55E"
-      : result.recommendation === "consider"
-      ? "#F59E0B"
-      : "#EF4444"
-    : result.color;
-
-  const backgroundColor = isPremium
-    ? result.recommendation === "accept"
-      ? "#F0FDF4"
-      : result.recommendation === "consider"
-      ? "#FFFBEB"
-      : "#FEF2F2"
-    : result.color + "10";
-
-  return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor,
-          borderColor: recommendationColor,
-        },
-      ]}
-    >
-      {isPremium ? (
-        <View style={styles.hero}>
-          <View
-            style={[
-              styles.scoreContainer,
-              {
-                backgroundColor:
-                  recommendationColor + "14",
-              },
-            ]}
-          >
-            <Text style={styles.score}>
-              {result.score}
-            </Text>
-          </View>
-
-          <Text
-            style={[
-              styles.recommendation,
-              {
-                color: recommendationColor,
-              },
-            ]}
-          >
-            {<Translated text={result.recommendation.toUpperCase()} />}
-          </Text>
-
-          <Text style={styles.subtitle}>
-            {<Translated text={result.summary} />}
-          </Text>
-        </View>
-      ) : (
-        <View style={styles.hero}>
-          <Text style={styles.dpm}>
-            ${result.dollarsPerMile.toFixed(2)}
-          </Text>
-
-          <Text style={styles.subtitle}>
-            <Translated text={"per mile"} /></Text>
-        </View>
-      )}
-
-      <View style={styles.divider} />
-
-      <Text style={styles.sectionTitle}>
-        <Translated text={"Offer Breakdown"} /></Text>
-
-      {isPremium ? (
-        <>
-          <View style={styles.statRow}>
-            <Text style={styles.label}>
-              <Translated text={"Estimated Profit"} /></Text>
-
-            <Text style={styles.value}>
-              $
-              {result.estimatedProfit.toFixed(
-                2
-              )}
-            </Text>
-          </View>
-
-          <View style={styles.statRow}>
-            <Text style={styles.label}>
-              <Translated text={"Profit / Hour"} /></Text>
-
-            <Text style={styles.value}>
-              {result.profitHourlyRate === null ? <Translated text={"Unavailable without duration"} /> : `$${result.profitHourlyRate.toFixed(2)}`}
-              {result.profitHourlyRate !== null && <Translated text={"/hr"} />}</Text>
-          </View>
-
-          <View style={styles.statRow}>
-            <Text style={styles.label}>
-              <Translated text={"Dollars / Mile"} /></Text>
-
-            <Text style={styles.value}>
-              $
-              {result.dollarsPerMile.toFixed(
-                2
-              )}
-            </Text>
-          </View>
-
-          <View style={styles.statRow}>
-            <Text style={styles.label}>
-              <Translated text={"Vehicle Cost"} /></Text>
-
-            <Text style={styles.value}>
-              $
-              {result.vehicleCost.toFixed(2)}
-            </Text>
-          </View>
-
-          <View style={styles.statRow}>
-            <Text style={styles.label}>
-              <Translated text={"Gross Hourly"} /></Text>
-
-            <Text style={styles.value}>
-              {result.hourlyRate === null ? <Translated text={"Unavailable without duration"} /> : `$${result.hourlyRate.toFixed(2)}`}
-              {result.hourlyRate !== null && <Translated text={"/hr"} />}</Text>
-          </View>
-        </>
-      ) : (
-        <>
-          <View style={styles.statRow}>
-            <Text style={styles.label}>
-              <Translated text={"Dollars / Mile"} /></Text>
-
-            <Text style={styles.value}>
-              $
-              {result.dollarsPerMile.toFixed(
-                2
-              )}
-            </Text>
-          </View>
-
-          <View style={styles.statRow}>
-            <Text style={styles.label}>
-              <Translated text={"Hourly"} /></Text>
-
-            <Text style={styles.value}>
-              {result.hourlyRate === null ? <Translated text={"Unavailable without duration"} /> : `$${result.hourlyRate.toFixed(2)}`}
-              {result.hourlyRate !== null && <Translated text={"/hr"} />}</Text>
-          </View>
-        </>
-      )}
-
-      <View style={styles.divider} />
-
-      <Text style={styles.sectionTitle}>
-        {isPremium
-          ? <Translated text={"Your Preferences"} />
-          : <Translated text={"Analysis"} />}
-      </Text>
-
-      {isPremium
-        ? result.premiumChecks.map(
-            (check, index) => (
-              <View
-                key={index}
-                style={styles.reasonRow}
-              >
-                <View
-                  style={[
-                    styles.icon,
-                    check.passed
-                      ? styles.positiveIcon
-                      : styles.negativeIcon,
-                  ]}
-                >
-                  <Ionicons
-                    name={
-                      check.passed
-                        ? "checkmark"
-                        : "close"
-                    }
-                    size={isTablet ? 15 : 13}
-                    color={
-                      check.passed
-                        ? "#16A34A"
-                        : "#DC2626"
-                    }
-                  />
-                </View>
-
-                <View style={styles.reasonContent}>
-                  <Text style={styles.reason}>
-                    {check.title}
-                  </Text>
-
-                  <Text style={styles.checkDetails}>
-                    <Translated text={"Current:"} />{" "}
-                    {check.actual.toFixed(2)}
-                    {"  •  "}
-                    <Translated text={"Goal:"} />{" "}
-                    {check.target.toFixed(2)}
-                  </Text>
-                </View>
-              </View>
-            )
-          )
-        : result.reasons.map(
-            (reason, index) => {
-              const passed =
-                !reason
-                  .toLowerCase()
-                  .includes("low") &&
-                !reason
-                  .toLowerCase()
-                  .includes("poor") &&
-                !reason
-                  .toLowerCase()
-                  .includes("bad") &&
-                !reason
-                  .toLowerCase()
-                  .includes("skip");
-
-              return (
-                <View
-                  key={index}
-                  style={styles.reasonRow}
-                >
-                  <View
-                    style={[
-                      styles.icon,
-                      passed
-                        ? styles.positiveIcon
-                        : styles.negativeIcon,
-                    ]}
-                  >
-                    <Ionicons
-                      name={
-                        passed
-                          ? "checkmark"
-                          : "close"
-                      }
-                      size={isTablet ? 15 : 13}
-                      color={
-                        passed
-                          ? "#16A34A"
-                          : "#DC2626"
-                      }
-                    />
-                  </View>
-
-                  <Text style={styles.reason}>
-                    {<Translated text={reason} />}
-                  </Text>
-                </View>
-              );
-            }
-          )}
+import { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, findNodeHandle, StyleSheet, useWindowDimensions, type Text as NativeText } from 'react-native';
+import { useLanguage } from '@/i18n/language';
+import { View, Text, Pressable } from '@/theme/components';
+import { useAppTheme } from '@/theme/theme';
+import { Ionicons } from '@/theme/icons';
+import type { OfferResult, PremiumOfferResult } from '../types/offer.types';
+import { presentOfferResult, type ResultMetric } from '../utils/result-presentation';
+export function OfferResultCard({ result }: { result: OfferResult | PremiumOfferResult }) {
+  const { t, locale } = useLanguage(); const { dark } = useAppTheme();
+  const { width, fontScale } = useWindowDimensions();
+  const [expanded, setExpanded] = useState(false);
+  const heading = useRef<NativeText>(null);
+  const p = presentOfferResult(result);
+  const a = result.fuel?.assumptions;
+  const palette = p.recommendation === 'accept' ? ['#22C55E', '#166534', '#86EFAC']
+    : p.recommendation === 'consider' ? ['#F59E0B', '#92400E', '#FCD34D'] : ['#EF4444', '#991B1B', '#FCA5A5'];
+  const color = dark ? palette[2] : palette[1];
+  const money = (value: number) => Number.isFinite(value) ? new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD' }).format(value) : '—';
+  const format = (metric: ResultMetric) => metric.unit === 'score' ? `${metric.value}/100`
+    : metric.unit === 'miles' ? `${metric.value.toFixed(2)} ${t('miles')}`
+    : money(metric.value) + (metric.unit === 'per-mile' ? t('/mi') : metric.unit === 'per-hour' ? t('/hr') : '');
+  useEffect(() => {
+    setExpanded(false);
+    let active = true; let frame: number | undefined;
+    void AccessibilityInfo.isScreenReaderEnabled().then(enabled => {
+      if (active && enabled) frame = requestAnimationFrame(() => {
+        const tag = findNodeHandle(heading.current); if (active && tag) AccessibilityInfo.setAccessibilityFocus(tag);
+      });
+    }).catch(() => {});
+    return () => { active = false; if (frame !== undefined) cancelAnimationFrame(frame); };
+  }, [result]);
+  const row = (metric: ResultMetric, index: number) => <View key={metric.label + index}
+    style={[styles.row, (width < 360 || fontScale > 1.3) && styles.stacked]}>
+    <Text style={styles.label}>{t(metric.label)}</Text><Text style={styles.value}>{format(metric)}</Text>
+  </View>;
+  const age = a?.observedAt ? Date.parse(a.observedAt) : NaN;
+  return <View style={[styles.card, { borderColor: palette[0], backgroundColor: dark ? '#172333' : '#FFFFFF' }]}>
+    <View style={styles.header}>
+      <Text ref={heading} accessible accessibilityRole="header" accessibilityLiveRegion="polite"
+        style={[styles.verdict, { color }]}>{t(p.recommendation.toUpperCase())}</Text>
+      <Text style={styles.explanation}>{t(p.explanation)}</Text>
     </View>
-  );
+    {!p.hasFuel && <Text style={styles.notice}>{t('Gross-only mileage · fuel excluded')}</Text>}
+    {p.hero && <View style={styles.earnings}>
+      <Text style={styles.label}>{t(p.hero.label)}</Text><Text style={styles.amount}>{money(p.hero.value)}</Text>
+      <View style={styles.breakdown}>{p.breakdown.map(row)}{!p.hasFuel && <Text style={styles.context}>{t('Estimated fuel cost')}: {t('Not included')}</Text>}</View>
+    </View>}
+    <View style={styles.metrics}>{p.primary.map(row)}</View>
+    {a && <Text style={styles.context}>{a.vehicle} · {a.economy != null && Number.isFinite(a.economy) ? a.economy : '—'} {a.fuelType === 'electric' ? 'kWh/100 mi' : 'MPG'} · {p.hasFuel && a.price !== null ? money(a.price) : '—'}{a.fuelType === 'electric' ? t('/kWh') : t('/US gal')}</Text>}
+    <Text style={styles.disclaimer}>{t('Estimates only; not net profit.')}</Text>
+    <Pressable accessibilityRole="button" accessibilityState={{ expanded }} accessibilityLabel={t('Why this result?')}
+      onPress={() => setExpanded(value => !value)} style={styles.toggle}>
+      <Text style={styles.detailsTitle}>{t('Why this result?')}</Text>
+      <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color={dark ? '#EDF3FA' : '#273449'} />
+    </Pressable>
+    {expanded && <View style={styles.details}>
+      {p.details.map(row)}
+      {p.premium && <Text style={styles.context}>{t(p.hasFuel
+        ? 'Earnings and hourly targets use total vehicle costs; per-mile targets use earnings after fuel.'
+        : 'Fuel is unavailable. Per-mile targets use gross payout; earnings targets still use your vehicle-cost allowance.')}</Text>}
+      {p.checks.map(check => <View key={check.title} style={styles.check}>
+        <Text style={styles.label}>{t(check.title === 'Minimum Profit' ? 'Minimum earnings target' : check.title)}: {check.title === 'Trip Distance' ? `${check.target.toFixed(2)} ${t('miles')}` : money(check.target) + (check.title === 'Dollars Per Mile' ? t('/mi') : check.title === 'Hourly Earnings' ? t('/hr') : '')}</Text>
+        <Text style={{ color: check.passed ? (dark ? '#86EFAC' : '#166534') : (dark ? '#FCA5A5' : '#991B1B'), fontWeight: '700' }}>{t(check.passed ? 'Met' : 'Missed')}</Text>
+      </View>)}
+      {p.standardTargets.length > 0 && <View style={styles.details}>
+        <Text style={styles.detailsTitle}>{t('Standard rate targets')}</Text>
+        {p.standardTargets.map(target => <Text key={target.tier} style={styles.context}>{t(target.tier)}: {money(target.dollarsPerMile)}{t('/mi')}{result.hourlyRate !== null ? ` · ${money(target.hourlyRate)}${t('/hr')}` : ''}</Text>)}
+      </View>}
+      {p.reasons.filter(reason => !reason.includes('Fuel estimate') && !reason.includes('include estimated fuel')).map(reason => <Text key={reason} style={styles.context}>{t(reason)}</Text>)}
+      {result.hourlyRate === null && <Text style={styles.context}>{t('No duration entered; hourly estimates are omitted.')}</Text>}
+      {p.premium && p.hasFuel && <Text style={styles.context}>{t('Total vehicle cost uses the larger of your saved cost estimate or fuel cost; fuel is not added twice.')}</Text>}
+      {a && <Text style={styles.context}>{t('Price source')}: {t(a.source)}{a.location ? ' · ' + a.location : ''}</Text>}
+      {Number.isFinite(age) && <Text style={styles.context}>{t('Price observed')}: {new Date(age).toLocaleString(locale)} · {t('{minutes} min old', { minutes: Math.max(0, Math.floor((Date.now() - age) / 60000)) })}</Text>}
+    </View>}
+  </View>;
 }
-
-const getStyles = (isTablet: boolean) =>
-  StyleSheet.create({
-    card: {
-      width: "100%",
-      maxWidth: isTablet ? 900 : undefined,
-      alignSelf: isTablet ? "center" : undefined,
-
-      borderRadius: isTablet ? 24 : 18,
-      padding: isTablet ? 28 : 18,
-      marginBottom: isTablet ? 60 : 50,
-      borderWidth: 1,
-
-      shadowColor: "#111827",
-      shadowOpacity: isTablet ? 0.07 : 0.05,
-      shadowRadius: isTablet ? 16 : 10,
-      shadowOffset: {
-        width: 0,
-        height: isTablet ? 5 : 3,
-      },
-
-      elevation: isTablet ? 3 : 2,
-      gap: isTablet ? 20 : 16,
-    },
-
-    hero: {
-      alignItems: "center",
-      justifyContent: "center",
-      gap: isTablet ? 8 : 5,
-      paddingVertical: isTablet ? 18 : 8,
-    },
-
-    scoreContainer: {
-      width: isTablet ? 118 : 82,
-      height: isTablet ? 118 : 82,
-      borderRadius: isTablet ? 59 : 41,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: isTablet ? 8 : 4,
-    },
-
-    score: {
-      fontSize: isTablet ? 56 : 42,
-      fontWeight: "800",
-      color: "#111827",
-      lineHeight: isTablet ? 64 : 48,
-      letterSpacing: -1,
-    },
-
-    recommendation: {
-      fontSize: isTablet ? 20 : 16,
-      fontWeight: "800",
-      letterSpacing: 1,
-    },
-
-    dpm: {
-      fontSize: isTablet ? 52 : 40,
-      lineHeight: isTablet ? 60 : 46,
-      fontWeight: "800",
-      color: "#111827",
-      letterSpacing: -1,
-    },
-
-    subtitle: {
-      textAlign: "center",
-      color: "#64748B",
-      fontSize: isTablet ? 15 : 13,
-      lineHeight: isTablet ? 22 : 19,
-      maxWidth: isTablet ? 520 : 280,
-    },
-
-    divider: {
-      height: 1,
-      backgroundColor: "#E5E7EB",
-    },
-
-    sectionTitle: {
-      fontSize: isTablet ? 17 : 14,
-      fontWeight: "800",
-      color: "#111827",
-      marginBottom: isTablet ? 0 : -3,
-    },
-
-    statRow: {
-      minHeight: isTablet ? 40 : 28,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingVertical: isTablet ? 3 : 0,
-    },
-
-    label: {
-      fontSize: isTablet ? 15 : 13,
-      color: "#64748B",
-      fontWeight: "600",
-    },
-
-    value: {
-      fontSize: isTablet ? 16 : 14,
-      color: "#111827",
-      fontWeight: "700",
-    },
-
-    reasonRow: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      gap: isTablet ? 13 : 10,
-    },
-
-    icon: {
-      width: isTablet ? 28 : 22,
-      height: isTablet ? 28 : 22,
-      borderRadius: isTablet ? 9 : 7,
-      justifyContent: "center",
-      alignItems: "center",
-      marginTop: 1,
-    },
-
-    positiveIcon: {
-      backgroundColor: "#DCFCE7",
-    },
-
-    negativeIcon: {
-      backgroundColor: "#FEE2E2",
-    },
-
-    reasonContent: {
-      flex: 1,
-    },
-
-    reason: {
-      flex: 1,
-      fontSize: isTablet ? 15 : 13,
-      lineHeight: isTablet ? 22 : 19,
-      color: "#334155",
-      fontWeight: "600",
-    },
-
-    checkDetails: {
-      fontSize: isTablet ? 12 : 11,
-      color: "#64748B",
-      marginTop: isTablet ? 4 : 3,
-      lineHeight: isTablet ? 18 : 16,
-    },
-  });
+const styles = StyleSheet.create({
+  card: { width: '100%', maxWidth: 900, alignSelf: 'center', padding: 20, borderRadius: 20, borderWidth: 1, gap: 16 },
+  header: { gap: 6 }, verdict: { fontSize: 28, fontWeight: '800', letterSpacing: .5 },
+  explanation: { fontSize: 15, lineHeight: 22 }, notice: { fontSize: 13, fontWeight: '600' },
+  earnings: { gap: 4 }, amount: { fontSize: 32, fontWeight: '800' },
+  breakdown: { gap: 6, paddingTop: 6 }, metrics: { gap: 12, paddingTop: 12, borderTopWidth: 1, borderColor: '#94A3B8' },
+  row: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 },
+  stacked: { flexDirection: 'column', alignItems: 'flex-start', gap: 3 },
+  label: { flexShrink: 1, fontSize: 14 }, value: { fontSize: 17, fontWeight: '700', flexShrink: 1 },
+  context: { fontSize: 13, lineHeight: 20 }, disclaimer: { fontSize: 12, lineHeight: 18 },
+  toggle: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderTopWidth: 1, borderColor: '#94A3B8', paddingTop: 10 },
+  detailsTitle: { fontSize: 15, fontWeight: '700' }, details: { gap: 12 },
+  check: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', gap: 8 },
+});

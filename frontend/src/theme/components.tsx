@@ -3,7 +3,7 @@ import { createContext, useContext, forwardRef } from "react";
 import * as RN from "react-native";
 import { SafeAreaView as NativeSafeAreaView } from "react-native-safe-area-context";
 import { useAppTheme } from "./theme";
-import { appearanceColor } from "./palette";
+import { appearanceColor, NAVY } from "./palette";
 
 export function themedStyle(style: any, dark: boolean): any {
     if (!dark || !style) return style;
@@ -20,13 +20,13 @@ export const Text = forwardRef<RN.Text, RN.TextProps>(function ThemeText({ style
     const { dark } = useAppTheme();
     const inheritedColor = useContext(TextColorContext);
     const resolvedStyle = themedStyle(style, dark);
-    const color = RN.StyleSheet.flatten(resolvedStyle)?.color ?? inheritedColor ?? (dark ? "#EDF3FA" : "#273449");
+    const color = RN.StyleSheet.flatten(resolvedStyle)?.color ?? inheritedColor ?? (dark ? NAVY.text : "#273449");
     return <TextColorContext.Provider value={color}><RN.Text ref={ref} {...props} style={[{ color }, resolvedStyle]} /></TextColorContext.Provider>;
 });
 export const TextInput = forwardRef<RN.TextInput, RN.TextInputProps>(function ThemeInput({ style, placeholderTextColor, placeholder, accessibilityLabel, ...props }, ref) {
     const { t } = useLanguage();
     const { dark } = useAppTheme();
-    return <RN.TextInput ref={ref} placeholder={placeholder ? t(placeholder) : placeholder} accessibilityLabel={accessibilityLabel ? t(accessibilityLabel) : undefined} keyboardAppearance={dark ? "dark" : "light"} {...props} placeholderTextColor={appearanceColor(placeholderTextColor ?? "#64748B", "color", dark)} style={[{ color: dark ? "#EDF3FA" : "#273449" }, themedStyle(style, dark)]} />;
+    return <RN.TextInput ref={ref} placeholder={placeholder ? t(placeholder) : placeholder} accessibilityLabel={accessibilityLabel ? t(accessibilityLabel) : undefined} keyboardAppearance={dark ? "dark" : "light"} {...props} placeholderTextColor={appearanceColor(placeholderTextColor ?? "#64748B", "color", dark)} style={[{ color: dark ? NAVY.text : "#273449" }, themedStyle(style, dark)]} />;
 });
 export const Pressable = forwardRef<RN.View, RN.PressableProps>(function ThemePressable({ style, ...props }, ref) {
     const { dark } = useAppTheme();

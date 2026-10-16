@@ -1,4 +1,5 @@
 export interface Trip {
+  notes?: string | null;
   client_id?: string | null;
   id: number;
   user_id: number;
@@ -46,10 +47,11 @@ export type TripCreate = {
 };
 
 export type TripUpdate = {
+  notes?: string | null;
 
   category: string;
 
-  platform: string | " ";
+  platform?: string;
 
   income_amount?: number | null;
 }

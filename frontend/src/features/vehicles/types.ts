@@ -9,4 +9,4 @@ export type VehicleWrite = VehicleData & { expected_version: number; operation_i
 export type FuelQuote = { price: number; unit: 'USD/US-gallon' | 'USD/kWh'; fuel_type: FuelType; source: string; location: string; observed_at: string };
 export type VehicleJournal = { version: 1; owner: string; vehicles: Vehicle[];
   pending: { id: string; data: VehicleWrite }[]; prices: Partial<Record<FuelType, string>>;
-  quotes: Record<string, FuelQuote> };
+  postalCode?: string; quotes: Record<string, FuelQuote> };

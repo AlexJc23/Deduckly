@@ -42,37 +42,10 @@ export async function updateTrip(
   tripId: number,
   trip: TripUpdate
 ) {
-  try {
-    const response = await api.put(
-      `/api/v1/trips/${tripId}`,
-      trip
-    );
-
-    return response.data;
-  } catch (error: any) {
-    console.log("========== UPDATE ==========");
-    console.log("Trip ID:", tripId);
-    console.log(
-      "Payload:",
-      JSON.stringify(trip, null, 2)
-    );
-    console.log(
-      "Status:",
-      error.response?.status
-    );
-    console.log(
-      "Response:",
-      JSON.stringify(
-        error.response?.data,
-        null,
-        2
-      )
-    );
-    console.log("============================");
-
-    throw error;
-  }
+  const response = await api.put(`/api/v1/trips/${tripId}`, trip);
+  return response.data;
 }
+
 export async function deleteTrip(
     id: number
 ) {

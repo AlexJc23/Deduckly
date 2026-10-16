@@ -31,6 +31,61 @@ class TripFoundationTests(unittest.TestCase):
             start_lat="40", start_lng="-74", end_lat="40.1", end_lng="-74.1",
             category="business", platform="uber", income_amount="25")
         return TripCreate(**(values | changes))
+    def test_details_edits_persist_without_changing_mileage_or_income(self):
+        trip = create_trip(self.db, self.payload(), 1)
+        original = (trip.distance_miles, trip.start_time, trip.end_time, trip.start_lat, trip.end_lat)
+        update_trip(self.db, trip.id, 1, TripUpdate(category="personal", platform="lyft"))
+        self.db.expire_all()
+        updated = self.db.get(Trip, trip.id)
+        self.assertEqual(updated.category.value, "personal")
+        self.assertEqual(updated.platform.value, "lyft")
+        self.assertEqual(updated.deduction_amount, Decimal("0"))
+        self.assertEqual((updated.distance_miles, updated.start_time, updated.end_time, updated.start_lat, updated.end_lat), original)
+        self.assertEqual(self.db.query(Income).one().amount, Decimal("25"))
+        with self.assertRaises(HTTPException) as invalid:
+            update_trip(self.db, trip.id, 1, TripUpdate(platform=None))
+        self.assertEqual(invalid.exception.status_code, 400)
+        update_trip(self.db, trip.id, 1, TripUpdate(category="business"))
+        self.db.expire_all()
+        updated = self.db.get(Trip, trip.id)
+        self.assertEqual(updated.platform.value, "lyft")
+        self.assertGreater(updated.deduction_amount, 0)
+        with self.assertRaises(HTTPException) as caught:
+            update_trip(self.db, trip.id, 2, TripUpdate(category="personal", platform="uber"))
+        self.assertEqual(caught.exception.status_code, 404)
+        self.assertEqual(self.db.query(Trip).count(), 1)
+
+    def test_optional_notes_are_owned_and_do_not_change_old_requests(self):
+        from pydantic import ValidationError
+        trip = create_trip(self.db, self.payload(), 1)
+        self.assertIsNone(TripResponse.model_validate(trip).notes)
+        update_trip(self.db, trip.id, 1, TripUpdate(notes="Delivery to office"))
+        self.db.expire_all()
+        self.assertEqual(TripResponse.model_validate(self.db.get(Trip, trip.id)).notes, "Delivery to office")
+        update_trip(self.db, trip.id, 1, TripUpdate(platform="lyft"))
+        self.assertEqual(trip.notes, "Delivery to office")
+        with self.assertRaises(HTTPException):
+            update_trip(self.db, trip.id, 2, TripUpdate(notes="not mine"))
+        with self.assertRaises(ValidationError):
+            TripUpdate(notes="x" * 2001)
+        update_trip(self.db, trip.id, 1, TripUpdate(notes=None))
+        self.assertIsNone(trip.notes)
+
+    def test_today_saved_trip_count_includes_personal_and_excludes_other_owners_days(self):
+        from types import SimpleNamespace
+        from datetime import timedelta
+        from app.api.v1.endpoints.report import get_today_report
+        now = datetime.now(timezone.utc).replace(hour=12, minute=0, second=0, microsecond=0)
+        create_trip(self.db, self.payload(client_id="today-business", start_time=now, end_time=now+timedelta(minutes=10), income_amount=None), 1)
+        create_trip(self.db, self.payload(client_id="today-personal", category="personal", start_time=now+timedelta(minutes=11), end_time=now+timedelta(minutes=20), income_amount=None), 1)
+        create_trip(self.db, self.payload(client_id="other-owner", start_time=now, end_time=now+timedelta(minutes=10), income_amount=None), 2)
+        create_trip(self.db, self.payload(client_id="yesterday", start_time=now-timedelta(days=1), end_time=now-timedelta(days=1)+timedelta(minutes=10), income_amount=None), 1)
+        with patch("app.api.v1.endpoints.report.generate_tax_report", return_value={"total_miles": Decimal("12.34")}):
+            result = get_today_report(self.db, SimpleNamespace(id=1, timezone="UTC"))
+        self.assertEqual(result["saved_trip_count"], 2)
+        self.assertEqual(sum(row["trip_count"] for row in result["trip_breakdown"]), 1)
+        self.assertEqual(result["total_miles"], Decimal("12.34"))
+
     def test_first_creation_and_repeated_response_loss_retry(self):
         first = create_trip(self.db, self.payload(), 1)
         self.db.close()

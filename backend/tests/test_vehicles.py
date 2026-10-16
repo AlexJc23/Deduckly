@@ -82,6 +82,29 @@ class VehicleTests(unittest.TestCase):
         data.update(fuelType1='Regular Gasoline',fuelType2='Electricity')
         with patch.object(vehicle_lookup,'fetch',return_value=data):
             self.assertEqual(vehicle_lookup.vehicle(1)['fuel_type'],'other')
+    def test_epa_configuration_economy_persists_without_manual_mpg(self):
+        configurations = {
+            'vehicle/101': dict(year='2020',make='Test',model='Car',trany='Automatic',drive='Front-Wheel Drive',eng_dscr='2.0 L',fuelType1='Regular Gasoline',city08=25,highway08=35,comb08=29),
+            'vehicle/102': dict(year='2020',make='Test',model='Car',trany='Automatic',drive='All-Wheel Drive',eng_dscr='3.0 L',fuelType1='Regular Gasoline',city08=19,highway08=27,comb08=22),
+        }
+        with patch.object(vehicle_lookup,'fetch',side_effect=lambda path: configurations[path]):
+            for identity, mpg in [(101,29),(102,22)]:
+                profile=vehicle_lookup.vehicle(identity)
+                saved=save_vehicle(self.db,1,str(uuid4()),self.data(**profile))
+                self.db.expire_all()
+                reloaded=self.db.get(UserVehicle,saved.id)
+                self.assertEqual(reloaded.combined_mpg,mpg)
+                self.assertIsNone(reloaded.custom_mpg)
+                self.assertIn('Wheel Drive',reloaded.trim)
+                self.assertEqual(reloaded.epa_id,str(identity))
+
+    def test_catalog_failure_allows_manual_vehicle_save(self):
+        with patch.object(vehicle_lookup.httpx,'get',side_effect=vehicle_lookup.httpx.ConnectError('offline')):
+            with self.assertRaises(HTTPException) as error: vehicle_lookup.vehicle(999999999)
+            self.assertEqual(error.exception.status_code,503)
+        saved=save_vehicle(self.db,1,str(uuid4()),self.data(custom_mpg=25))
+        self.assertEqual(saved.custom_mpg,25)
+
     def test_price_unavailable_failure_stale_and_valid(self):
         self.assertEqual(fuel_price_service.local_price('30301','gasoline')['status'],'unavailable')
         from types import SimpleNamespace

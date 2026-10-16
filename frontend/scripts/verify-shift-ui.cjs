@@ -5,6 +5,8 @@ const ts = require('typescript'), React = require('react'), server = require('re
 let dark = false, entries = [], width = 320;
 const original = Module._load;
 Module._load = function(id, parent, isMain) {
+ if(id==='@/theme/icons')return{Ionicons:()=>null};
+ if(id==='@/constants/platform-icons')return{platformIcons:{lyft:{uri:'test:lyft'},spark:{uri:'test:spark'},uber:{uri:'test:uber'}},PlatformName:{}};
   if(id === 'react-native') return {...native, useWindowDimensions:()=>({width,height:800,scale:1,fontScale:1.5})};
   if(id === '@react-native-picker/picker') { const Picker=({children})=>React.createElement('select',{},children); Picker.Item=({label,value})=>React.createElement('option',{value},label); return {Picker}; }
   if(id === '@/features/shifts/notifications') return {};
@@ -49,10 +51,10 @@ const Card=require(root+'/src/features/shifts/entry-point.tsx').ShiftEntryPoint;
 core.setRuntimeLanguage('en');entries=[];
 assert(server.renderToStaticMarkup(React.createElement(Card)).includes('Start Shift'));
 entries=[JSON.parse(JSON.stringify(fixture))];
-assert(server.renderToStaticMarkup(React.createElement(Card)).includes('Shift in progress'));
+assert(server.renderToStaticMarkup(React.createElement(Card)).includes('Shift Active'));
 entries[0].detector.driving=true;entries[0].detector.miles=1.25;
-const drive=server.renderToStaticMarkup(React.createElement(Card));assert(drive.includes('Trip in Progress'));assert(drive.includes('1.25'));
-assert(!server.renderToStaticMarkup(React.createElement(Card,{manualActive:true})).includes('Trip in Progress'));
+const drive=server.renderToStaticMarkup(React.createElement(Card));assert(drive.includes('Driving'));assert(drive.includes('1.25'));
+assert(!server.renderToStaticMarkup(React.createElement(Card,{manualActive:true})).includes('Driving'));
 const dashboard=fs.readFileSync(path.join(root,'app/(tabs)/dashboard.tsx'),'utf8');
-assert(!dashboard.includes('styles.expenseCard'));assert(dashboard.includes('Add Expense'));
+assert(!dashboard.includes('styles.expenseCard'));assert(dashboard.includes('activeOnly'));assert(dashboard.includes('dashboardSummary'));assert(dashboard.includes('Add Expense'));
 console.log('PASS dashboard idle/driving/manual precedence; Expenses feature retained');

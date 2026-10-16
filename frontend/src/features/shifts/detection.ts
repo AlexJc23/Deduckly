@@ -3,12 +3,13 @@ import { calculateSegmentDistanceMiles } from '@/features/tracking/services/dist
 
 // Shift-only tuning. Manual/Siri Trip mileage filtering is unchanged.
 export const DETECTION = {
-  speed: 3, sustainedMs: 15_000, stopMs: 6 * 60_000, gapMs: 120_000,
+  speed: 3, sustainedMs: 15_000, stopMs: 4 * 60_000, gapMs: 120_000,
   minimumMiles: .05, accuracy: 50, boundaryAccuracy: 25,
   bufferMs: 90_000, bufferPoints: 90, sampleMs: 5_000, quietHopMs: 30_000,
   startMeters: 45, resumeMeters: 30, resumeSpeed: .7,
   minimumHopMeters: 8, accuracyMultiplier: 1.5, uncertaintyMultiplier: 2, directionRatio: .6,
   futureSkewMs: 60_000,
+  departureSpeed: 1.8, departureDwellMs: 30_000, departureMs: 60_000, departureMeters: 45,
   stopSpeed: 1.5, nativeStillSpeed: .3, stopRadiusMeters: 25, stopSamples: 12,
 };
 const METERS_PER_MILE = 1609.344;
@@ -17,6 +18,7 @@ export type Detector = {
   last?: LocationPoint; start?: number; movingSince?: number; stoppedSince?: number;
   miles: number; driving: boolean;
   recent?: LocationPoint[]; anchor?: LocationPoint; stopSamples?: number;
+  departureSince?: number; departureSamples?: number; parkedConfirmed?: boolean;
 };
 const meters = (a: LocationPoint, b: LocationPoint) => {
   const miles = calculateSegmentDistanceMiles(a, b);
@@ -56,10 +58,27 @@ function movement(d: Detector, speed: number, minimumMeters: number) {
 }
 function clearStop(d: Detector) {
   d.stopPoint = undefined; d.stoppedSince = undefined; d.stopSamples = 0;
+  d.departureSince = undefined; d.departureSamples = 0; d.parkedConfirmed = false;
 }
 function possibleStop(d: Detector, p: LocationPoint) {
-  d.stopPoint = p; d.stoppedSince = p.timestamp; d.stopSamples = 1;
+  d.stopPoint = p; d.stoppedSince = p.timestamp; d.stopSamples = 1; d.parkedConfirmed = false;
+  d.departureSince = undefined; d.departureSamples = 0;
   d.endpoint = p; d.anchor = p; d.recent = [p]; d.movingSince = undefined;
+}
+
+// Native speed is only a heuristic: walking and slow queues overlap. Require
+// observed parking first, then sustained slow departure beyond GPS uncertainty.
+// Keep the parked boundary and freeze mileage until vehicle-speed motion returns.
+function slowDeparture(d: Detector, p: LocationPoint): boolean {
+  if (!d.stopPoint || d.stoppedSince === undefined || p.timestamp-d.stopPoint.timestamp < DETECTION.departureDwellMs) return false;
+  if (!Number.isFinite(p.speed) || p.speed < 0 || p.speed > DETECTION.departureSpeed) {
+    d.departureSince = undefined; d.departureSamples = 0; return false;
+  }
+  const displacement = meters(d.stopPoint,p);
+  if (displacement === null || displacement < Math.max(DETECTION.departureMeters, noise(d.stopPoint,p)*DETECTION.uncertaintyMultiplier)) return false;
+  d.departureSince ??= p.timestamp;
+  d.departureSamples = (d.departureSamples ?? 0)+1;
+  return p.timestamp-d.departureSince >= DETECTION.departureMs && d.departureSamples >= DETECTION.stopSamples && p.timestamp-d.stoppedSince >= DETECTION.stopMs;
 }
 
 function stationaryEvidence(d: Detector, p: LocationPoint): boolean {
@@ -73,6 +92,7 @@ function stationaryEvidence(d: Detector, p: LocationPoint): boolean {
     return false;
   }
   d.stoppedSince ??= p.timestamp;
+  if (p.speed >= 0 && p.speed <= DETECTION.nativeStillSpeed && p.timestamp-d.stoppedSince >= DETECTION.departureDwellMs) d.parkedConfirmed = true;
   d.stopSamples = (d.stopSamples ?? 0)+1;
   return p.timestamp-d.stoppedSince >= DETECTION.stopMs && d.stopSamples >= DETECTION.stopSamples;
 }
@@ -87,7 +107,9 @@ export function observeShiftPoint(d: Detector, p: LocationPoint, awaitingLegacyS
   }
   if (p.accuracy > DETECTION.boundaryAccuracy) {
     // Poor fixes cannot accumulate stationary evidence or move a boundary.
-    d.stoppedSince = undefined; d.stopSamples = 0; d.recent = [];
+    // Marginal fixes pause observation; they neither confirm nor erase a
+    // trustworthy parking point. A true coverage gap still resets confidence.
+    d.recent = []; d.departureSince = undefined; d.departureSamples = 0;
     d.anchor = undefined; d.movingSince = undefined;
     return false;
   }
@@ -104,6 +126,14 @@ export function observeShiftPoint(d: Detector, p: LocationPoint, awaitingLegacyS
     return false;
   }
   if (d.stopPoint) {
+    const slow = Number.isFinite(p.speed) && p.speed >= 0 && p.speed <= DETECTION.departureSpeed;
+    const parked = d.parkedConfirmed === true;
+    const displacement = meters(d.stopPoint,p);
+    // Once parked, slow movement away is ambiguous. Do not immediately replay
+    // it as driving; await sustained departure or clear vehicle-speed evidence.
+    if (parked && slow && displacement !== null && displacement > Math.max(DETECTION.stopRadiusMeters, noise(d.stopPoint,p))) {
+      return slowDeparture(d,p);
+    }
     const run = movement(d, DETECTION.resumeSpeed, DETECTION.resumeMeters);
     if (run) {
       // Replay only confirmed resumed movement once, never stationary wandering.

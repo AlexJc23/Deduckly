@@ -9,14 +9,13 @@ import {
 } from "../types/offer.types";
 
 export function analyzeOffer(
-  input: OfferInput
+  input: OfferInput,
+  fuelCost: number | null = null
 ): OfferResult {
-  const dollarsPerMile = calculateDollarsPerMile(
-    input.payout,
-    input.distance
-  );
-
-  const hourlyRate = calculateHourlyRate(input.payout, input.estimatedTime);
+  calculateDollarsPerMile(input.payout, input.distance);
+  const earnings = input.payout - (fuelCost ?? 0);
+  const dollarsPerMile = Number((earnings / input.distance).toFixed(2));
+  const hourlyRate = calculateHourlyRate(earnings, input.estimatedTime);
 
   let verdict: OfferResult["verdict"] = "skip";
   const reasons: string[] = [];
