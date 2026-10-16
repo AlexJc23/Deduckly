@@ -4,21 +4,32 @@ import { useState } from "react";
 import { Platform, StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
 import { OfferInput } from "../types/offer.types";
+import { useFuelPriceEditor } from "@/features/vehicles/use-fuel-price-editor";
+import type { FuelType } from "@/features/vehicles/types";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 type OfferFormProps = {
-  onAnalyze: (offer: OfferInput) => void;
+  onAnalyze: (offer: OfferInput, price: number | null, manual: boolean) => void;
+  collapsed?: boolean;
+  onEdit?: () => void;
+  onDraftChange?: () => void;
+  initialFuelPrice?: string;
+  fuelType?: FuelType;
+  priceScope?: string;
+  onSavePrice?: (value: string) => Promise<unknown>;
 };
 
 export function OfferForm({
-  onAnalyze,
+  onAnalyze, collapsed = false, onEdit, onDraftChange, initialFuelPrice = "", fuelType = "gasoline", priceScope = "", onSavePrice,
 }: OfferFormProps) {
-  useLanguage();
+  const { t } = useLanguage();
   const isTablet = useIsTablet();
   const styles = getStyles(isTablet);
 
   const [payout, setPayout] = useState("");
   const [distance, setDistance] = useState("");
+  const price = useFuelPriceEditor(initialFuelPrice, priceScope, onSavePrice);
+  const priceLabel = fuelType === "electric" ? "Current Electricity Price (optional)" : "Current Gas Price (optional)";
   const [estimatedTime, setEstimatedTime] =
     useState("");
 
@@ -26,7 +37,8 @@ export function OfferForm({
     !payout || !distance ||
       (!Number.isFinite(Number(payout)) || Number(payout) <= 0 ||
        !Number.isFinite(Number(distance)) || Number(distance) <= 0 ||
-       !Number.isFinite(Number(estimatedTime)) || Number(estimatedTime) < 0);
+       !Number.isFinite(Number(estimatedTime)) || Number(estimatedTime) < 0 ||
+       !price.parsed.valid);
 
   function handleAnalyze() {
     if (isAnalyzeDisabled) return;
@@ -34,10 +46,18 @@ export function OfferForm({
       payout: Number(payout),
       distance: Number(distance),
       estimatedTime: Number(estimatedTime),
+      additionalMiles: 0,
     };
 
-    onAnalyze(offer);
+    price.commit();
+    onAnalyze(offer, price.parsed.price, price.dirty);
   }
+
+  if (collapsed) return <View style={styles.container}>
+    <Text accessibilityRole="header" style={styles.title}>{t('Analyzed offer')}</Text>
+    <Text style={styles.label}>${Number(payout).toFixed(2)} · {distance} {t('miles')}{Number(estimatedTime)>0 ? ` · ${estimatedTime} ${t('minutes')}` : ''}</Text>
+    <Pressable accessibilityRole="button" accessibilityState={{ expanded: false }} onPress={onEdit} style={{minHeight:44,justifyContent:'center'}}><Text style={{color:'#0072B5',fontWeight:'700'}}>{t('Edit Offer')}</Text></Pressable>
+  </View>;
 
   return (
     <View style={styles.container}>
@@ -69,7 +89,7 @@ export function OfferForm({
             placeholderTextColor="#94A3B8"
             keyboardType="decimal-pad"
             value={payout}
-            onChangeText={Platform.OS === "android" ? value => setPayout(value.replace(",", ".")) : setPayout}
+            onChangeText={value => { onDraftChange?.(); setPayout(Platform.OS === "android" ? value.replace(",", ".") : value); }}
             style={styles.input}
           />
         </View>
@@ -85,7 +105,7 @@ export function OfferForm({
             placeholderTextColor="#94A3B8"
             keyboardType="decimal-pad"
             value={distance}
-            onChangeText={Platform.OS === "android" ? value => setDistance(value.replace(",", ".")) : setDistance}
+            onChangeText={value => { onDraftChange?.(); setDistance(Platform.OS === "android" ? value.replace(",", ".") : value); }}
             style={styles.input}
           />
         </View>
@@ -101,10 +121,22 @@ export function OfferForm({
             placeholderTextColor="#94A3B8"
             keyboardType="number-pad"
             value={estimatedTime}
-            onChangeText={Platform.OS === "android" ? value => setEstimatedTime(value.replace(",", ".")) : setEstimatedTime}
+            onChangeText={value => { onDraftChange?.(); setEstimatedTime(Platform.OS === "android" ? value.replace(",", ".") : value); }}
             style={styles.input}
           />
         </View>
+      </View>
+
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}><Translated text={priceLabel} /></Text>
+        <View style={[styles.inputWrapper, { flexDirection: 'row', alignItems: 'center' }]}>
+          <Text style={{ paddingLeft: 14 }}>$</Text>
+          <TextInput accessibilityLabel={t(priceLabel)} keyboardType="decimal-pad" value={price.value}
+            onChangeText={value => { onDraftChange?.(); price.change(value); }} onBlur={price.commit} placeholder={fuelType === 'electric' ? '0.20' : '3.25'} style={styles.input} />
+        </View>
+        <Text style={styles.subtitle}><Translated text={fuelType === 'electric' ? 'USD / kWh' : 'USD / US gallon'} /></Text>
+        {!price.parsed.valid && <Text accessibilityLiveRegion="polite"><Translated text="Enter a price from $0 to $100, or leave it blank." /></Text>}
+        {price.error && <Text accessibilityLiveRegion="polite"><Translated text="Price could not be saved on this device." /></Text>}
       </View>
 
       <Pressable

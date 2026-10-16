@@ -1,436 +1,100 @@
-import { useLanguage, Translated } from "@/i18n/language";
-import { View, Text, Pressable } from "@/theme/components";
-import { ActivityIndicator, StyleSheet } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
-
-import { BackHeader } from "@/components/ui/BackButton";
-import { DeleteTripModal } from "@/features/trips/components/DeleteTripModal";
-import { useDeleteTrip } from "@/features/trips/hooks/use-delete-trip";
-import { useTrip } from "@/features/trips/hooks/use-trips";
-import { PLATFORM_LABELS } from "@/constants/platform-labels";
-import { useIsTablet } from "@/hooks/use-is-tablet";
-
-const DATE_OPTIONS: Intl.DateTimeFormatOptions = {
-  month: "long",
-  day: "numeric",
-  year: "numeric",
-  hour: "numeric",
-  minute: "2-digit",
-};
-
+import { Image, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { platformIcons, type PlatformName } from '@/constants/platform-icons';
+import { useState, useSyncExternalStore } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { View, Text, Pressable, ScrollView, SafeAreaView, TextInput } from '@/theme/components';
+import { useLanguage } from '@/i18n/language';
+import { CompactSelect } from '@/components/ui/CompactSelect';
+import { DeleteTripModal } from '@/features/trips/components/DeleteTripModal';
+import { useDeleteTrip } from '@/features/trips/hooks/use-delete-trip';
+import { useUpdateTrip } from '@/features/trips/hooks/use-update-trip';
+import { useTrip } from '@/features/trips/hooks/use-trips';
+import type { Trip } from '@/features/trips/types/trips.types';
+import { useFuelAssumptions } from '@/features/vehicles/use-fuel-assumptions';
+import { estimateConsumption } from '@/features/vehicles/energy';
+import { platformName, SHIFT_PLATFORMS, elapsedMinutes } from '@/features/shifts/presentation';
+import { subscribeAccountBoundary, getAccountGeneration } from '@/features/auth/services/account-boundary';
 export default function TripDetailsScreen() {
-  const { locale } = useLanguage();
-  const { id } = useLocalSearchParams<{
-    id: string;
-  }>();
-
-  const isTablet = useIsTablet();
-  const styles = getStyles(isTablet);
-
-  const tripsQuery = useTrip(Number(id));
-  const deleteMutation = useDeleteTrip();
-
-  const [showDeleteModal, setShowDeleteModal] =
-    useState(false);
-
-  if (tripsQuery.isPending) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
-  if (
-    tripsQuery.isError ||
-    !tripsQuery.data
-  ) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.errorText}>
-          <Translated text={"Failed to load trip."} /></Text>
-      </View>
-    );
-  }
-
-  const trip = tripsQuery.data;
-
-  const platformLabel = trip.platform
-    ? PLATFORM_LABELS[
-        trip.platform as keyof typeof PLATFORM_LABELS
-      ] ?? "Other"
-    : trip.category ?? "Unknown";
-
-  return (
-    <View style={styles.screen}>
-      <BackHeader />
-
-      <View style={styles.container}>
-        <View style={styles.contentInner}>
-          <View style={styles.header}>
-            <Text style={styles.eyebrow}>
-              <Translated text={"TRIP"} /></Text>
-
-            <Text style={styles.title}>
-              <Translated text={"Trip Details"} /></Text>
-
-            <Text style={styles.subtitle}>
-              {new Date(
-                trip.start_time,
-              ).toLocaleDateString(
-                locale,
-                DATE_OPTIONS,
-              )}
-            </Text>
-          </View>
-
-          <View style={styles.card}>
-            <View style={styles.summaryRow}>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>
-                  <Translated text={"DISTANCE"} /></Text>
-
-                <Text style={styles.summaryValue}>
-                  {trip.distance_miles}
-                </Text>
-
-                <Text style={styles.summaryUnit}>
-                  <Translated text={"miles"} /></Text>
-              </View>
-
-              <View style={styles.summaryDivider} />
-
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>
-                  <Translated text={"PLATFORM"} /></Text>
-
-                <Text
-                  style={styles.summaryValueSmall}
-                  numberOfLines={1}
-                >
-                  {platformLabel}
-                </Text>
-              </View>
-
-              <View style={styles.summaryDivider} />
-
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>
-                  <Translated text={"CATEGORY"} /></Text>
-
-                <Text
-                  style={styles.summaryValueSmall}
-                  numberOfLines={1}
-                >
-                  {trip.category ?? "-"}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
-            <Text style={styles.sectionTitle}>
-              <Translated text={"Route"} /></Text>
-
-            <View style={styles.routeContainer}>
-              <View style={styles.routeLine}>
-                <View style={styles.pickupDot} />
-
-                <View style={styles.line} />
-
-                <View style={styles.dropoffDot} />
-              </View>
-
-              <View style={styles.addresses}>
-                <View style={styles.addressCard}>
-                  <Text style={styles.addressLabel}>
-                    <Translated text={"PICKUP"} /></Text>
-
-                  <Text style={styles.address}>
-                    {trip.start_address ??
-                      "Unknown"}
-                  </Text>
-                </View>
-
-                <View style={styles.addressCard}>
-                  <Text style={styles.addressLabelDropoff}>
-                    <Translated text={"DROPOFF"} /></Text>
-
-                  <Text style={styles.address}>
-                    {trip.end_address ??
-                      "Unknown"}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.deleteButton,
-              pressed &&
-                styles.deleteButtonPressed,
-            ]}
-            onPress={() =>
-              setShowDeleteModal(true)
-            }
-          >
-            <Text style={styles.deleteText}>
-              <Translated text={"Delete Trip"} /></Text>
-          </Pressable>
-
-          <DeleteTripModal
-            visible={showDeleteModal}
-            onClose={() =>
-              setShowDeleteModal(false)
-            }
-            onDelete={async () => {
-              setShowDeleteModal(false);
-
-              await deleteMutation.mutateAsync(
-                trip.id,
-              );
-
-              router.dismissTo("/activity");
-            }}
-          />
-        </View>
-      </View>
-    </View>
-  );
+ const { id } = useLocalSearchParams<{ id: string }>(); const { t } = useLanguage();
+ const generation = useSyncExternalStore(subscribeAccountBoundary,getAccountGeneration,getAccountGeneration);
+ const query = useTrip(Number(id));
+ return <SafeAreaView style={s.screen}><KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
+  <View style={s.nav}><Pressable accessibilityRole="button" accessibilityLabel={t('Back')} onPress={() => router.back()} style={s.action}><Text style={s.blue}>‹ {t('Back')}</Text></Pressable><Text accessibilityRole="header" style={s.title}>{t('Trip Details')}</Text></View>
+  {query.isPending ? <ActivityIndicator accessibilityLabel={t('Loading trip')} /> : query.isError || !query.data ? <View style={s.content}><Text accessibilityRole="alert">{t('Failed to load trip.')}</Text><Pressable accessibilityRole="button" onPress={() => void query.refetch()} style={s.action}><Text style={s.blue}>{t('Try again')}</Text></Pressable></View> : <TripContent key={`${generation}:${query.data.user_id}:${query.data.id}`} trip={query.data} />}
+ </KeyboardAvoidingView></SafeAreaView>;
 }
+function TripContent({ trip }: { trip: Trip }) {
+ const { t, locale } = useLanguage(); const update = useUpdateTrip(), deletion = useDeleteTrip();
+ const { assumptions } = useFuelAssumptions();
+ const [editing,setEditing] = useState(false), [category,setCategory] = useState(trip.category), [platform,setPlatform] = useState(trip.platform ?? '');
+ const [showFuel,setShowFuel] = useState(false), [showDelete,setShowDelete] = useState(false);
+ const [notes,setNotes] = useState(trip.notes ?? ''); const supportsNotes = Object.hasOwn(trip,'notes');
+ const busy = update.isPending || deletion.isPending;
+ const duration = elapsedMinutes(trip.start_time, trip.end_time, Date.now());
+ const estimate = assumptions ? estimateConsumption(Number(trip.distance_miles),assumptions.fuelType,assumptions.economy,assumptions.price) : null;
+ const electric = assumptions?.fuelType === 'electric';
+ const money = (value: number) => new Intl.NumberFormat(locale,{style:'currency',currency:'USD'}).format(value);
+ const platformChoices = [...(!trip.platform ? [{ value:'', label:t('No platform') }] : []), ...SHIFT_PLATFORMS.map(p => ({value:p,label:t(platformName(p))}))];
+ // Keep any historical API enum visible without inventing an unsupported value.
+ if (trip.platform && !platformChoices.some(p => p.value === trip.platform)) platformChoices.push({value:trip.platform,label:t(platformName(trip.platform))});
+ async function save() {
+  if (busy) return;
+  try { await update.mutateAsync({tripId:trip.id,trip:{category,...(platform ? {platform} : {}),...(supportsNotes ? {notes:notes.trim() || null} : {})}});setEditing(false); }
+  catch { Alert.alert(t('Could not save trip'),t('Connect to save changes. Your edits are still here; try again.')); }
+ }
+ return <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>
+  <View style={s.card}>
+   <View style={{flexDirection:'row',alignItems:'center',gap:12}}><View style={{flex:1,gap:4}}><Text style={s.heading}>{t('Trip')}</Text><Text style={s.muted}>{new Date(trip.start_time).toLocaleString(locale,{dateStyle:'medium',timeStyle:'short'})}</Text></View><Pressable accessibilityRole="button" accessibilityState={{expanded:editing,disabled:busy}} disabled={busy} onPress={() => {setCategory(trip.category);setPlatform(trip.platform ?? '');setNotes(trip.notes ?? '');setEditing(!editing);}} style={s.edit}><Text style={s.blue}>{t(editing ? 'Cancel editing' : 'Edit trip')}</Text></Pressable></View>
+   <View style={s.metrics}>
+    <View style={s.metric}><Text style={s.miles}>{trip.distance_miles != null && Number.isFinite(Number(trip.distance_miles)) ? Number(trip.distance_miles).toFixed(2) : '—'}</Text><Text style={s.muted}>{t('miles')}</Text></View>
+    <View style={s.metric}>{trip.platform && trip.platform in platformIcons && <Image accessible={false} source={platformIcons[trip.platform as PlatformName]} resizeMode="contain" style={{width:30,height:24}}/>}<Text style={s.muted}>{t('Platform')}</Text><Text style={{fontWeight:'600'}}>{t(platformName(trip.platform))}</Text></View>
+    <View style={s.metric}><Text style={s.muted}>{t('Category')}</Text><Text style={{fontWeight:'600'}}>{t(trip.category === 'business' ? 'Business' : 'Personal')}</Text></View>
+   </View>{duration>0&&<Text style={s.muted}>{t('{minutes} min',{minutes:duration})}</Text>}
+   {editing && <View style={{gap:12}}>
+    <CompactSelect label="Category" value={category} choices={[{value:'business',label:t('Business')},{value:'personal',label:t('Personal')}]} onChange={setCategory} disabled={busy}/>
+    <CompactSelect label="Platform" value={platform} choices={platformChoices} onChange={setPlatform} disabled={busy}/>
+    <Text style={s.muted}>{t('Category changes update mileage deductions. Saving requires a connection.')}</Text>
+    <Pressable accessibilityRole="button" disabled={busy} accessibilityState={{disabled:busy,busy:update.isPending}} onPress={() => void save()} style={s.primary}><Text style={{color:'#FFFFFF',fontWeight:'700'}}>{t(update.isPending ? 'Saving…' : 'Save changes')}</Text></Pressable>
+   </View>}
+  </View>
+  <View style={s.card}>
+   <Text accessibilityRole="header" style={s.heading}>{t('Route')}</Text>
+   <View style={s.route}><View style={s.timeline}/><View style={[s.dot,{backgroundColor:'#2EAF4A'}]}/><View style={{flex:1,gap:6}}><Text style={s.muted}>{t('Driving start')}</Text><Text selectable style={s.address}>{trip.start_address?.trim() || t('Address unavailable')}</Text></View></View>
+   <View style={s.route}><View style={[s.dot,{backgroundColor:'#4A6FE3'}]}/><View style={{flex:1,gap:6}}><Text style={s.muted}>{t('Driving end')}</Text><Text selectable style={s.address}>{trip.end_address?.trim() || t('Address unavailable')}</Text></View></View>
+  </View>
+  <View style={s.card}>
+   <Text accessibilityRole="header" style={s.heading}>{t(electric ? 'Estimated energy cost' : 'Estimated fuel cost')}</Text>
+   {estimate && assumptions ? <>
+    <Text style={{fontWeight:'600'}}>{assumptions.vehicle}</Text>
+    <View style={s.metrics}>
+     <View style={s.fuelCell}><Text style={{fontWeight:'700'}}>{Number(trip.distance_miles).toFixed(2)}</Text><Text style={s.muted}>{t('miles')}</Text></View>
+     <View style={s.fuelCell}><Text style={{fontWeight:'700'}}>{assumptions.economy} {t(electric?'kWh / 100 miles':'MPG')}</Text><Text style={s.muted}>{t('Fuel economy')}</Text></View>
+     <View style={s.fuelCell}><Text style={{fontWeight:'700'}}>{estimate.units.toFixed(2)} {t(electric?'kWh':'gal')}</Text><Text style={s.muted}>{t('Estimated consumption')}</Text></View>
+     <View style={s.fuelCell}><Text style={{fontWeight:'700'}}>{estimate.cost===null?t('Fuel price unavailable'):`${money(assumptions.price!)}${t(electric?'/kWh':'/gal')}`}</Text><Text style={s.muted}>{t('Saved price')}</Text></View>
+    </View>
+    {estimate.cost!==null&&<View style={s.estimateTotal}><Text style={{fontSize:18,fontWeight:'700',color:'#15803D'}}>{money(estimate.cost)}</Text><Text style={s.muted}>{t(electric?'Estimated energy cost':'Estimated fuel cost')}</Text></View>}
+    <Text style={s.muted}>{t('Based on current saved vehicle and price settings, not historical trip data.')}</Text>
+    <Pressable accessibilityRole="button" accessibilityState={{expanded:showFuel}} onPress={() => setShowFuel(!showFuel)} style={s.action}><Text style={s.blue}>{t('Estimate assumptions')} {showFuel ? '−' : '+'}</Text></Pressable>
+    {showFuel && <View style={{gap:8}}><Text>{t(assumptions.source)}</Text>{assumptions.observedAt && <Text>{t('Price observed')}: {new Date(assumptions.observedAt).toLocaleString(locale)}</Text>}<Text style={s.muted}>{t('Estimate only. No expense is recorded and tax deductions are unchanged.')}</Text></View>}
 
-const getStyles = (isTablet: boolean) =>
-  StyleSheet.create({
-    screen: {
-      flex: 1,
-      backgroundColor: "#F8FAFC",
-    },
-
-    container: {
-      flex: 1,
-      backgroundColor: "#F8FAFC",
-      paddingHorizontal: isTablet ? 34 : 20,
-      paddingTop: isTablet ? 26 : 70,
-    },
-
-    contentInner: {
-      width: "100%",
-      maxWidth: isTablet ? 1000 : undefined,
-      alignSelf: isTablet ? "center" : undefined,
-    },
-
-    loadingContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "#F8FAFC",
-    },
-
-    errorText: {
-      fontSize: isTablet ? 18 : 16,
-      color: "#6B7280",
-    },
-
-    header: {
-      marginBottom: isTablet ? 28 : 24,
-    },
-
-    eyebrow: {
-      fontSize: isTablet ? 11 : 10,
-      fontWeight: "800",
-      letterSpacing: 1.2,
-      color: "#64748B",
-      marginBottom: 5,
-    },
-
-    title: {
-      fontSize: isTablet ? 38 : 32,
-      lineHeight: isTablet ? 45 : 38,
-      fontWeight: "800",
-      color: "#111827",
-      letterSpacing: -0.8,
-    },
-
-    subtitle: {
-      marginTop: 7,
-      color: "#6B7280",
-      fontSize: isTablet ? 15 : 15,
-      lineHeight: isTablet ? 22 : 20,
-    },
-
-    card: {
-      backgroundColor: "#FFFFFF",
-      borderRadius: isTablet ? 24 : 20,
-      padding: isTablet ? 28 : 20,
-      borderWidth: 1,
-      borderColor: "#EEF2F6",
-
-      shadowColor: "#111827",
-      shadowOpacity: isTablet ? 0.05 : 0,
-      shadowRadius: 12,
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
-
-      elevation: isTablet ? 2 : 0,
-    },
-
-    summaryRow: {
-      flexDirection: "row",
-      alignItems: "stretch",
-      minHeight: isTablet ? 92 : 66,
-    },
-
-    summaryItem: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: isTablet ? 10 : 4,
-    },
-
-    summaryLabel: {
-      fontSize: isTablet ? 10 : 8,
-      fontWeight: "800",
-      letterSpacing: 0.8,
-      color: "#94A3B8",
-    },
-
-    summaryValue: {
-      marginTop: isTablet ? 6 : 4,
-      fontSize: isTablet ? 30 : 20,
-      lineHeight: isTablet ? 36 : 25,
-      fontWeight: "800",
-      color: "#111827",
-    },
-
-    summaryUnit: {
-      marginTop: 1,
-      fontSize: isTablet ? 11 : 9,
-      color: "#64748B",
-      fontWeight: "600",
-    },
-
-    summaryValueSmall: {
-      marginTop: isTablet ? 8 : 5,
-      fontSize: isTablet ? 17 : 14,
-      fontWeight: "800",
-      color: "#111827",
-      textAlign: "center",
-    },
-
-    summaryDivider: {
-      width: 1,
-      backgroundColor: "#EEF2F6",
-      marginVertical: isTablet ? 10 : 6,
-    },
-
-    divider: {
-      height: 1,
-      backgroundColor: "#EEF2F6",
-      marginVertical: isTablet ? 24 : 18,
-    },
-
-    sectionTitle: {
-      fontSize: isTablet ? 20 : 18,
-      fontWeight: "700",
-      color: "#111827",
-      marginBottom: isTablet ? 18 : 12,
-    },
-
-    routeContainer: {
-      flexDirection: "row",
-      minHeight: isTablet ? 170 : 128,
-    },
-
-    routeLine: {
-      width: isTablet ? 34 : 25,
-      alignItems: "center",
-      paddingTop: isTablet ? 18 : 15,
-    },
-
-    pickupDot: {
-      width: isTablet ? 14 : 11,
-      height: isTablet ? 14 : 11,
-      borderRadius: 999,
-      backgroundColor: "#2EAF4A",
-      borderWidth: isTablet ? 3 : 2,
-      borderColor: "#DCFCE7",
-    },
-
-    line: {
-      flex: 1,
-      width: 2,
-      backgroundColor: "#CBD5E1",
-      marginVertical: 4,
-    },
-
-    dropoffDot: {
-      width: isTablet ? 14 : 11,
-      height: isTablet ? 14 : 11,
-      borderRadius: 999,
-      backgroundColor: "#4A6FE3",
-      borderWidth: isTablet ? 3 : 2,
-      borderColor: "#DCE6FF",
-    },
-
-    addresses: {
-      flex: 1,
-      gap: isTablet ? 14 : 12,
-    },
-
-    addressCard: {
-      flex: 1,
-      backgroundColor: "#F9FAFB",
-      borderRadius: isTablet ? 16 : 14,
-      padding: isTablet ? 17 : 14,
-      justifyContent: "center",
-    },
-
-    addressLabel: {
-      color: "#2EAF4A",
-      fontWeight: "800",
-      marginBottom: 5,
-      fontSize: isTablet ? 11 : 12,
-      letterSpacing: 0.5,
-    },
-
-    addressLabelDropoff: {
-      color: "#4A6FE3",
-      fontWeight: "800",
-      marginBottom: 5,
-      fontSize: isTablet ? 11 : 12,
-      letterSpacing: 0.5,
-    },
-
-    address: {
-      color: "#374151",
-      fontSize: isTablet ? 16 : 15,
-      lineHeight: isTablet ? 24 : 22,
-    },
-
-    deleteButton: {
-      marginTop: isTablet ? 20 : 12,
-      backgroundColor: "#FEF2F2",
-      borderRadius: isTablet ? 17 : 16,
-      minHeight: isTablet ? 60 : 0,
-      paddingVertical: isTablet ? 0 : 16,
-      alignItems: "center",
-      justifyContent: "center",
-      borderWidth: 1,
-      borderColor: "#FECACA",
-    },
-
-    deleteButtonPressed: {
-      backgroundColor: "#FEE2E2",
-      transform: [{ scale: 0.985 }],
-    },
-
-    deleteText: {
-      color: "#DC2626",
-      fontSize: isTablet ? 17 : 16,
-      fontWeight: "700",
-    },
-  });
+   </> : <Text style={s.muted}>{t('Save a default vehicle with fuel economy in Settings to see an estimate.')}</Text>}
+  </View>
+  {supportsNotes&&<View style={s.card}><Text accessibilityRole="header" style={s.heading}>{t('Notes (optional)')}</Text>{editing?<TextInput accessibilityLabel={t('Trip notes')} placeholder={t('Add notes about this trip…')} value={notes} onChangeText={setNotes} multiline maxLength={2000} editable={!busy} style={s.notes}/>:<Text selectable style={s.muted}>{trip.notes?.trim() || t('No notes added')}</Text>}{editing&&<Pressable accessibilityRole="button" disabled={busy} onPress={()=>void save()} style={s.primary}><Text style={{color:'#FFFFFF',fontWeight:'700'}}>{t('Save changes')}</Text></Pressable>}</View>}
+  <Pressable accessibilityRole="button" disabled={busy} onPress={() => setShowDelete(true)} style={s.destructive}><Text style={{color:'#DC2626',fontWeight:'600'}}>{t('Delete Trip')}</Text></Pressable>
+  <DeleteTripModal visible={showDelete} onClose={() => setShowDelete(false)} onDelete={async () => {
+   if (busy) return;setShowDelete(false);
+   try {await deletion.mutateAsync(trip.id);router.dismissTo('/activity');}
+   catch {Alert.alert(t('Could not delete trip'),t('The trip was not removed. Check your connection and try again.'));}
+  }}/>
+ </ScrollView>;
+}
+const s = StyleSheet.create({
+ screen:{flex:1,backgroundColor:'#F8FAFC'},nav:{paddingHorizontal:20,flexDirection:'row',alignItems:'center',flexWrap:'wrap',gap:16,width:'100%',maxWidth:760,alignSelf:'center'},
+ title:{fontSize:22,fontWeight:'700',flexShrink:1},content:{padding:20,gap:16,paddingBottom:40,width:'100%',maxWidth:760,alignSelf:'center'},
+ card:{backgroundColor:'#FFFFFF',borderRadius:20,borderWidth:1,borderColor:'#E2E8F0',padding:20,gap:12},heading:{fontSize:18,fontWeight:'700',flexShrink:1},
+ edit:{minHeight:44,borderWidth:1,borderColor:'#0072B5',borderRadius:16,paddingHorizontal:12,justifyContent:'center',maxWidth:'50%'},
+ metrics:{flexDirection:'row',flexWrap:'wrap',gap:12},metric:{flex:1,minWidth:75,gap:5,justifyContent:'center'},fuelCell:{flexBasis:'44%',flexGrow:1,minWidth:110,gap:4,padding:10,backgroundColor:'#F8FAFC',borderRadius:10},estimateTotal:{flexDirection:'row',flexWrap:'wrap',gap:8,alignItems:'center',backgroundColor:'#F0FDF4',padding:12,borderRadius:10},notes:{minHeight:88,borderWidth:1,borderColor:'#E2E8F0',borderRadius:12,padding:12,textAlignVertical:'top'},destructive:{minHeight:48,alignItems:'center',justifyContent:'center',padding:14,borderRadius:14,borderWidth:1,borderColor:'#DC2626',backgroundColor:'#FFF5F5'},timeline:{position:'absolute',top:20,bottom:-20,left:4,width:2,backgroundColor:'#E2E8F0'},
+ miles:{fontSize:25,fontWeight:'800'},muted:{fontSize:14,color:'#64748B',flexShrink:1},row:{flexDirection:'row',flexWrap:'wrap',gap:8},badge:{backgroundColor:'#F1F5F9',padding:8,borderRadius:8,flexShrink:1},
+ action:{minHeight:48,paddingVertical:12,justifyContent:'center'},blue:{color:'#4A6FE3',fontWeight:'600'},primary:{backgroundColor:'#4A6FE3',borderRadius:12,minHeight:48,padding:14,alignItems:'center'},
+ route:{flexDirection:'row',gap:12,paddingVertical:10},dot:{height:10,width:10,borderRadius:5,marginTop:6},address:{fontSize:16,flexShrink:1},
+});

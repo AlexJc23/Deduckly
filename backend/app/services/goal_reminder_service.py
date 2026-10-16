@@ -5,7 +5,7 @@ from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from sqlalchemy.exc import IntegrityError
 from app.models.notification_occurrence import NotificationOccurrence
-from app.services.notification_message_service import build_daily_goal_message, build_monthly_kickoff_message
+from app.services.notification_message_service import build_monthly_kickoff_message
 from app.services.notification_service import send_push_notification, get_push_receipts
 from app.models.user import User
 
@@ -13,21 +13,19 @@ logger = logging.getLogger(__name__)
 
 
 def due_reminders(user, now):
-    """A 15-minute grace window tolerates brief downtime without stale catch-up pushes."""
+    """Only the monthly kickoff remains; retired daily income reminders never catch up."""
     if not user.notifications_enabled or not user.goal_reminders_enabled or not user.expo_push_token:
         return []
     try:
         local = now.astimezone(ZoneInfo(user.timezone))
     except (ZoneInfoNotFoundError, ValueError, TypeError):
         return []  # Do not guess a local delivery time.
-    if local.minute >= 15 or local.hour not in (8, 12, 16):
+    if local.minute >= 15 or local.hour != 8 or local.day != 1:
         return []
     messages = []
     if local.day == 1 and local.hour == 8:
         messages.append(("monthly_kickoff", local.strftime("%Y-%m"),
                          build_monthly_kickoff_message(local.strftime("%B"), user.monthly_income_goal)))
-    messages.append((f"daily_{local.hour}", local.date().isoformat(),
-                     build_daily_goal_message(local.hour, user.daily_income_goal)))
     return messages
 
 

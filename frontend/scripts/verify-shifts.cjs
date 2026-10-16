@@ -80,9 +80,9 @@ const trip = { category: 'business', platform: 'spark', trackingMethod: 'automat
       assert.equal((await j.activeShift('1')).data.segments.length,0);
       for(let i=1;i<=4;i++){ now+=10000; await j.recordShiftPoints(e.data.client_id,[h.point(i*10,now)]); }
       for(let i=0;i<j.DETECTION.stopMs/10000+2;i++){ now+=10000; await j.recordShiftPoints(e.data.client_id,[{...h.point(40,now),speed:0}]); }
-      const saved=await j.activeShift('1'); assert.equal(saved.data.segments.length,1); assert(saved.data.segments[0].distance_miles>.05); assert.equal(saved.data.segments[0].category,'personal');
-      await j.editShift('1',e.data.client_id,entry=>{entry.data.segments[0].category='business';entry.data.segments[0].excluded=true;});
-      const restored=(await harness(h.disk).load('@/features/shifts/journal').listShifts('1'))[0]; assert(restored.data.segments[0].excluded);
+      const saved=await j.activeShift('1'); assert.equal(saved.data.segments.length,1); assert(saved.data.segments[0].distance_miles>.05); assert.equal(saved.data.segments[0].category,'business');
+      await j.editShift('1',e.data.client_id,entry=>{entry.data.segments[0].category='personal';entry.data.segments[0].reviewed=true;entry.data.segments[0].excluded=true;});
+      const restored=(await harness(h.disk).load('@/features/shifts/journal').listShifts('1'))[0]; assert(restored.data.segments[0].excluded); assert.equal(restored.data.segments[0].category,'personal'); assert(restored.data.segments[0].reviewed); assert.equal(restored.data.segments[0].start_lat,saved.data.segments[0].start_lat); assert.equal(restored.data.segments[0].platform_client_id,saved.data.segments[0].platform_client_id);
       assert.equal((await h.journal().pendingTrips('1')).length,0);
     } finally { Date.now=original; }
   });

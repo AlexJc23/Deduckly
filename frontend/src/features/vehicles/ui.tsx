@@ -1,10 +1,10 @@
 import { StyleSheet } from 'react-native';
 import { View, Text, TextInput, Pressable } from '@/theme/components';
 import { useLanguage } from '@/i18n/language';
-export function Field({ label, value, onChange, numeric = false }: { label: string; value: string; onChange: (s: string) => void; numeric?: boolean }) {
+export function Field({ label, value, onChange, numeric = false, onBlur }: { label: string; value: string; onChange: (s: string) => void; numeric?: boolean; onBlur?: () => void }) {
   const { t } = useLanguage();
   return <View style={{ gap: 6 }}><Text>{t(label)}</Text><TextInput accessibilityLabel={t(label)} value={value}
-    onChangeText={s => onChange(numeric ? s.replace(',', '.') : s)} keyboardType={numeric ? 'decimal-pad' : 'default'}
+    onBlur={onBlur} onChangeText={s => onChange(numeric ? s.replace(',', '.') : s)} keyboardType={numeric ? 'decimal-pad' : 'default'}
     style={styles.input} /></View>;
 }
 export function Button({ title, onPress, disabled = false }: { title: string; onPress: () => void; disabled?: boolean }) {

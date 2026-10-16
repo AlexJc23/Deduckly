@@ -6,7 +6,11 @@ export function useDeleteTrip() {
 
   return useMutation({
     mutationFn: deleteTrip,
-    onSuccess: () => {
+    onSuccess: (_, id) => {
+      for (const key of ['report', 'daily-goal', 'monthly-goal', 'income']) {
+        void queryClient.invalidateQueries({ queryKey: [key] });
+      }
+      queryClient.removeQueries({ queryKey: ['trip', id], exact: true });
       queryClient.invalidateQueries({
         queryKey: ["trips"],
       });

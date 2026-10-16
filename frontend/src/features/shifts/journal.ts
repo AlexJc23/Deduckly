@@ -40,7 +40,7 @@ function finishSegment(e: Entry, end: number) {
   const d = e.detector;
   if (d.driving && d.start && d.miles >= DETECTION.minimumMiles) {
     const p = e.data.platform_sessions.find(p => !p.ended_at);
-    e.data.segments.push({ client_id: id(), started_at: iso(d.start), ended_at: iso(end), distance_miles: Math.round(d.miles * 100) / 100, start_lat: d.first?.latitude ?? null, start_lng: d.first?.longitude ?? null, end_lat: d.endpoint?.latitude ?? null, end_lng: d.endpoint?.longitude ?? null, category: 'personal', reviewed: false, excluded: false, platform_client_id: p?.client_id ?? null });
+    e.data.segments.push({ client_id: id(), started_at: iso(d.start), ended_at: iso(end), distance_miles: Math.round(d.miles * 100) / 100, start_lat: d.first?.latitude ?? null, start_lng: d.first?.longitude ?? null, end_lat: d.endpoint?.latitude ?? null, end_lng: d.endpoint?.longitude ?? null, category: 'business', reviewed: false, excluded: false, platform_client_id: p?.client_id ?? null });
     touch(e);
   }
   e.detector = { miles: 0, driving: false };

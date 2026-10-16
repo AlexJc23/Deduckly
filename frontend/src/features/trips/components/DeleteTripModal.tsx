@@ -18,11 +18,11 @@ export function DeleteTripModal({
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="none"
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modal}>
+        <View style={styles.modal} accessibilityViewIsModal>
           <Text style={styles.title}>
             <Translated text={"Delete Trip?"} /></Text>
 
@@ -31,6 +31,7 @@ export function DeleteTripModal({
 
           <View style={styles.buttonRow}>
             <Pressable
+              accessibilityRole="button"
               style={[styles.button, styles.cancelButton]}
               onPress={onClose}
             >
@@ -39,6 +40,7 @@ export function DeleteTripModal({
             </Pressable>
 
             <Pressable
+              accessibilityRole="button"
               style={[styles.button, styles.deleteButton]}
               onPress={onDelete}
             >
@@ -63,6 +65,7 @@ const styles = StyleSheet.create({
 
   modal: {
     width: "100%",
+    maxWidth: 500,
     backgroundColor: "#fff",
     borderRadius: 20,
     padding: 24,
@@ -85,11 +88,14 @@ const styles = StyleSheet.create({
 
   buttonRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
   },
 
   button: {
     flex: 1,
+    minWidth: 110,
+    minHeight: 48,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",

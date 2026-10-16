@@ -25,7 +25,7 @@ class PushOwnershipTests(unittest.IsolatedAsyncioTestCase):
         self.a = User(id=1, first_name="A", last_name="Test", email="a@example.com", timezone="UTC")
         self.b = User(id=2, first_name="B", last_name="Test", email="b@example.com", timezone="UTC")
         self.db.add_all([self.a, self.b]); self.db.commit()
-        self.now = datetime(2026, 9, 2, 8, tzinfo=timezone.utc)
+        self.now = datetime(2026, 9, 1, 8, tzinfo=timezone.utc)
     def tearDown(self):
         self.db.close(); self.engine.dispose()
     async def test_a_then_b_owns_token_and_only_b_receives(self):

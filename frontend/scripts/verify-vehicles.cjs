@@ -30,7 +30,7 @@ assert.equal(energy.estimateEnergy({...base,price:0}).cost,0);
 for(const change of [{miles:0},{miles:-1},{economy:0},{economy:null},{price:null},{price:-1},{price:NaN},{additionalMiles:-1},{fuelType:'other'}]) assert.equal(energy.estimateEnergy({...base,...change}),null);
 const vehicle={id:'v',fuel_type:'gasoline',combined_mpg:25,custom_mpg:32,is_default:true,deleted:false};
 assert.equal(energy.effectiveEconomy(vehicle),32);
-assert.equal(energy.defaultVehicle([vehicle],false),null);
+assert.equal(energy.defaultVehicle([vehicle],false),vehicle);
 assert.equal(energy.defaultVehicle([vehicle],true),vehicle);
 assert.equal(energy.defaultVehicle([{...vehicle,deleted:true}],true),null);
 const now=Date.now(), quote={price:3,unit:'USD/US-gallon',fuel_type:'gasoline',source:'Test',location:'Test',observed_at:new Date(now-3600000).toISOString()};
@@ -85,9 +85,34 @@ console.log('PASS fuel/EV math, overrides, additional mileage, missing/invalid v
  mocks['@/api/client'].api.put=async()=>{owner='B';generation++;return {data:{}};};
  await assert.rejects(store.syncVehicles('A'));assert.equal((await store.readVehicles('A')).pending.length,1);
  assert.equal((await store.readVehicles('B')).vehicles.length,0);
+ await store.saveFuelArea('B','30301');
+ assert.equal((await store.readVehicles('B')).postalCode,'30301');
+ assert.equal((await store.readVehicles('A')).postalCode,undefined);
  await store.saveQuote('B','30301',{...quote,fuel_type:'gasoline'});
  assert.equal((await store.readVehicles('B')).quotes['30301:gasoline'].price,3);
  assert.equal((await store.readVehicles('A')).quotes['30301:gasoline'],undefined);
+ let effects=[], premium=true, state={owner:'B',data:await store.readVehicles('B')};
+ state.data.vehicles=[{...vehicle,deleted:false}];
+ let pricingResult={data:{quote:{...quote,fuel_type:'gasoline'}}}, saved=0, request;
+ const hookMocks={
+  react:{useEffect:fn=>effects.push(fn)},
+  '@/api/client':{api:{get:async(url,config)=>{request={url,config};return pricingResult;}}},
+  '@/features/auth/services/account-boundary':{getAccountGeneration:()=>generation},
+  '@/features/subscriptions/hooks/use-premium':{usePremium:()=>({isPremium:premium})},
+  './use-vehicles':{useVehicles:()=>state},
+  './store':{saveQuote:async(...args)=>{saved++;await store.saveQuote(...args);}},
+ };
+ const hook=loader(hookMocks)('src/features/vehicles/use-fuel-assumptions.ts').useFuelAssumptions;
+ const tick=()=>new Promise(resolve=>setImmediate(resolve));
+ hook();effects.pop()();await tick();
+ assert.equal(saved,1);assert.equal(request.config.deducklyOwnerId,'B');
+ assert.equal(request.config.params.postal_code,'30301');
+ assert.equal(request.config.params.fuel_type,'gasoline');
+ premium=false;hook();effects.pop()();await tick();assert.equal(saved,1);
+ premium=true;pricingResult={data:{quote:null}};hook();effects.pop()();await tick();assert.equal(saved,1);
+ pricingResult={data:{quote:{...quote,fuel_type:'electric',unit:'USD/kWh'}}};hook();effects.pop()();await tick();assert.equal(saved,1);
+ pricingResult={data:{quote:{...quote,fuel_type:'gasoline'}}};hook();const cleanup=effects.pop()();generation++;cleanup();await tick();assert.equal(saved,1);
+ console.log('PASS automatic Pro price retrieval, area/fuel matching, Free guard, provider fallback and late account response rejection');
  disk.set('@deduckly/vehicles:v1:C','broken');
  await assert.rejects(store.readVehicles('C'));assert.equal(disk.get('@deduckly/vehicles:v1:C'),'broken');
  console.log('PASS offline save/edit/delete, restart, retained manual prices, owner isolation, response-loss retry, stale response rejection');

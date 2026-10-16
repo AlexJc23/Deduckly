@@ -12,7 +12,7 @@ from zoneinfo import ZoneInfo
 from app.api.dependencies.auth import get_current_user
 from app.api.dependencies.subscription import require_active_subscription
 from app.db.session import get_db
-from app.models import User
+from app.models import User, Trip
 from app.services.pdf_service import build_tax_report_pdf
 from app.services.report_service import generate_tax_report
 from app.services.trip_service import get_daily_trip_breakdown
@@ -67,6 +67,12 @@ def get_today_report(
     )
 
     report["trip_breakdown"] = trip_breakdown
+    # Saved Trips only, including Personal. ShiftSegments never participate.
+    report["saved_trip_count"] = db.query(Trip).filter(
+        Trip.user_id == current_user.id,
+        Trip.start_time >= start_of_day,
+        Trip.start_time < start_of_next_day,
+    ).count()
 
     return report
 

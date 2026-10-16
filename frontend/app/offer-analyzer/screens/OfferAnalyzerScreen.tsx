@@ -1,8 +1,12 @@
+import { NAVY } from '@/theme/palette';
 import { subscribeAccountBoundary, getAccountGeneration } from "@/features/auth/services/account-boundary";
-import { EnergyPanel } from "@/features/vehicles/EnergyPanel";
+import { savePrice } from "@/features/vehicles/store";
+import { withFuelPrice } from "@/features/vehicles/fuel-price-input";
+import { useFuelAssumptions } from "@/features/vehicles/use-fuel-assumptions";
+import { analyzeIntegratedOffer } from "@/features/offer-analyzer/utils/integrated";
 import { useAppTheme } from "@/theme/theme";
 import { View, ScrollView } from "@/theme/components";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, StyleSheet } from "react-native";
 
 import { BackHeader } from "@/components/ui/BackButton";
@@ -17,8 +21,6 @@ import {
   PremiumOfferResult,
 } from "@/features/offer-analyzer/types/offer.types";
 
-import { analyzeOffer } from "@/features/offer-analyzer/utils/verdict";
-import { analyzePremiumOffer } from "@/features/offer-analyzer/utils/premium";
 
 import { usePreferences } from "@/features/settings/hooks/usePreferences";
 import { usePremium } from "@/features/subscriptions/hooks/use-premium";
@@ -33,20 +35,30 @@ function AccountOfferAnalyzer() {
   const { dark } = useAppTheme();
   const styles = getStyles(isTablet);
 
-  const [lastOffer, setLastOffer] = useState<OfferInput | null>(null);
+  const fuelState = useFuelAssumptions();
+  const { assumptions } = fuelState;
+  const fuelType = assumptions?.fuelType ?? 'gasoline';
+  const priceGeneration = getAccountGeneration();
+  const savedPrice = fuelState.data?.prices[fuelType];
+  const initialPrice = savedPrice?.trim() ? savedPrice : (assumptions?.price == null ? '' : String(assumptions.price));
   const [result, setResult] = useState<
     OfferResult | PremiumOfferResult | null
   >(null);
 
+  const scroll = useRef<ScrollView>(null);
+  useEffect(() => {
+    if (!result) return;
+    const frame = requestAnimationFrame(() => scroll.current?.scrollTo({ y: 0, animated: false }));
+    return () => cancelAnimationFrame(frame);
+  }, [result]);
   const { preferences } = usePreferences();
 
-  // TODO: Replace with RevenueCat
   const { isPremium } = usePremium();
   function handleAnalyze(
-    offer: OfferInput,
+    offer: OfferInput, price: number | null, manual: boolean,
   ) {
     Keyboard.dismiss();
-    setLastOffer(offer);
+    const analysisAssumptions = withFuelPrice(assumptions, price, manual || price !== assumptions?.price);
 
     if (isPremium) {
       if (!preferences) {
@@ -54,7 +66,7 @@ function AccountOfferAnalyzer() {
       }
 
       const premiumResult =
-        analyzePremiumOffer(
+        analyzeIntegratedOffer(
           offer,
           {
             costPerMile: Number(
@@ -75,6 +87,7 @@ function AccountOfferAnalyzer() {
                 preferences.preferredMaxDistance,
               ),
           },
+          analysisAssumptions,
         );
 
       setResult(
@@ -84,7 +97,7 @@ function AccountOfferAnalyzer() {
     }
 
     const freeResult =
-      analyzeOffer(offer);
+      analyzeIntegratedOffer(offer, null, analysisAssumptions);
 
     setResult(freeResult);
   }
@@ -100,7 +113,7 @@ function AccountOfferAnalyzer() {
     >
       <BackHeader />
 
-      <ScrollView
+      <ScrollView ref={scroll}
         contentContainerStyle={
           styles.scrollContent
         }
@@ -113,18 +126,21 @@ function AccountOfferAnalyzer() {
             style={styles.content}
           >
             <OfferForm
+              collapsed={!!result}
+              onEdit={() => setResult(null)}
+              onDraftChange={() => setResult(null)}
+              initialFuelPrice={initialPrice}
+              fuelType={fuelType}
+              priceScope={`${priceGeneration}:${fuelState.owner ?? 'guest'}:${fuelType}`}
+              onSavePrice={fuelState.owner ? value => {
+                if (priceGeneration !== getAccountGeneration()) return Promise.reject(new Error('Account changed'));
+                return savePrice(fuelState.owner!, fuelType, value);
+              } : undefined}
               onAnalyze={
                 handleAnalyze
               }
             />
-
-            {result && (
-              <OfferResultCard
-                result={result}
-              />
-            )}
-
-            <EnergyPanel offer={lastOffer} />
+            {result && <OfferResultCard result={result} />}
 
             {!isPremium && (
               <View style={styles.premiumContainer}>
@@ -154,7 +170,7 @@ const getStyles = (isTablet: boolean) =>
     },
 
     darkContainer: {
-      backgroundColor: "#101722",
+      backgroundColor: NAVY.background,
     },
 
     scrollContent: {
