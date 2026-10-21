@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { View, Text, ScrollView } from '@/theme/components';
-import { BackHeader } from '@/components/ui/BackButton';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { useLanguage } from '@/i18n/language';
 import { useVehicles } from '@/features/vehicles/use-vehicles';
 import { saveLocalVehicle } from '@/features/vehicles/store';
@@ -13,7 +13,7 @@ const empty = (): VehicleData => ({ year: 0, make: '', model: '', trim: null,
   kwh_per_100_miles: null, epa_id: null, is_default: false });
 export default function VehiclesScreen() {
   const state = useVehicles(); const { t } = useLanguage();
-  return <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><BackHeader />
+  return <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><ScreenHeader title="My Vehicles" />
     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}>
       <Text style={styles.title}>{t('My Vehicles')}</Text>
       {state.owner && state.data ? <VehiclesEditor key={state.owner} state={state} /> : <Text>{t('Sign in to manage vehicles.')}</Text>}

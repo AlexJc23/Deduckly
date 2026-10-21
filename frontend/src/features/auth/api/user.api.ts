@@ -13,10 +13,22 @@ export async function updateCurrentUser(
 }
 
 export async function deleteCurrentUser() {
+  const { getAccessToken, clearTokens } = await import('../services/auth-service.service');
+  const { trackingOwnerFromToken } = await import('@/features/tracking/services/tracking-owner');
+  const { getAccountGeneration } = await import('../services/account-boundary');
+  const { purgeDeletedAccount } = await import('../services/deleted-account');
+  const generation = getAccountGeneration();
+  const token = await getAccessToken();
+  const owner = trackingOwnerFromToken(token);
+  if (!owner) throw Error('Account unavailable');
   const response = await api.delete(
     "/api/v1/users/me"
   );
 
+  // Do not sign out a different account if a session changed during deletion.
+  try {
+    if (generation === getAccountGeneration() && owner === trackingOwnerFromToken(await getAccessToken())) await clearTokens();
+  } finally { await purgeDeletedAccount(owner); }
   return response.data;
 }
 export async function updatePassword(

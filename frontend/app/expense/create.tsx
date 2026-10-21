@@ -2,7 +2,7 @@ import { localizedAlert } from "@/i18n/alerts";
 import { Stack, router } from "expo-router";
 
 
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
 import {
   ExpenseForm,
@@ -29,6 +29,7 @@ export default function CreateExpenseScreen() {
           merchant: values.merchant,
           description:
             values.description,
+          vehicle_id:values.vehicleId,
           business_percentage: Number(
             values.businessPercentage,
           ),
@@ -64,7 +65,7 @@ export default function CreateExpenseScreen() {
 
   return (
     <>
-      <BackHeader />
+      <ScreenHeader title="New Expense" />
 
       <Stack.Screen
         options={{

@@ -107,12 +107,7 @@ export async function refreshToken(
   ): Promise<AuthTokens> {
     const response = await api.post(
       "api/v1/auth/refresh",
-      null,
-      {
-        params: {
-          refresh_token: refreshToken,
-        },
-      }
+      { refresh_token: refreshToken }
     );
 
   return response.data;
@@ -146,9 +141,9 @@ export async function enable2FA() {
   return response.data;
 }
 
-export async function disable2FA() {
+export async function disable2FA(code: string) {
   const response = await api.post(
-    "api/v1/auth/disable-2fa"
+    "api/v1/auth/disable-2fa", { code }
   );
 
   return response.data;
@@ -162,10 +157,7 @@ export async function logout() {
   }
 
   const pushToken = await prepareNotificationLogout();
-  await api.post("/api/v1/auth/logout", null, {
-  params: {
-    refresh_token: refreshToken,
-    expo_push_token: pushToken ?? undefined,
-  },
-});
+  const { enqueueLogout, flushPendingLogouts } = await import('../services/pending-logout');
+  await enqueueLogout(refreshToken, pushToken);
+  await flushPendingLogouts();
 }

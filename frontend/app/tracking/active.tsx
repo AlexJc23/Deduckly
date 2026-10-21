@@ -14,7 +14,7 @@ import {
   getPendingStop,
   getPendingCancel,
 } from "@/services/siri.service";
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 function formatTime(seconds: number) {
@@ -127,7 +127,7 @@ export default function ActiveTripScreen() {
 
   return (
     <View style={styles.container}>
-      <BackHeader />
+      <ScreenHeader title="Trip in Progress" />
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
         <View style={styles.contentInner}>

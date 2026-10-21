@@ -38,10 +38,10 @@ export function QuickActionsCard({
           onPress={() =>
             router.push({
               pathname: "/reports/IrsSummary",
-              params: reportParams?.startDate && reportParams?.endDate ? {
+              params: {vehicleId:report.vehicle_filter??undefined,method:report.tax_method,...(reportParams?.startDate && reportParams?.endDate ? {
                 startDate: localDateString(reportParams.startDate),
                 endDate: localDateString(reportParams.endDate),
-              } : { year: report.year, month: report.month, day: report.day },
+              } : { year: report.year, month: report.month, day: report.day })},
             })
           }
         />

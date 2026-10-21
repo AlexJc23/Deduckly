@@ -21,6 +21,7 @@
       },
       "supportsTablet": true,
       "bundleIdentifier": "com.karlsonworks.deduckly",
+      "buildNumber": "57",
       "usesAppleSignIn": true
     },
     "android": {

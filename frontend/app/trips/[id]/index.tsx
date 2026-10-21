@@ -1,3 +1,6 @@
+import { addressDisplay } from '@/features/trips/utils/address-display';
+import { VehicleAssignment } from '@/features/vehicles/VehicleAssignment';
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { Image, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { platformIcons, type PlatformName } from '@/constants/platform-icons';
 import { useState, useSyncExternalStore } from 'react';
@@ -19,11 +22,12 @@ export default function TripDetailsScreen() {
  const generation = useSyncExternalStore(subscribeAccountBoundary,getAccountGeneration,getAccountGeneration);
  const query = useTrip(Number(id));
  return <SafeAreaView style={s.screen}><KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>
-  <View style={s.nav}><Pressable accessibilityRole="button" accessibilityLabel={t('Back')} onPress={() => router.back()} style={s.action}><Text style={s.blue}>‹ {t('Back')}</Text></Pressable><Text accessibilityRole="header" style={s.title}>{t('Trip Details')}</Text></View>
+  <ScreenHeader title="Trip Details" safeArea={false} />
   {query.isPending ? <ActivityIndicator accessibilityLabel={t('Loading trip')} /> : query.isError || !query.data ? <View style={s.content}><Text accessibilityRole="alert">{t('Failed to load trip.')}</Text><Pressable accessibilityRole="button" onPress={() => void query.refetch()} style={s.action}><Text style={s.blue}>{t('Try again')}</Text></Pressable></View> : <TripContent key={`${generation}:${query.data.user_id}:${query.data.id}`} trip={query.data} />}
  </KeyboardAvoidingView></SafeAreaView>;
 }
 function TripContent({ trip }: { trip: Trip }) {
+ const [vehicle,setVehicle]=useState(trip.vehicle_id??null);
  const { t, locale } = useLanguage(); const update = useUpdateTrip(), deletion = useDeleteTrip();
  const { assumptions } = useFuelAssumptions();
  const [editing,setEditing] = useState(false), [category,setCategory] = useState(trip.category), [platform,setPlatform] = useState(trip.platform ?? '');
@@ -39,19 +43,23 @@ function TripContent({ trip }: { trip: Trip }) {
  if (trip.platform && !platformChoices.some(p => p.value === trip.platform)) platformChoices.push({value:trip.platform,label:t(platformName(trip.platform))});
  async function save() {
   if (busy) return;
-  try { await update.mutateAsync({tripId:trip.id,trip:{category,...(platform ? {platform} : {}),...(supportsNotes ? {notes:notes.trim() || null} : {})}});setEditing(false); }
+  try { await update.mutateAsync({tripId:trip.id,trip:{...(vehicle!==(trip.vehicle_id??null)?{vehicle_id:vehicle}:{}),category,...(platform ? {platform} : {}),...(supportsNotes ? {notes:notes.trim() || null} : {})}});setEditing(false); }
   catch { Alert.alert(t('Could not save trip'),t('Connect to save changes. Your edits are still here; try again.')); }
  }
  return <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content}>
   <View style={s.card}>
-   <View style={{flexDirection:'row',alignItems:'center',gap:12}}><View style={{flex:1,gap:4}}><Text style={s.heading}>{t('Trip')}</Text><Text style={s.muted}>{new Date(trip.start_time).toLocaleString(locale,{dateStyle:'medium',timeStyle:'short'})}</Text></View><Pressable accessibilityRole="button" accessibilityState={{expanded:editing,disabled:busy}} disabled={busy} onPress={() => {setCategory(trip.category);setPlatform(trip.platform ?? '');setNotes(trip.notes ?? '');setEditing(!editing);}} style={s.edit}><Text style={s.blue}>{t(editing ? 'Cancel editing' : 'Edit trip')}</Text></Pressable></View>
-   <View style={s.metrics}>
-    <View style={s.metric}><Text style={s.miles}>{trip.distance_miles != null && Number.isFinite(Number(trip.distance_miles)) ? Number(trip.distance_miles).toFixed(2) : '—'}</Text><Text style={s.muted}>{t('miles')}</Text></View>
-    <View style={s.metric}>{trip.platform && trip.platform in platformIcons && <Image accessible={false} source={platformIcons[trip.platform as PlatformName]} resizeMode="contain" style={{width:30,height:24}}/>}<Text style={s.muted}>{t('Platform')}</Text><Text style={{fontWeight:'600'}}>{t(platformName(trip.platform))}</Text></View>
-    <View style={s.metric}><Text style={s.muted}>{t('Category')}</Text><Text style={{fontWeight:'600'}}>{t(trip.category === 'business' ? 'Business' : 'Personal')}</Text></View>
+   <View style={{flexDirection:'row',alignItems:'center',gap:12}}><View style={{flex:1,gap:4}}><Text style={s.heading}>{t('Trip')}</Text><Text style={s.muted}>{new Date(trip.start_time).toLocaleString(locale,{dateStyle:'medium',timeStyle:'short'})}</Text></View><Pressable accessibilityRole="button" accessibilityState={{expanded:editing,disabled:busy}} disabled={busy} onPress={() => {setVehicle(trip.vehicle_id??null);setCategory(trip.category);setPlatform(trip.platform ?? '');setNotes(trip.notes ?? '');setEditing(!editing);}} style={s.edit}><Text style={s.blue}>{t(editing ? 'Cancel editing' : 'Edit trip')}</Text></Pressable></View>
+   <View style={s.summaryMetrics}>
+    <View style={s.summaryRow}><View style={s.summaryColumn}/><View style={[s.summaryColumn,{alignItems:'center'}]}>{trip.platform && trip.platform in platformIcons && <Image accessible={false} source={platformIcons[trip.platform as PlatformName]} resizeMode="contain" style={{width:30,height:24}}/>}</View><View style={s.summaryColumn}/></View>
+    <View style={s.summaryRow}>
+     <Text style={[s.summaryColumn,s.metricValue,s.miles]}>{trip.distance_miles != null && Number.isFinite(Number(trip.distance_miles)) ? Number(trip.distance_miles).toFixed(2) : '—'}</Text>
+     <Text style={[s.summaryColumn,s.metricValue]}>{t(platformName(trip.platform))}</Text>
+     <Text style={[s.summaryColumn,s.metricValue]}>{t(trip.category === 'business' ? 'Business' : 'Personal')}</Text>
+    </View>
+    <View style={s.summaryRow}><Text style={[s.summaryColumn,s.metricLabel]}>{t('miles')}</Text><Text style={[s.summaryColumn,s.metricLabel]}>{t('Platform')}</Text><Text style={[s.summaryColumn,s.metricLabel]}>{t('Category')}</Text></View>
    </View>{duration>0&&<Text style={s.muted}>{t('{minutes} min',{minutes:duration})}</Text>}
    {editing && <View style={{gap:12}}>
-    <CompactSelect label="Category" value={category} choices={[{value:'business',label:t('Business')},{value:'personal',label:t('Personal')}]} onChange={setCategory} disabled={busy}/>
+    <VehicleAssignment value={vehicle} onChange={setVehicle} disabled={busy}/><CompactSelect label="Category" value={category} choices={[{value:'business',label:t('Business')},{value:'personal',label:t('Personal')}]} onChange={setCategory} disabled={busy}/>
     <CompactSelect label="Platform" value={platform} choices={platformChoices} onChange={setPlatform} disabled={busy}/>
     <Text style={s.muted}>{t('Category changes update mileage deductions. Saving requires a connection.')}</Text>
     <Pressable accessibilityRole="button" disabled={busy} accessibilityState={{disabled:busy,busy:update.isPending}} onPress={() => void save()} style={s.primary}><Text style={{color:'#FFFFFF',fontWeight:'700'}}>{t(update.isPending ? 'Saving…' : 'Save changes')}</Text></Pressable>
@@ -59,8 +67,8 @@ function TripContent({ trip }: { trip: Trip }) {
   </View>
   <View style={s.card}>
    <Text accessibilityRole="header" style={s.heading}>{t('Route')}</Text>
-   <View style={s.route}><View style={s.timeline}/><View style={[s.dot,{backgroundColor:'#2EAF4A'}]}/><View style={{flex:1,gap:6}}><Text style={s.muted}>{t('Driving start')}</Text><Text selectable style={s.address}>{trip.start_address?.trim() || t('Address unavailable')}</Text></View></View>
-   <View style={s.route}><View style={[s.dot,{backgroundColor:'#4A6FE3'}]}/><View style={{flex:1,gap:6}}><Text style={s.muted}>{t('Driving end')}</Text><Text selectable style={s.address}>{trip.end_address?.trim() || t('Address unavailable')}</Text></View></View>
+   <View style={s.route}><View style={s.timeline}/><View style={[s.dot,{backgroundColor:'#2EAF4A'}]}/><View style={{flex:1,gap:6}}><Text style={s.muted}>{t('Driving start')}</Text><Text selectable style={s.address}>{addressDisplay(trip.start_address) || t('Address unavailable')}</Text></View></View>
+   <View style={s.route}><View style={[s.dot,{backgroundColor:'#4A6FE3'}]}/><View style={{flex:1,gap:6}}><Text style={s.muted}>{t('Driving end')}</Text><Text selectable style={s.address}>{addressDisplay(trip.end_address) || t('Address unavailable')}</Text></View></View>
   </View>
   <View style={s.card}>
    <Text accessibilityRole="header" style={s.heading}>{t(electric ? 'Estimated energy cost' : 'Estimated fuel cost')}</Text>
@@ -93,7 +101,7 @@ const s = StyleSheet.create({
  title:{fontSize:22,fontWeight:'700',flexShrink:1},content:{padding:20,gap:16,paddingBottom:40,width:'100%',maxWidth:760,alignSelf:'center'},
  card:{backgroundColor:'#FFFFFF',borderRadius:20,borderWidth:1,borderColor:'#E2E8F0',padding:20,gap:12},heading:{fontSize:18,fontWeight:'700',flexShrink:1},
  edit:{minHeight:44,borderWidth:1,borderColor:'#0072B5',borderRadius:16,paddingHorizontal:12,justifyContent:'center',maxWidth:'50%'},
- metrics:{flexDirection:'row',flexWrap:'wrap',gap:12},metric:{flex:1,minWidth:75,gap:5,justifyContent:'center'},fuelCell:{flexBasis:'44%',flexGrow:1,minWidth:110,gap:4,padding:10,backgroundColor:'#F8FAFC',borderRadius:10},estimateTotal:{flexDirection:'row',flexWrap:'wrap',gap:8,alignItems:'center',backgroundColor:'#F0FDF4',padding:12,borderRadius:10},notes:{minHeight:88,borderWidth:1,borderColor:'#E2E8F0',borderRadius:12,padding:12,textAlignVertical:'top'},destructive:{minHeight:48,alignItems:'center',justifyContent:'center',padding:14,borderRadius:14,borderWidth:1,borderColor:'#DC2626',backgroundColor:'#FFF5F5'},timeline:{position:'absolute',top:20,bottom:-20,left:4,width:2,backgroundColor:'#E2E8F0'},
+ metrics:{flexDirection:'row',flexWrap:'wrap',gap:12},summaryMetrics:{gap:6},summaryRow:{flexDirection:'row',gap:8,alignItems:'center'},summaryColumn:{flex:1,minWidth:0},metricValue:{fontSize:16,fontWeight:'600',textAlign:'center'},metricLabel:{fontSize:13,color:'#64748B',textAlign:'center'},fuelCell:{flexBasis:'44%',flexGrow:1,minWidth:110,gap:4,padding:10,backgroundColor:'#F8FAFC',borderRadius:10},estimateTotal:{flexDirection:'row',flexWrap:'wrap',gap:8,alignItems:'center',backgroundColor:'#F0FDF4',padding:12,borderRadius:10},notes:{minHeight:88,borderWidth:1,borderColor:'#E2E8F0',borderRadius:12,padding:12,textAlignVertical:'top'},destructive:{minHeight:48,alignItems:'center',justifyContent:'center',padding:14,borderRadius:14,borderWidth:1,borderColor:'#DC2626',backgroundColor:'#FFF5F5'},timeline:{position:'absolute',top:20,bottom:-20,left:4,width:2,backgroundColor:'#E2E8F0'},
  miles:{fontSize:25,fontWeight:'800'},muted:{fontSize:14,color:'#64748B',flexShrink:1},row:{flexDirection:'row',flexWrap:'wrap',gap:8},badge:{backgroundColor:'#F1F5F9',padding:8,borderRadius:8,flexShrink:1},
  action:{minHeight:48,paddingVertical:12,justifyContent:'center'},blue:{color:'#4A6FE3',fontWeight:'600'},primary:{backgroundColor:'#4A6FE3',borderRadius:12,minHeight:48,padding:14,alignItems:'center'},
  route:{flexDirection:'row',gap:12,paddingVertical:10},dot:{height:10,width:10,borderRadius:5,marginTop:6},address:{fontSize:16,flexShrink:1},

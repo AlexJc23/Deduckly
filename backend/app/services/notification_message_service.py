@@ -12,10 +12,8 @@ def goal_amount(value):
 
 
 def build_monthly_kickoff_message(month, goal):
-    amount = goal_amount(goal)
-    body = (f"{month} is here. Let’s work toward your {amount} income goal this month!"
-            if amount else f"{month} is here. Set your monthly income goal in Deduckly and make a fresh start!")
-    return "New month, new goal! 🚗", body
+    # Notifications can outlive a network logout; keep financial amounts in-app.
+    return "New month, new goal! 🚗", f"{month} is here. Open Deduckly to review your monthly goals."
 
 
 def build_daily_goal_message(hour, goal):

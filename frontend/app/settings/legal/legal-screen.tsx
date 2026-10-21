@@ -1,13 +1,13 @@
 import { View, Text, Pressable, SafeAreaView, ScrollView } from "@/theme/components";
 import React from "react";
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { StyleSheet } from "react-native";
 import { router } from "expo-router";
 
 export default function LegalScreen() {
   return (
     <View style={styles.container}>
-      <BackHeader />
+      <ScreenHeader title="Legal" />
 
       <ScrollView
         contentContainerStyle={styles.content}

@@ -5,6 +5,7 @@ import { trackingOwnerFromToken } from '@/features/tracking/services/tracking-ow
 import { getAccountGeneration, isAccountChanging } from '@/features/auth/services/account-boundary';
 import type { FuelType, FuelQuote, Vehicle, VehicleData, VehicleJournal } from './types';
 const listeners = new Set<() => void>();
+const deletedOwners = new Set<string>();
 let queue: Promise<unknown> = Promise.resolve();
 const uuid = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
   const n = Math.floor(Math.random() * 16); return (c === 'x' ? n : (n & 3) | 8).toString(16);
@@ -22,7 +23,7 @@ async function read(owner: string): Promise<VehicleJournal> {
     !j.vehicles.every(validVehicle) || !j.pending.every((op: VehicleJournal['pending'][number]) => typeof op?.id === 'string' && typeof op.data?.operation_id === 'string' && Number.isInteger(op.data.expected_version))) throw Error('Unreadable vehicle journal');
   return j;
 }
-async function write(j: VehicleJournal) { await AsyncStorage.setItem(key(j.owner), JSON.stringify(j)); listeners.forEach(fn => fn()); }
+async function write(j: VehicleJournal) { if (deletedOwners.has(j.owner)) return; await AsyncStorage.setItem(key(j.owner), JSON.stringify(j)); listeners.forEach(fn => fn()); }
 export function readVehicles(owner: string) { return serial(() => read(owner)); }
 async function assertOwner(owner: string, generation: number) {
   if (isAccountChanging() || generation !== getAccountGeneration() || trackingOwnerFromToken(await getAccessToken()) !== owner) throw Error('Account changed');
@@ -75,4 +76,9 @@ export function syncVehicles(owner: string) {
 export function saveFuelArea(owner: string, postalCode: string) {
   const generation = getAccountGeneration();
   return serial(async () => { await assertOwner(owner, generation); const j = await read(owner); j.postalCode = postalCode; await write(j); });
+}
+
+export function purgeVehicleOwner(owner: string) {
+  deletedOwners.add(owner);
+  return serial(async () => { await AsyncStorage.removeItem(key(owner)); listeners.forEach(fn => fn()); });
 }

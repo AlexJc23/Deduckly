@@ -1,13 +1,13 @@
 import { View, Text, Pressable } from "@/theme/components";
 import React from "react"
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
 import {router} from "expo-router"
 
 export default function LegalScreen() {
     return (
         <View>
-            <BackHeader />
+            <ScreenHeader title="Legal" />
             <View>
                 <Pressable onPress={() => {router.push("/settings/legal/sections/terms-of-service")}}>
                     <View>

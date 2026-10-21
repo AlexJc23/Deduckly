@@ -5,7 +5,7 @@ import { ScrollView, Pressable, Text, View } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { useState } from "react";
 
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import PremiumButton from "../../src/components/ui/PremiumButton";
 
 import { PreferenceSection } from "../../src/features/settings/components/PreferenceSection";
@@ -50,7 +50,7 @@ export default function PreferenceScreen() {
 
     return (
         <View style={styles.container}>
-            <BackHeader />
+            <ScreenHeader title="Preferences" />
 
             <ScrollView
                 contentContainerStyle={styles.content}

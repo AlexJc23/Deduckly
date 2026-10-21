@@ -1,3 +1,4 @@
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useLanguage, Translated } from "@/i18n/language";
 import { SafeAreaView, Pressable, ScrollView, Text, TextInput, View } from "@/theme/components";
 
@@ -66,21 +67,10 @@ export default function ResetPassword() {
   return (
     <View style={styles.screen}>
       <SafeAreaView style={styles.safeArea}>
+        <ScreenHeader title="Reset Password" safeArea={false} />
         <KeyboardAvoidingView style={styles.safeArea} behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-          <Pressable
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Ionicons
-              name="arrow-back"
-              size={20}
-              color="#273449"
-            />
 
-            <Text style={styles.backText}>
-              <Translated text={"Back"} /></Text>
-          </Pressable>
 
           <View style={styles.content}>
             <View style={styles.brand}>

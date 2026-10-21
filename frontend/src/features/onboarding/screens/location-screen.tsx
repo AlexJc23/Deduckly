@@ -5,21 +5,21 @@ import { useOnboarding } from "../hooks/use-onboarding";
 
 const content: OnboardingContent = {
   label: "Mileage tracking",
-  title: "Your miles.\nWorking for you.",
-  description: "Keep a clear record of the miles you put into your work. Deduckly handles the tracking, so you can focus on the road ahead.",
+  title: "Track Your Miles",
+  description: "Record business trips manually or automatically during a shift.",
   icon: "navigate", symbol: "location.fill",
-  action: "Enable location",
-  note: "Location is used for trips you start. Automatic tracking stays off.",
+  action: "Continue",
+  note: "Continue opens the location prompt. Background access is requested only when you start tracking.",
   features: [
-    { title: "Every trip, accounted for", description: "Use GPS to record your route and mileage.", icon: "map-outline", symbol: "map" },
-    { title: "Ready when you need it", description: "Keep your work miles organized in one place.", icon: "folder-outline", symbol: "folder" },
+    { title: "Manual trips", description: "Start and stop a trip when you drive.", icon: "map-outline", symbol: "map" },
+    { title: "Shift tracking", description: "Start a shift to detect drives, including while the app is in the background.", icon: "folder-outline", symbol: "folder" },
   ],
 };
 
 export function LocationScreen({ onboarding }: { onboarding: ReturnType<typeof useOnboarding> }) {
   async function requestPermission() {
     let permission = await Location.getForegroundPermissionsAsync();
-    if (!permission.granted && permission.canAskAgain) {
+    if (!permission.granted && permission.status === "undetermined" && permission.canAskAgain) {
       permission = await Location.requestForegroundPermissionsAsync();
     }
     if (!permission.granted) {

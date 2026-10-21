@@ -5,7 +5,7 @@ import { StyleSheet, Image } from "react-native";
 
 import { NativeModules } from "react-native";
 import { router } from "expo-router";
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 import { Ionicons } from "@/theme/icons";
@@ -148,7 +148,7 @@ export default function AppIconScreen() {
 
   return (
     <View style={styles.container}>
-      <BackHeader />
+      <ScreenHeader title="App Icons" />
 
       <ScrollView
         contentContainerStyle={[

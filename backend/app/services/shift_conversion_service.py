@@ -46,7 +46,7 @@ def convert_pending(db, owner, now=None):
                 start_lat=segment.start_lat, start_lng=segment.start_lng, end_lat=segment.end_lat, end_lng=segment.end_lng,
                 start_address=segment.start_address, end_address=segment.end_address, category=category, platform=platform,
                 distance_miles=segment.distance_miles,
-                deduction_amount=_trip_deduction(db, category, aware(segment.started_at), segment.distance_miles))
+                deduction_amount=_trip_deduction(db, category, aware(segment.started_at), segment.distance_miles, zone.key))
             db.add(trip); db.flush()
             segment.trip_id = trip.id
             segment.converted_at = now

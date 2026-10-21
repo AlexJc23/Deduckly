@@ -29,9 +29,7 @@ export default function SettingsScreen() {
             <View style={styles.contentInner}>
                 <Text style={styles.title}><Translated text={"Settings"} /></Text>
 
-                <Pressable style={styles.card} onPress={() => router.push("/settings/vehicles")}>
-                    <Text><Translated text="My Vehicles" /></Text>
-                </Pressable>
+
 
                 {/* Profile */}
                 <Pressable
@@ -90,6 +88,13 @@ export default function SettingsScreen() {
                         size={isTablet ? 24 : 20}
                         color="#9CA3AF"
                     />
+                </Pressable>
+                <Pressable accessibilityRole="button" style={styles.card} onPress={() => router.push('/settings/vehicles')}>
+                    <View style={styles.rowContent}>
+                        <Text style={styles.rowTitle}><Translated text="My Vehicles" /></Text>
+                        <Text style={styles.subtitle}><Translated text="Manage your vehicles" /></Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={isTablet ? 24 : 20} color="#9CA3AF" />
                 </Pressable>
                 {/* App icon switching is implemented by the Apple native module. */}
                 {Platform.OS !== "android" && <Pressable
@@ -164,7 +169,7 @@ export default function SettingsScreen() {
                     />
                 </Pressable>
 
-                    
+
                 <Pressable
                     style={styles.card}
                     onPress={() =>
@@ -246,7 +251,7 @@ export default function SettingsScreen() {
                 </Pressable>
 
                 <Text style={styles.version}>
-                    <Translated text={"Version 1.0.0"} /></Text>
+                    <Translated text={"Version 1.1.0"} /></Text>
             </View>
         </ScrollView>
     );

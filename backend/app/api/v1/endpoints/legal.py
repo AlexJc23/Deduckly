@@ -245,6 +245,10 @@ core functionality.
     <li>
         RevenueCat for subscription management
     </li>
+    <li>Expo for app updates and push delivery; Apple and Android notification services for device delivery</li>
+    <li>Resend for transactional and support emails</li>
+    <li>Device platform geocoding services for trip endpoint address lookup</li>
+    <li>DOE/EPA FuelEconomy.gov for selected vehicle catalog details</li>
 </ul>
 
 <p>
@@ -252,6 +256,14 @@ Each provider processes information only as necessary to deliver the services
 they provide.
 </p>
 
+
+<p>Expo update requests include a persistent installation identifier and runtime/update metadata.
+Vehicle catalog requests include selected year, make, model or configuration. During a Shift you start,
+background location detects drives; saved vehicles and tracking records may be cached for offline use.
+No automatic local fuel-price provider is currently configured.</p>
+<p>Account deletion removes associated server records and initiates device cleanup. Interrupted device
+cleanup is retried. Copies shared elsewhere, provider retention and backup retention may remain outside
+this process; deleting a Deduckly account does not itself cancel an app-store subscription.</p>
 
 <h2 id="section-5">5. Advertising &amp; Analytics</h2>
 

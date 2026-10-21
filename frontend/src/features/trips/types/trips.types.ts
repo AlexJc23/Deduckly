@@ -1,4 +1,5 @@
 export interface Trip {
+  vehicle_id?:string|null;
   notes?: string | null;
   client_id?: string | null;
   id: number;

@@ -1,12 +1,11 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, View, SafeAreaView } from "@/theme/components";
-import { ComponentProps, ReactNode } from "react";
+import { ComponentProps, ReactNode, useState } from "react";
 import { ActivityIndicator, Linking, StyleSheet, useWindowDimensions } from "react-native";
 
 import { Ionicons } from "@/theme/icons";
 import { SymbolView } from "expo-symbols";
 import Logo from "../../../../assets/images/logo.svg";
-import { useIsTablet } from "@/hooks/use-is-tablet";
 import { useOnboarding } from "../hooks/use-onboarding";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
@@ -40,13 +39,14 @@ function OnboardingIcon({ symbol, icon, size }: { symbol: SymbolName; icon: Icon
 export function OnboardingScreen({ screen, onboarding, onContinue, onSkip, children }: Props) {
   useLanguage();
   const { loading, isLoading, userId, step, error, busy, settings, setError, retry, signOut } = onboarding;
-  const isTablet = useIsTablet();
-  const { height, width } = useWindowDimensions();
-  const isSmallPhone = !isTablet && (height <= 931 || width <= 429);
+  const { height, width, fontScale } = useWindowDimensions();
+  const [viewport, setViewport] = useState({ width, height });
+  const isTablet = viewport.width >= 760 && viewport.height >= 500 && fontScale <= 1.3;
+  const isSmallPhone = viewport.height < 740 || viewport.width < 600;
   const isWelcome = step === 3;
   const ready = !loading && !isLoading && userId !== undefined;
 
-  return <SafeAreaView style={styles.safeArea}>
+  return <SafeAreaView style={styles.safeArea} onLayout={event => { const {width,height}=event.nativeEvent.layout; setViewport(current=>current.width===width&&current.height===height?current:{width,height}); }}>
     <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={[
       styles.scroll, isSmallPhone && styles.scrollCompact, isTablet && styles.scrollTablet,
     ]}>
@@ -66,8 +66,8 @@ export function OnboardingScreen({ screen, onboarding, onContinue, onSkip, child
                 <View accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
                   style={[styles.hero, isSmallPhone && styles.heroCompact]}>
                   {isWelcome
-                    ? <Logo width={isTablet ? 120 : isSmallPhone ? 80 : 100} height={isTablet ? 120 : isSmallPhone ? 80 : 100} color="#0072B5" />
-                    : <OnboardingIcon symbol={screen.symbol} icon={screen.icon} size={isTablet ? 76 : isSmallPhone ? 52 : 64} />}
+                    ? <Logo width={isTablet ? 72 : isSmallPhone ? 44 : 64} height={isTablet ? 72 : isSmallPhone ? 44 : 64} color="#0072B5" />
+                    : <OnboardingIcon symbol={screen.symbol} icon={screen.icon} size={isTablet ? 56 : isSmallPhone ? 36 : 48} />}
                 </View>
                 <Text style={styles.label}>{<Translated text={screen.label} />}</Text>
                 <Text accessibilityRole="header" style={[styles.title, isSmallPhone && styles.titleCompact, isTablet && styles.titleTablet]}>{<Translated text={screen.title} />}</Text>
@@ -110,43 +110,43 @@ export function OnboardingScreen({ screen, onboarding, onContinue, onSkip, child
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#F7F9FC" },
-  scroll: { flexGrow: 1, paddingHorizontal: 28, paddingTop: 20, paddingBottom: 16 },
-  scrollCompact: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 8 },
-  scrollTablet: { paddingHorizontal: 56, paddingVertical: 36 },
-  container: { flex: 1, width: "100%", maxWidth: 520, alignSelf: "center" },
-  containerTablet: { maxWidth: 1000 },
+  scroll: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 16, paddingBottom: 12 },
+  scrollCompact: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8 },
+  scrollTablet: { paddingHorizontal: 40, paddingVertical: 20 },
+  container: { flexGrow: 1, width: "100%", maxWidth: 520, alignSelf: "center" },
+  containerTablet: { maxWidth: 960 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 32 },
   wordmark: { fontSize: 20, fontWeight: "700", letterSpacing: -0.6, color: "#273449" },
   step: { fontSize: 13, fontWeight: "500", color: "#697586", fontVariant: ["tabular-nums"] },
   loader: { marginTop: 80 },
   recovery: { flex: 1, justifyContent: "center", gap: 20 },
-  main: { flex: 1, justifyContent: "center", paddingVertical: 40 },
-  mainCompact: { paddingVertical: 24 },
-  mainTablet: { flexDirection: "row", alignItems: "center", gap: 48, paddingVertical: 56 },
+  main: { flexGrow: 1, justifyContent: "center", paddingVertical: 20 },
+  mainCompact: { paddingVertical: 12 },
+  mainTablet: { flexDirection: "row", alignItems: "center", gap: 36, paddingVertical: 24 },
   intro: { width: "100%" },
   introTablet: { flex: 1, width: undefined },
-  hero: { minHeight: 100, justifyContent: "center", alignItems: "flex-start", marginBottom: 26 },
-  heroCompact: { minHeight: 80, marginBottom: 18 },
+  hero: { minHeight: 64, justifyContent: "center", alignItems: "flex-start", marginBottom: 16 },
+  heroCompact: { minHeight: 44, marginBottom: 10 },
   label: { color: "#0072B5", fontSize: 13, fontWeight: "600", marginBottom: 10 },
-  title: { color: "#1C2738", fontSize: 38, lineHeight: 43, fontWeight: "700", letterSpacing: -1.2 },
-  titleCompact: { fontSize: 32, lineHeight: 37, letterSpacing: -0.9 },
-  titleTablet: { fontSize: 44, lineHeight: 50, letterSpacing: -1.5 },
-  description: { color: "#647184", fontSize: 16, lineHeight: 24, marginTop: 16 },
-  descriptionTablet: { fontSize: 18, lineHeight: 28, marginTop: 20 },
-  features: { marginTop: 32 },
-  featuresCompact: { marginTop: 22 },
+  title: { color: "#1C2738", fontSize: 32, lineHeight: 38, fontWeight: "700", letterSpacing: -1.2 },
+  titleCompact: { fontSize: 28, lineHeight: 34, letterSpacing: -0.9 },
+  titleTablet: { fontSize: 36, lineHeight: 43, letterSpacing: -1.5 },
+  description: { color: "#647184", fontSize: 16, lineHeight: 23, marginTop: 10 },
+  descriptionTablet: { fontSize: 17, lineHeight: 25, marginTop: 12 },
+  features: { marginTop: 18 },
+  featuresCompact: { marginTop: 12 },
   featuresTablet: { flex: 1, marginTop: 0, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 20, backgroundColor: "#FFFFFF" },
-  feature: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 18, gap: 16 },
-  featureCompact: { paddingVertical: 14 },
+  feature: { flexDirection: "row", alignItems: "flex-start", paddingVertical: 12, gap: 12 },
+  featureCompact: { paddingVertical: 8 },
   featureBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#DDE3EA" },
   featureIcon: { width: 28, alignItems: "center", paddingTop: 2 },
   featureCopy: { flex: 1, gap: 5 },
   featureTitle: { color: "#273449", fontSize: 16, fontWeight: "600", lineHeight: 21 },
   featureDescription: { color: "#647184", fontSize: 14, lineHeight: 20 },
-  footer: { width: "100%", paddingTop: 8 },
+  footer: { flexShrink: 0, width: "100%", paddingTop: 8 },
   footerTablet: { maxWidth: 440, alignSelf: "center" },
-  note: { color: "#697586", fontSize: 12, lineHeight: 18, textAlign: "center", marginBottom: 18 },
-  button: { minHeight: 54, paddingVertical: 16, paddingHorizontal: 20, borderRadius: 14, backgroundColor: "#0072B5", alignItems: "center", justifyContent: "center" },
+  note: { color: "#697586", fontSize: 12, lineHeight: 18, textAlign: "center", marginBottom: 10 },
+  button: { minHeight: 50, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 14, backgroundColor: "#0072B5", alignItems: "center", justifyContent: "center" },
   buttonText: { color: "#FFFFFF", fontSize: 17, lineHeight: 22, fontWeight: "600", textAlign: "center" },
   pressed: { opacity: 0.6 },
   skip: { minHeight: 48, padding: 14, alignItems: "center", justifyContent: "center" },

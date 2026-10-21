@@ -24,6 +24,14 @@ public class AppDelegate: ExpoAppDelegate {
     bindReactNativeFactory(factory)
 
     initialLaunchOptions = launchOptions
+#if DEBUG
+    // SDK 54's dev launcher requires both its deferred React root and the
+    // delegate window before Expo dispatches didFinishLaunching subscribers.
+    // SceneDelegate adopts this SAME window when UIKit connects the scene.
+    let developmentWindow = UIWindow(frame: UIScreen.main.bounds)
+    window = developmentWindow
+    factory.startReactNative(withModuleName: "main", in: developmentWindow, launchOptions: launchOptions)
+#endif
     DeducklyShortcuts.updateAppShortcutParameters()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

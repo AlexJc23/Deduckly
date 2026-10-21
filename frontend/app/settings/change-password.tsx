@@ -7,7 +7,7 @@ import { useUpdatePassword } from "@/features/auth/hooks/use-update-password";
 import { clearTokens } from "@/features/auth/services/auth-service.service";
 import { useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@/theme/icons";
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
 export default function UserUpdatePassword() {
   useLanguage();
@@ -67,7 +67,7 @@ export default function UserUpdatePassword() {
 
   return (
     <View style={styles.container}>
-      <BackHeader />
+      <ScreenHeader title="Update Password" />
 
       <ScrollView
         style={styles.scroll}

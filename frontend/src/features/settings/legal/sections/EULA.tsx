@@ -1,7 +1,7 @@
 import { View, ScrollView, Text, TouchableOpacity } from "@/theme/components";
 import React from 'react';
 import { Linking, StyleSheet } from 'react-native';
-import { BackHeader } from '@/components/ui/BackButton';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 
 export default function EndUserLicenseAgreementScreen() {
   const openEmail = () => {
@@ -36,7 +36,7 @@ export default function EndUserLicenseAgreementScreen() {
 
   return (
     <View style={styles.wrapper}>
-      <BackHeader />
+      <ScreenHeader title="End User License Agreement" />
 
       <ScrollView
         style={styles.scroll}

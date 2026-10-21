@@ -1,6 +1,8 @@
+import { Translated } from '@/i18n/language';
+import { ReportingDisclosures } from '@/features/settings/components/ReportingDisclosures';
 import { Pressable, View, Text, ScrollView, SafeAreaView, TouchableOpacity } from "@/theme/components";
 import { StyleSheet, StatusBar } from "react-native";
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { router } from "expo-router"
 import React from "react";
 import * as Linking from "expo-linking";
@@ -34,7 +36,7 @@ const Privacy = () => {
     // <StatusBar barStyle="light-content" />
 
     <View style={styles.wrapper}>
-      <BackHeader />
+      <ScreenHeader title="Privacy Policy" />
 
       <ScrollView
         style={styles.scroll}
@@ -51,7 +53,8 @@ const Privacy = () => {
           Deduckly by KarlsonWorks
         </Text>
 
-        <Section number="1" title="Introduction">
+        <ReportingDisclosures />
+          <Section number="1" title="Introduction">
           <Text style={styles.paragraph}>
             Thank you for using Deduckly ("Deduckly," "we," "our," or "us").
             Protecting your privacy is one of our highest priorities. This
@@ -519,9 +522,7 @@ const Privacy = () => {
           </TouchableOpacity>
 
           <Text style={styles.paragraph}>
-            Deduckly is designed to comply with applicable Apple App Store
-            privacy requirements and applicable privacy laws, including GDPR,
-            CCPA, and CPRA where applicable.
+            <Translated text="Privacy requests can be sent to the support address above." />
           </Text>
         </Section>
 

@@ -1,15 +1,20 @@
+import { useAppTheme } from '@/theme/theme';
+import { NAVY } from '@/theme/palette';
 import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, TextInput } from "@/theme/components";
 import { router, useLocalSearchParams } from "expo-router";
 import { KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 import { useState } from "react";
 
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useSubmitFeedback } from "@/features/feedback/hooks/use-submit-feedback";
 import { getFeedbackMetadata } from "@/features/feedback/utils/feedback-metadata";
 
 export default function FeedbackFormScreen() {
-  useLanguage();
+  const {t}=useLanguage();
+  const {dark}=useAppTheme();
+  const styles=getStyles(dark);
+  const [error,setError]=useState('');
   const { type } = useLocalSearchParams<{
     type: "bug" | "feature" | "general";
   }>();
@@ -49,29 +54,27 @@ export default function FeedbackFormScreen() {
       descriptionPlaceholder:
         "Tell us anything you'd like us to know.",
     },
-  }[type ?? "general"];
+  }[type === "bug" || type === "feature" ? type : "general"];
 
   async function handleSubmit() {
+    if(submitFeedback.isPending)return;
+    setError('');
     const trimmedTitle = title.trim();
     const trimmedDescription =
       description.trim();
 
     if (!trimmedTitle) {
-      return;
+      setError('Enter a title for your feedback.');return;
     }
 
     if (!trimmedDescription) {
-      return;
+      setError('Add a description before submitting.');return;
     }
-    console.log(metadata);
+
 
     try {
       await submitFeedback.mutateAsync({
-        type: (type ??
-          "general") as
-          | "bug"
-          | "feature"
-          | "general",
+        type: type === "bug" || type === "feature" ? type : "general",
 
         title: trimmedTitle,
 
@@ -81,8 +84,8 @@ export default function FeedbackFormScreen() {
         ...metadata,
       });
       router.back();
-    } catch (error) {
-      console.log(error);
+    } catch {
+      setError('Feedback could not be sent. Your message is still here; try again.');
     }
   }
 
@@ -95,7 +98,7 @@ export default function FeedbackFormScreen() {
           : undefined
       }
     >
-      <BackHeader />
+      <ScreenHeader title={screen.title} />
 
       <ScrollView
         contentContainerStyle={
@@ -108,7 +111,7 @@ export default function FeedbackFormScreen() {
         </Text>
 
         <Text style={styles.subtitle}>
-          {screen.subtitle}
+          {t(screen.subtitle)}
         </Text>
 
         <Text style={styles.label}>
@@ -119,6 +122,8 @@ export default function FeedbackFormScreen() {
           placeholder={
             screen.titlePlaceholder
           }
+          accessibilityLabel={t('Title')}
+          placeholderTextColor={dark?NAVY.muted:'#64748B'}
           value={title}
           onChangeText={setTitle}
           returnKeyType="next"
@@ -132,6 +137,8 @@ export default function FeedbackFormScreen() {
           placeholder={
             screen.descriptionPlaceholder
           }
+          accessibilityLabel={t('Description')}
+          placeholderTextColor={dark?NAVY.muted:'#64748B'}
           multiline
           textAlignVertical="top"
           value={description}
@@ -140,7 +147,10 @@ export default function FeedbackFormScreen() {
           }
         />
 
+        {!!error&&<Text accessibilityRole="alert" style={styles.error}>{t(error)}</Text>}
         <Pressable
+          accessibilityRole="button"
+          accessibilityState={{busy:submitFeedback.isPending,disabled:submitFeedback.isPending}}
           style={[
             styles.button,
             submitFeedback.isPending &&
@@ -166,15 +176,17 @@ export default function FeedbackFormScreen() {
   );
 }
 
-const styles =
+const getStyles = (dark:boolean)=>
   StyleSheet.create({
+    error:{color:dark?NAVY.danger:'#B91C1C',fontSize:14,lineHeight:20,marginBottom:12},
     screen: {
       flex: 1,
       backgroundColor:
-        "#F8FAFC",
+        dark?NAVY.background:"#F8FAFC",
     },
 
     container: {
+      width:"100%",maxWidth:720,alignSelf:"center",
       padding: 20,
       paddingBottom: 40,
     },
@@ -182,12 +194,12 @@ const styles =
     title: {
       fontSize: 30,
       fontWeight: "700",
-      color: "#111827",
+      color:dark?NAVY.text:"#273449",
       marginBottom: 6,
     },
 
     subtitle: {
-      color: "#6B7280",
+      color:dark?NAVY.muted:"#64748B",
       fontSize: 15,
       marginBottom: 28,
       lineHeight: 22,
@@ -196,35 +208,39 @@ const styles =
     label: {
       fontSize: 15,
       fontWeight: "600",
-      color: "#111827",
+      color:dark?NAVY.text:"#273449",
       marginBottom: 8,
       marginTop: 8,
     },
 
     input: {
       backgroundColor:
-        "#FFFFFF",
+        dark?NAVY.card:"#FFFFFF",
       borderRadius: 14,
       paddingHorizontal: 16,
-      height: 52,
+      minHeight: 52,
+      paddingVertical:12,
+      color:dark?NAVY.text:"#273449",
       fontSize: 16,
       marginBottom: 16,
     },
 
     description: {
       backgroundColor:
-        "#FFFFFF",
+        dark?NAVY.card:"#FFFFFF",
       borderRadius: 14,
       padding: 16,
-      minHeight: 180,
+      minHeight: 160,
+      color:dark?NAVY.text:"#273449",
       fontSize: 16,
       marginBottom: 24,
     },
 
     button: {
       backgroundColor:
-        "#2DBE60",
-      height: 56,
+        NAVY.blue,
+      minHeight: 56,
+      padding:14,
       borderRadius: 16,
       justifyContent:
         "center",

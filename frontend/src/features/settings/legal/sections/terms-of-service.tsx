@@ -1,7 +1,8 @@
+import { ReportingDisclosures } from '@/features/settings/components/ReportingDisclosures';
 import { View, ScrollView, Text, TouchableOpacity } from "@/theme/components";
 import React from 'react';
 import { Linking, StyleSheet } from 'react-native';
-import { BackHeader } from '@/components/ui/BackButton';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 
 export default function TermsOfServiceScreen() {
 
@@ -41,7 +42,7 @@ export default function TermsOfServiceScreen() {
   return (
     
     <View style={styles.wrapper}>
-      <BackHeader />
+      <ScreenHeader title="Terms of Service" />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
@@ -66,6 +67,7 @@ export default function TermsOfServiceScreen() {
             these Terms. If you do not agree, do not use the Service.
           </Text>
 
+          <ReportingDisclosures />
           <Section number="1" title="Eligibility">
             <Text style={styles.paragraph}>
               You must be at least 16 years old to use Deduckly.

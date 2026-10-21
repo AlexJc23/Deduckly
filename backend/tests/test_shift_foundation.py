@@ -1,3 +1,4 @@
+from app.models.vehicle import UserVehicle
 """Storage constraints tested without application DB/network connections."""
 import importlib.util
 import io
@@ -29,6 +30,7 @@ class ShiftFoundationTests(unittest.TestCase):
         def foreign_keys(connection, _):
             connection.execute('PRAGMA foreign_keys=ON')
         User.__table__.create(self.engine)
+        UserVehicle.__table__.create(self.engine)
         Trip.__table__.create(self.engine)
         with self.engine.begin() as connection:
             change = migration()
@@ -198,14 +200,14 @@ class ShiftFoundationTests(unittest.TestCase):
 
     def test_migration_matches_models_and_reverses_without_touching_users(self):
         metadata = MetaData()
-        for model in (User, Trip, Shift, ShiftPlatformSession, ShiftSegment):
+        for model in (User, UserVehicle, Trip, Shift, ShiftPlatformSession, ShiftSegment):
             model.__table__.to_metadata(metadata)
         with self.engine.begin() as connection:
             self.assertEqual(compare_metadata(MigrationContext.configure(connection), metadata), [])
             change = migration()
             change.op = Operations(MigrationContext.configure(connection))
             change.downgrade()
-            self.assertEqual(inspect(connection).get_table_names(), ['trips', 'users'])
+            self.assertEqual(inspect(connection).get_table_names(), ['trips', 'user_vehicles', 'users'])
             self.assertEqual(len(connection.execute(select(User.id)).all()), 2)
 
     def test_postgresql_ddl_is_additive(self):

@@ -4,7 +4,7 @@ import { Text, View } from "@/theme/components";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator } from "react-native";
 
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
 import {
   ExpenseForm,
@@ -80,6 +80,7 @@ export default function EditExpenseScreen() {
             values.merchant,
           description:
             values.description,
+          vehicle_id:values.vehicleId,
           business_percentage:
             Number(
               values.businessPercentage,
@@ -118,7 +119,7 @@ export default function EditExpenseScreen() {
         }}
       />
 
-      <BackHeader />
+      <ScreenHeader title="Edit Expense" />
 
       <ExpenseForm
       mode="edit"
@@ -134,6 +135,7 @@ export default function EditExpenseScreen() {
           description:
             expense.description ??
             "",
+          vehicleId:expense.vehicle_id??null,
           businessPercentage:
             String(
               expense.business_percentage,

@@ -4,6 +4,9 @@ from app.api.v1.router import api_router
 from app.api.v1.endpoints.legal import public_router
 from app.core.scheduler import start_scheduler
 
+from app.core.privacy_logging import install_privacy_log_filter
+
+install_privacy_log_filter()
 app = FastAPI(title=settings.app_name)
 
 app.include_router(api_router, prefix="/api/v1")

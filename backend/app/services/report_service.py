@@ -238,58 +238,25 @@ def build_date_filters(
     end_date: Optional[date] = None,
     timezone_name: Optional[str] = None,
 ):
-    filters = []
-
+    if year is None and not (start_date and end_date):
+        return []
+    try:
+        zone = ZoneInfo(timezone_name or "America/New_York")
+    except (ZoneInfoNotFoundError, ValueError):
+        zone = ZoneInfo("America/New_York")
     if start_date and end_date:
-        filters.append(column >= start_date)
-        filters.append(
-            column < (end_date + timedelta(days=1))
-        )
-        return filters
-
-    if year is None:
-        return filters
-
-    # Daily reports need to respect the user's local timezone.
-    if day is not None:
-        try:
-            tz = ZoneInfo(
-                timezone_name or "America/New_York"
-            )
-        except (ZoneInfoNotFoundError, ValueError):
-            tz = ZoneInfo("America/New_York")
-
-        local_start = datetime(
-            year,
-            month,
-            day,
-            0,
-            0,
-            0,
-            tzinfo=tz,
-        )
-
-        local_end = local_start + timedelta(days=1)
-
-        utc_start = local_start.astimezone(timezone.utc)
-        utc_end = local_end.astimezone(timezone.utc)
-
-        filters.append(column >= utc_start)
-        filters.append(column < utc_end)
-
-        return filters
-
-    # Monthly/yearly reports keep the existing behavior.
-    filters.append(
-        func.extract("year", column) == year
-    )
-
-    if month is not None:
-        filters.append(
-            func.extract("month", column) == month
-        )
-
-    return filters
+        first_day, last_day = start_date, end_date + timedelta(days=1)
+    else:
+        first_day = date(year, month or 1, day or 1)
+        if day is not None:
+            last_day = first_day + timedelta(days=1)
+        elif month is not None:
+            last_day = date(year + (month == 12), 1 if month == 12 else month + 1, 1)
+        else:
+            last_day = date(year + 1, 1, 1)
+    first = datetime.combine(first_day, datetime.min.time(), zone).astimezone(timezone.utc)
+    last = datetime.combine(last_day, datetime.min.time(), zone).astimezone(timezone.utc)
+    return [column >= first, column < last]
 
 def generate_tax_report(
     db: Session,
@@ -389,7 +356,12 @@ def generate_tax_report(
 
         for trip in trips:
             total_miles += Decimal(str(trip.distance_miles))
-            mileage_deduction += Decimal(str(trip.deduction_amount or 0))
+            from app.services.business_mileage import deduction
+            try:zone=ZoneInfo(user.timezone or "America/New_York")
+            except (ZoneInfoNotFoundError,ValueError):zone=ZoneInfo("America/New_York")
+            local_date = trip.start_time.replace(tzinfo=trip.start_time.tzinfo or timezone.utc).astimezone(zone).date()
+            calculated = deduction(trip.distance_miles, local_date)
+            mileage_deduction += calculated if calculated is not None else Decimal(str(trip.deduction_amount or 0))
 
         total_income = Decimal(total_income)
         total_expenses = Decimal(total_expenses)

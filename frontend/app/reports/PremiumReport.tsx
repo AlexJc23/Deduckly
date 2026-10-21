@@ -1,3 +1,4 @@
+import { ReportControls } from '@/features/reports/components/ReportControls';
 import { useLanguage, Translated } from "@/i18n/language";
 import { ScrollView, Text, View, SafeAreaView } from "@/theme/components";
 import { StyleSheet } from "react-native";
@@ -17,12 +18,13 @@ import { useIsTablet } from "@/hooks/use-is-tablet";
 export default function PremiumReportScreen() {
   const { locale } = useLanguage();
   const isTablet = useIsTablet();
+  const [vehicleId,setVehicleId]=useState('');const [method,setMethod]=useState('');
   const [selectedPeriod, setSelectedPeriod] = useState<ReportPeriod>("month");
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customRange, setCustomRange] = useState<{ startDate?: Date; endDate?: Date }>({});
   const [exportVisible, setExportVisible] = useState(false);
-  const reportParams = selectedPeriod === "custom" ? customRange : buildReportParams(selectedPeriod);
-  const { data, isLoading, isError, isPlaceholderData, refetch } = useCurrentReport(reportParams);
+  const reportParams: import("@/features/reports/api/reports.api").GetReportParams = selectedPeriod === "custom" ? customRange : buildReportParams(selectedPeriod);
+  const { data, isLoading, isError, isPlaceholderData, refetch } = useCurrentReport({...reportParams,vehicleId:vehicleId||undefined,method:method||undefined});
   const ready = !!data && !isError && !isPlaceholderData && !isLoading;
   const periodLabel = reportPeriodLabel(reportParams, locale);
   return <SafeAreaView edges={["top"]} style={s.screen}>
@@ -35,6 +37,7 @@ export default function PremiumReportScreen() {
           if (period === "custom") setShowCustomModal(true); else setSelectedPeriod(period);
         }} />
         <Text style={s.period}>{<Translated text={periodLabel} />}{selectedPeriod === "month" ? <Translated text={" · Month to date"} /> : selectedPeriod === "year" ? <Translated text={" · Year to date"} /> : ""}</Text>
+        <ReportControls year={reportParams.year??reportParams.startDate?.getFullYear()??new Date().getFullYear()} premium vehicleId={vehicleId} onVehicle={v=>{setExportVisible(false);setVehicleId(v);}} method={method} onMethod={setMethod}/>
         {!ready ? <ReportLoadState loading={isLoading || isPlaceholderData} retry={() => void refetch()} /> : <>
           <ReportBody report={data} />
           <ReportSection title="Use this report" description="Export the figures above or review their tax details.">

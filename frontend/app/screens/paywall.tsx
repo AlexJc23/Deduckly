@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from "react";
 import { router } from "expo-router";
 
 import Logo from "../../assets/images/logo.svg";
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
 import { PurchasesPackage } from "react-native-purchases";
 
@@ -337,7 +337,7 @@ export default function PaywallScreen() {
 
   return (
     <View style={styles.container}>
-      <BackHeader />
+      <ScreenHeader title="Deduckly Pro" />
 
       <SafeAreaView
         style={styles.safeArea}

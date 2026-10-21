@@ -1,3 +1,4 @@
+from app.models.vehicle import UserVehicle
 import unittest
 from datetime import datetime, timezone, timedelta
 from unittest.mock import patch
@@ -16,7 +17,7 @@ class ShiftApiTests(unittest.TestCase):
         self.engine = create_engine('sqlite://', connect_args={'check_same_thread': False}, poolclass=StaticPool)
         @event.listens_for(self.engine, 'connect')
         def foreign_keys(connection, _): connection.execute('PRAGMA foreign_keys=ON')
-        for model in (User, Trip, Shift, ShiftPlatformSession, ShiftSegment): model.__table__.create(self.engine)
+        for model in (User, UserVehicle, Trip, Shift, ShiftPlatformSession, ShiftSegment): model.__table__.create(self.engine)
         self.db = Session(self.engine)
         self.db.add_all([User(id=i, first_name='Test', last_name='User', email=f'{i}@example.com') for i in (1,2)])
         self.db.commit()

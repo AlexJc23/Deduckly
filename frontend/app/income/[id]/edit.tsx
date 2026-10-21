@@ -8,7 +8,7 @@ import { IncomeForm } from "@/features/income/components/IncomeForm";
 import { useIncomeDetail } from "@/features/income/hooks/use-income-detail";
 import { useUpdateIncome } from "@/features/income/hooks/use-update-income";
 import { UpdateIncomeRequest } from "@/features/income/types/income";
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
 export default function EditIncomeScreen() {
   useLanguage();
@@ -59,7 +59,7 @@ export default function EditIncomeScreen() {
           title: "Edit Income",
         }}
       />
-        <BackHeader />
+        <ScreenHeader title="Edit Income" />
         <IncomeForm
             initialValues={incomeQuery.data}
             submitLabel="Save Changes"

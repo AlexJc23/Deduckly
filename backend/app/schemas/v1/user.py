@@ -100,6 +100,11 @@ class UpdatePasswordRequest(BaseModel):
     old_password: str
     new_password: str
 
+    @field_validator("new_password")
+    @classmethod
+    def validate_new_password(cls, value: str) -> str:
+        return UserCreate.validate_password(value)
+
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
 

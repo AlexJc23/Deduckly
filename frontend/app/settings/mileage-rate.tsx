@@ -4,7 +4,7 @@ import { ActivityIndicator, Linking, StyleSheet } from "react-native";
 
 import React from "react";
 
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useMileageRates } from "@/features/settings/hooks/use-mileage-rate";
 
 export default function MileageRate() {
@@ -37,9 +37,9 @@ export default function MileageRate() {
 
   return (
     <View style={styles.screen}>
-      <BackHeader />
+      <ScreenHeader title="Mileage Rate" />
 
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView edges={["bottom", "left", "right"]} style={styles.safeArea}>
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}

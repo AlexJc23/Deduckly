@@ -1,7 +1,7 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable } from "@/theme/components";
 import { ActivityIndicator, Linking } from 'react-native';
-import { BackHeader } from '@/components/ui/BackButton'
+import { ScreenHeader } from '@/components/ui/ScreenHeader'
 import React from 'react'
 
 import { useMileageRates } from '@/features/settings/hooks/use-mileage-rate'
@@ -21,7 +21,7 @@ export default function Mileage_rate() {
     }
     return (
         <View style={{}}>
-            <BackHeader />
+            <ScreenHeader title="Mileage Rate" />
             <View>
                 <Text><Translated text={"Current IRS Mileage Rate"} /></Text>
 

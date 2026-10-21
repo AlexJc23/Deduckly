@@ -13,6 +13,8 @@ class Trip(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    vehicle_id: Mapped[str | None] = mapped_column(String(36), ForeignKey('user_vehicles.id', ondelete='SET NULL'), nullable=True, index=True)
+
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
 
     client_id: Mapped[str | None] = mapped_column(String(128), nullable=True)

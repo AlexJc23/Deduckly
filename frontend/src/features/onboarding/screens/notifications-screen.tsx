@@ -8,14 +8,14 @@ import { useOnboarding } from "../hooks/use-onboarding";
 
 const content: OnboardingContent = {
   label: "Stay up to date",
-  title: "Keep your work\nin focus.",
-  description: "A busy day has enough moving parts. Let Deduckly help you stay on top of your trips and goals.",
+  title: "Stay Updated",
+  description: "Get notifications about saved trips and shift reminders.",
   icon: "notifications", symbol: "bell.badge.fill",
-  action: "Enable notifications",
-  note: "Choose the reminders you want in Settings. Change them anytime.",
+  action: "Continue",
+  note: "Continue opens the notification prompt. Notifications are optional.",
   features: [
-    { title: "Stay on top of your trips", description: "Get reminders that help keep your records current.", icon: "car-outline", symbol: "car" },
-    { title: "Keep your goals close", description: "Stay connected to the targets you set for yourself.", icon: "flag-outline", symbol: "flag" },
+    { title: "Trip updates", description: "Know when your trip records are saved.", icon: "car-outline", symbol: "car" },
+    { title: "Shift reminders", description: "Stay informed about your planned shift end.", icon: "flag-outline", symbol: "flag" },
   ],
 };
 
@@ -26,12 +26,14 @@ export function NotificationsScreen({ onboarding }: { onboarding: ReturnType<typ
       onboarding.setError("Push notifications are available in the Deduckly mobile app. Choose Not now to continue here.");
       return false;
     }
-    const permission = await Notifications.getPermissionsAsync();
-    if (!permission.granted && !permission.canAskAgain) {
+    let permission = await Notifications.getPermissionsAsync();
+    if (!permission.granted && (permission.status === "denied" || !permission.canAskAgain)) {
       onboarding.setSettings(true);
       onboarding.setError("Notifications are off. Enable them in your device settings or choose Not now to continue.");
       return false;
     }
+    if (!permission.granted) permission = await Notifications.requestPermissionsAsync();
+    if (!permission.granted) return false;
     await registerForPushNotifications();
     await updateCurrentUser({ notifications_enabled: true });
     await queryClient.invalidateQueries({ queryKey: ["current-user"] });

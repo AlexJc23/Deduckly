@@ -1,9 +1,10 @@
+import { VehicleReportBody } from '@/features/reports/components/VehicleReportBody';
 import { useLanguage, Translated } from "@/i18n/language";
 import { ScrollView, Text, View } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useCurrentReport } from "@/features/reports/hooks/use-current-report";
 
 import { money, reportPeriodLabel, reportImpact } from "@/features/reports/utils/report-display";
@@ -58,10 +59,10 @@ function SummaryRow({
 
 export default function IrsSummaryScreen() {
   const { locale } = useLanguage();
-  const { year, month, day, startDate, endDate } = useLocalSearchParams<{
-    year?: string; month?: string; day?: string; startDate?: string; endDate?: string;
+  const { year, month, day, startDate, endDate,vehicleId,method } = useLocalSearchParams<{
+    year?: string; month?: string; day?: string; startDate?: string; endDate?: string;vehicleId?:string;method?:string;
   }>();
-  const params = {
+  const params = {vehicleId,method,
     year: year ? Number(year) : undefined,
     month: month ? Number(month) : undefined,
     day: day ? Number(day) : undefined,
@@ -71,13 +72,14 @@ export default function IrsSummaryScreen() {
 
   const { data, isLoading, isError, refetch } = useCurrentReport(params);
   if (isLoading || isError || !data) {
-    return <View style={styles.container}><BackHeader /><ReportLoadState loading={isLoading} retry={() => void refetch()} /></View>;
+    return <View style={styles.container}><ScreenHeader title="Tax summary" /><ReportLoadState loading={isLoading} retry={() => void refetch()} /></View>;
   }
   const reportPeriod = reportPeriodLabel(startDate && endDate ? params : { year: data.year, month: data.month, day: data.day }, locale);
 
+  if(data.report_version===2)return <View style={styles.container}><ScreenHeader title="Tax summary"/><ScrollView contentContainerStyle={styles.content}><Text style={styles.subtitle}>{reportPeriod}</Text><VehicleReportBody report={data}/></ScrollView></View>;
   return (
     <View style={styles.container}>
-      <BackHeader />
+      <ScreenHeader title="Tax summary" />
 
       <ScrollView
         contentContainerStyle={styles.content}

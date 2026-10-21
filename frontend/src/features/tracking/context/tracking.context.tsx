@@ -127,7 +127,9 @@ export function TrackingProvider({ children }: { children: React.ReactNode }) {
 
   const trackingNotice = loadFailed
     ? "Trip recovery needs attention. Reopen the app to try again. Saved trip data has not been discarded."
-    : !trip ? null : mode === "paused"
+    : !trip ? null : mode === "degraded"
+    ? "Recording needs attention. Location may still be active. Check location access and storage, or end tracking."
+    : mode === "paused"
     ? "Recording is paused. Your saved mileage is safe. Check location access and available storage, then reopen the app."
     : mode === "foreground"
     ? "Background tracking is unavailable. Keep Deduckly open to record mileage. Allow Always location access in Settings for background tracking."

@@ -12,10 +12,11 @@ type Props = {
   requestPermission: () => Promise<Permission>;
   deniedMessage: string;
   onGranted?: () => Promise<void>;
+  optional?: boolean;
 };
 
-// The explanatory state has one action. Only the system dialog offers consent choices.
-export function IOSPermissionScreen({ onboarding, content, getPermission, requestPermission, deniedMessage, onGranted }: Props) {
+// Location retains one neutral pre-alert action. Optional notifications can be skipped without a prompt.
+export function IOSPermissionScreen({ onboarding, content, getPermission, requestPermission, deniedMessage, onGranted, optional = false }: Props) {
   const [permission, setPermission] = useState<Permission | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -49,6 +50,6 @@ export function IOSPermissionScreen({ onboarding, content, getPermission, reques
     <Stack.Screen options={{ gestureEnabled: false, headerBackVisible: false }} />
     <OnboardingScreen screen={screen} onboarding={{ ...onboarding,
       loading: onboarding.loading || (!permission && !failed), settings: denied,
-    }} onContinue={() => onboarding.runAction(proceed, "We couldn’t finish setup. You can continue and try again in Settings.")} />
+    }} onSkip={optional ? () => onboarding.runAction() : undefined} onContinue={() => onboarding.runAction(proceed, "We couldn’t finish setup. You can continue and try again in Settings.")} />
   </>;
 }

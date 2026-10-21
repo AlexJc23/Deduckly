@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from app.models import User
+from app.models.enums import UserRole
 from app.schemas.v1.user import UserCreate, UserUpdate
 from app.core.security import hash_password, verify_password
 from fastapi import HTTPException, status
@@ -55,7 +56,7 @@ def create_user(db: Session, user_in: UserCreate) -> User:
             filing_status=user_in.filing_status,
             business_type=user_in.business_type,
             tax_method=user_in.tax_method,
-            role=user_in.role,
+            role=UserRole.USER,
         )
 
         db.add(db_user)
@@ -113,6 +114,8 @@ def update_user(
 ) -> User:
     try:
         user = get_user(db, user_id)
+        if user_in.password is not None:
+            raise HTTPException(status_code=400, detail="Use the password-change endpoint with your current password")
 
         # -------------------------------------------------
         # Profile
@@ -126,10 +129,6 @@ def update_user(
 
         
 
-        if user_in.password is not None:
-            user.hashed_password = hash_password(
-                user_in.password
-            )
 
         # -------------------------------------------------
         # Automatically update simple fields

@@ -1,3 +1,4 @@
+import { PlatformTiles } from '@/components/ui/PlatformTiles';
 import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, TextInput, View } from "@/theme/components";
 import { useEffect, useState } from "react";
@@ -174,38 +175,7 @@ export function IncomeForm({
             <Text style={styles.label}>
               <Translated text={"Platform"} /></Text>
 
-            <View style={styles.wrap}>
-              {platforms.map((item) => {
-                const selected =
-                  platform === item;
-
-                return (
-                  <Pressable
-                    key={item}
-                    style={({ pressed }) => [
-                      styles.platform,
-                      selected &&
-                        styles.platformActive,
-                      pressed &&
-                        styles.platformPressed,
-                    ]}
-                    onPress={() =>
-                      setPlatform(item)
-                    }
-                  >
-                    <Text
-                      style={[
-                        styles.platformText,
-                        selected &&
-                          styles.platformTextActive,
-                      ]}
-                    >
-                      {item.replaceAll("_", " ")}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <PlatformTiles platforms={platforms} value={platform} onChange={value => { if (value) setPlatform(value as TripPlatform); }} disabled={loading} />
           </>
         )}
 

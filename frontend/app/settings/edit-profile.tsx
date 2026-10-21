@@ -1,6 +1,7 @@
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useLanguage, Translated } from "@/i18n/language";
-import { Pressable, SafeAreaView, Text, TextInput, View, AnimatedView } from "@/theme/components";
-import { ActivityIndicator, Animated, Keyboard, Modal, StyleSheet } from "react-native";
+import { Pressable, SafeAreaView, Text, TextInput, View, AnimatedView, ScrollView } from "@/theme/components";
+import { ActivityIndicator, Animated, Keyboard, KeyboardAvoidingView, Modal, Platform, StyleSheet } from "react-native";
 import { useEffect, useRef, useState } from "react";
 import { router } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -10,10 +11,10 @@ import { useUpdateUser } from "@/features/auth/hooks/use-update-user";
 import { useDeleteUser } from "@/features/auth/hooks/use-delete-account";
 import { clearTokens } from "@/features/auth/services/auth-service.service";
 import DeleteAccountModal from "@/features/settings/modals/DeleteAccountModal";
-import { BackHeader } from "@/components/ui/BackButton";
+import { Ionicons } from "@/theme/icons";
 
 export default function UserUpdateScreen() {
-  useLanguage();
+  const { t } = useLanguage();
   const userQuery = useCurrentUser();
   const updateUserMutation = useUpdateUser();
   const deleteUserMutation = useDeleteUser();
@@ -118,22 +119,23 @@ export default function UserUpdateScreen() {
   }
 
   return (
-    <View style={styles.screen}>
-        <BackHeader />
-      <SafeAreaView style={styles.safeArea}>
-
-        <View style={styles.content}>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.screen}>
+      <ScreenHeader title="Account" safeArea={false} />
+      <KeyboardAvoidingView style={styles.safeArea} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" contentContainerStyle={styles.content}>
           {/* Header */}
 
           <View style={styles.header}>
-            <Text style={styles.eyebrow}>
-              <Translated text={"ACCOUNT"} /></Text>
-
+            <View style={styles.avatar} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+              <Ionicons name="person-outline" size={28} color="#0072B5" />
+            </View>
+            <View style={{ flex: 1 }}>
             <Text style={styles.title}>
               <Translated text={"Personal information"} /></Text>
 
             <Text style={styles.subtitle}>
               <Translated text={"Keep your account details and tax profile up to date."} /></Text>
+            </View>
           </View>
 
           {/* Form */}
@@ -141,9 +143,6 @@ export default function UserUpdateScreen() {
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <View>
-                <Text style={styles.cardEyebrow}>
-                  <Translated text={"PROFILE"} /></Text>
-
                 <Text style={styles.cardTitle}>
                   <Translated text={"Your information"} /></Text>
               </View>
@@ -157,6 +156,9 @@ export default function UserUpdateScreen() {
 
               <TextInput
                 style={styles.input}
+                accessibilityLabel={t('First Name')}
+                textContentType="givenName"
+                autoComplete="given-name"
                 value={firstName}
                 onChangeText={setFirstName}
                 placeholder="First Name"
@@ -173,6 +175,9 @@ export default function UserUpdateScreen() {
 
               <TextInput
                 style={styles.input}
+                accessibilityLabel={t('Last Name')}
+                textContentType="familyName"
+                autoComplete="family-name"
                 value={lastName}
                 onChangeText={setLastName}
                 placeholder="Last Name"
@@ -188,6 +193,9 @@ export default function UserUpdateScreen() {
                 <Translated text={"Filing Status"} /></Text>
 
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${t('Filing Status')}: ${t(selectedFilingStatus ?? 'Select Filing Status')}`}
+                accessibilityState={{ expanded: showFilingStatusModal }}
                 style={styles.selectButton}
                 onPress={() => {
                   Keyboard.dismiss();
@@ -201,8 +209,7 @@ export default function UserUpdateScreen() {
                       styles.placeholderText,
                   ]}
                 >
-                  {selectedFilingStatus ??
-                    "Select Filing Status"}
+                  {t(selectedFilingStatus ?? "Select Filing Status")}
                 </Text>
 
                 <Text style={styles.chevron}>
@@ -211,9 +218,17 @@ export default function UserUpdateScreen() {
               </Pressable>
             </View>
 
+            <Pressable accessibilityRole="button" style={styles.vehicleRow} onPress={() => router.push("/settings/vehicles")}>
+              <View style={styles.vehicleIcon}><Ionicons name="car-outline" size={23} color="#0072B5" /></View>
+              <View style={{ flex: 1 }}><Text style={styles.vehicleTitle}><Translated text="My Vehicles" /></Text><Text style={styles.vehicleSubtitle}>{t('Manage your saved vehicles.')}</Text></View>
+              <Ionicons name="chevron-forward" size={20} color="#64748B" />
+            </Pressable>
+
             {/* Save */}
 
             <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: updateUserMutation.isPending, busy: updateUserMutation.isPending }}
               style={[
                 styles.saveButton,
                 updateUserMutation.isPending &&
@@ -239,6 +254,7 @@ export default function UserUpdateScreen() {
                   <Translated text={"Save Changes"} /></Text>
               )}
             </Pressable>
+
           </View>
 
           {/* Danger Zone */}
@@ -246,9 +262,7 @@ export default function UserUpdateScreen() {
           <View style={styles.dangerCard}>
             <View style={styles.dangerHeader}>
               <View style={styles.dangerIcon}>
-                <Text style={styles.dangerIconText}>
-                  !
-                </Text>
+                <Ionicons name="trash-outline" size={19} color="#DC2626" />
               </View>
 
               <View style={styles.dangerContent}>
@@ -261,6 +275,7 @@ export default function UserUpdateScreen() {
             </View>
 
             <Pressable
+              accessibilityRole="button"
               style={styles.deleteButton}
               onPress={() =>
                 setShowDeleteModal(true)
@@ -270,7 +285,7 @@ export default function UserUpdateScreen() {
                 <Translated text={"Delete Account"} /></Text>
             </Pressable>
           </View>
-        </View>
+        </ScrollView>
 
         {/* Filing Status Modal */}
 
@@ -313,7 +328,7 @@ export default function UserUpdateScreen() {
               <Text style={styles.sheetSubtitle}>
                 <Translated text={"Select the status that applies to your tax return."} /></Text>
 
-              <View style={styles.optionList}>
+              <ScrollView style={styles.optionList} contentContainerStyle={{ gap: 8 }} keyboardShouldPersistTaps="handled">
                 {filingStatuses.map(
                   (status) => {
                     const selected =
@@ -323,6 +338,8 @@ export default function UserUpdateScreen() {
                     return (
                       <Pressable
                         key={status.value}
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: selected }}
                         style={[
                           styles.option,
                           selected &&
@@ -362,15 +379,16 @@ export default function UserUpdateScreen() {
                               styles.optionTextSelected,
                           ]}
                         >
-                          {status.label}
+                          {t(status.label)}
                         </Text>
                       </Pressable>
                     );
                   }
                 )}
-              </View>
+              </ScrollView>
 
               <Pressable
+                accessibilityRole="button"
                 style={styles.cancelButton}
                 onPress={() =>
                   setShowFilingStatusModal(
@@ -394,15 +412,15 @@ export default function UserUpdateScreen() {
           }
           onDelete={handleDelete}
         />
-      </SafeAreaView>
-    </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#F7F9FC",
+    backgroundColor: "#F8FAFC",
   },
 
   safeArea: {
@@ -413,30 +431,29 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F7F9FC",
+    backgroundColor: "#F8FAFC",
   },
 
   content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 18,
+    width: '100%', maxWidth: 640, alignSelf: 'center',
+    paddingHorizontal: 20, paddingTop: 14, paddingBottom: 28,
   },
+  navigation: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 12, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  backButton: { minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22 },
+  navigationTitle: { flex: 1, textAlign: 'center', fontSize: 18, fontWeight: '700' },
+  avatar: { width: 54, height: 54, borderRadius: 27, backgroundColor: '#E8EEFF', alignItems: 'center', justifyContent: 'center' },
+  vehicleRow: { marginTop: 20, padding: 14, borderRadius: 14, backgroundColor: '#F1F5F9', flexDirection: 'row', alignItems: 'center', gap: 12 },
+  vehicleIcon: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  vehicleTitle: { fontSize: 16, fontWeight: '700', color: '#273449' },
+  vehicleSubtitle: { fontSize: 13, lineHeight: 19, color: '#64748B', marginTop: 3 },
 
-  header: {
-    marginBottom: 20,
-  },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 22 },
 
-  eyebrow: {
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 1.25,
-    color: "#94A3B8",
-    marginBottom: 4,
-  },
+
 
   title: {
-    fontSize: 27,
-    lineHeight: 32,
+    fontSize: 23,
+    lineHeight: 30,
     fontWeight: "800",
     letterSpacing: -0.6,
     color: "#273449",
@@ -462,13 +479,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
 
-  cardEyebrow: {
-    fontSize: 8,
-    fontWeight: "800",
-    letterSpacing: 1.1,
-    color: "#94A3B8",
-    marginBottom: 3,
-  },
+
 
   cardTitle: {
     fontSize: 17,
@@ -481,25 +492,27 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "800",
     color: "#475569",
     marginBottom: 7,
   },
 
   input: {
-    height: 50,
+    minHeight: 52,
+    paddingVertical: 13,
     borderRadius: 13,
     borderWidth: 1,
     borderColor: "#DDE4ED",
     backgroundColor: "#FBFCFD",
     paddingHorizontal: 14,
-    fontSize: 14,
+    fontSize: 16,
     color: "#273449",
   },
 
   selectButton: {
-    height: 50,
+    minHeight: 52,
+    paddingVertical: 13,
     borderRadius: 13,
     borderWidth: 1,
     borderColor: "#DDE4ED",
@@ -528,10 +541,11 @@ const styles = StyleSheet.create({
   },
 
   saveButton: {
-    height: 51,
+    minHeight: 54,
+    paddingVertical: 14,
     marginTop: 22,
     borderRadius: 14,
-    backgroundColor: "#0072B5",
+    backgroundColor: "#4A6FE3",
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
@@ -554,7 +568,7 @@ const styles = StyleSheet.create({
 
   saveButtonText: {
     color: "#FFFFFF",
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "800",
   },
 
@@ -563,8 +577,8 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: "#F1D7D7",
-    backgroundColor: "#FFF9F9",
+    borderColor: "#E2E8F0",
+    backgroundColor: "#F8FAFC",
   },
 
   dangerHeader: {
@@ -582,11 +596,7 @@ const styles = StyleSheet.create({
     marginRight: 11,
   },
 
-  dangerIconText: {
-    fontSize: 17,
-    fontWeight: "800",
-    color: "#DC2626",
-  },
+
 
   dangerContent: {
     flex: 1,
@@ -599,14 +609,15 @@ const styles = StyleSheet.create({
   },
 
   dangerDescription: {
-    marginTop: 2,
-    fontSize: 11,
-    lineHeight: 16,
+    marginTop: 4,
+    fontSize: 13,
+    lineHeight: 19,
     color: "#7F8A9A",
   },
 
   deleteButton: {
-    height: 43,
+    minHeight: 48,
+    paddingVertical: 12,
     marginTop: 14,
     borderRadius: 12,
     borderWidth: 1,
@@ -633,6 +644,7 @@ const styles = StyleSheet.create({
   },
 
   bottomSheet: {
+    width: '100%', maxWidth: 640, maxHeight: '85%', alignSelf: 'center',
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 26,
     borderTopRightRadius: 26,
@@ -651,7 +663,7 @@ const styles = StyleSheet.create({
   },
 
   sheetEyebrow: {
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1.2,
     color: "#94A3B8",
@@ -715,7 +727,7 @@ const styles = StyleSheet.create({
 
   optionText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "600",
     color: "#475569",
   },

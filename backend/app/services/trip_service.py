@@ -4,7 +4,7 @@ import json
 from sqlalchemy.exc import IntegrityError
 from app.models.analytics_event import AnalyticsEvent
 from sqlalchemy.orm import Session
-from app.models import Trip
+from app.models import Trip, User
 from app.models.enums import TripCategory
 from app.schemas.v1.trip import TripCreate, TripUpdate
 from app.services.income_service import upsert_income_for_trip
@@ -17,6 +17,7 @@ from app.services.mileage_rate_service import get_business_rate_for_date
 def _creation_fingerprint(trip_in: TripCreate) -> str:
     # Addresses are best-effort enrichment and can differ between retries.
     values = trip_in.model_dump(exclude={"client_id", "start_address", "end_address"})
+    if values.get("vehicle_id") is None: values.pop("vehicle_id", None)
     for key, value in values.items():
         if isinstance(value, datetime):
             values[key] = value.replace(tzinfo=value.tzinfo or timezone.utc).astimezone(timezone.utc).isoformat()
@@ -36,11 +37,16 @@ def _existing_creation(db, user_id, client_id, fingerprint):
     return trip
 
 
-def _trip_deduction(db, category, start_time, distance):
+def _trip_deduction(db, category, start_time, distance, timezone_name="UTC"):
     if category == TripCategory.PERSONAL:
         return Decimal("0.00")
-    rate = get_business_rate_for_date(db, start_time.date())
-    return (distance * rate.business_rate).quantize(Decimal("0.01"))
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+    try:zone=ZoneInfo(timezone_name or "America/New_York")
+    except (ZoneInfoNotFoundError,ValueError):zone=ZoneInfo("America/New_York")
+    local=start_time.replace(tzinfo=start_time.tzinfo or timezone.utc).astimezone(zone).date()
+    rate = get_business_rate_for_date(db, local)
+    from app.services.business_mileage import money
+    return money(distance * rate.business_rate)
 
 
 def create_trip(db: Session, trip_in: TripCreate, user_id: int) -> Trip:
@@ -53,7 +59,9 @@ def create_trip(db: Session, trip_in: TripCreate, user_id: int) -> Trip:
     existing = _existing_creation(db, user_id, trip_in.client_id, fingerprint)
     if existing:
         return existing
-    deduction = _trip_deduction(db, trip_in.category, trip_in.start_time, trip_in.distance_miles)
+    from app.services.vehicle_reporting import owned_vehicle
+    if trip_in.vehicle_id: owned_vehicle(db, user_id, trip_in.vehicle_id)
+    deduction = _trip_deduction(db, trip_in.category, trip_in.start_time, trip_in.distance_miles, (db.query(User.timezone).filter(User.id==user_id).scalar() or "UTC"))
     values = trip_in.model_dump(exclude={"income_amount"})
     db_trip = Trip(**values, user_id=user_id, deduction_amount=deduction,
                    creation_fingerprint=fingerprint if trip_in.client_id else None)
@@ -173,16 +181,18 @@ def update_trip(
         raise HTTPException(status_code=404, detail="Trip not found")
     update_data = trip_in.model_dump(exclude_unset=True)
     try:
+        from app.services.vehicle_reporting import owned_vehicle
+        if update_data.get("vehicle_id"): owned_vehicle(db, user_id, update_data["vehicle_id"])
         for field, value in update_data.items():
             if field == "income_amount":
                 continue
-            if value is None and field not in {"start_address", "end_address", "notes"}:
+            if value is None and field not in {"start_address", "end_address", "notes", "vehicle_id"}:
                 raise HTTPException(status_code=400, detail=f"{field} cannot be null")
             setattr(trip, field, value)
         if trip.distance_miles is None or not 0 < trip.distance_miles <= 1000:
             raise HTTPException(status_code=400, detail="Invalid distance")
         if {"distance_miles", "category", "start_time"} & update_data.keys():
-            trip.deduction_amount = _trip_deduction(db, trip.category, trip.start_time, trip.distance_miles)
+            trip.deduction_amount = _trip_deduction(db, trip.category, trip.start_time, trip.distance_miles, (db.query(User.timezone).filter(User.id==user_id).scalar() or "UTC"))
         if "income_amount" in update_data:
             upsert_income_for_trip(db, trip_id=trip.id, user_id=user_id,
                                    amount=update_data["income_amount"], commit=False)
