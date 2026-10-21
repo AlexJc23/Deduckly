@@ -10,8 +10,8 @@ import { parseGoalInput } from "../utils/goal-input";
 
 const content: OnboardingContent = {
   label: "Set your goals",
-  title: "Make every day count.",
-  description: "Choose daily and monthly income goals that work for you. You can change them anytime in Preferences.",
+  title: "Set Your Goals",
+  description: "Add optional income goals. You can change them later in Preferences.",
   icon: "flag-outline", symbol: "flag",
   action: "Save goals and continue",
   note: "Your goals are personal targets, not guaranteed earnings.",
@@ -61,7 +61,7 @@ export function GoalsScreen({ onboarding }: { onboarding: ReturnType<typeof useO
   </KeyboardAvoidingView>;
 }
 const styles = StyleSheet.create({
-  container: { flex: 1 }, fields: { width: "100%", gap: 20, paddingVertical: 16 }, field: { gap: 8 },
+  container: { flex: 1 }, fields: { width: "100%", gap: 14, paddingVertical: 8 }, field: { gap: 5 },
   label: { fontSize: 16, fontWeight: "600", color: "#273449" },
   helper: { fontSize: 14, lineHeight: 20, color: "#647184" },
   input: { minHeight: 54, borderWidth: 1, borderColor: "#DDE3EA", borderRadius: 14, backgroundColor: "#FFFFFF", padding: 14, fontSize: 18, color: "#273449" },

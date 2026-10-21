@@ -22,6 +22,7 @@ Module._load=function(id,parent,isMain){
  if(id==='expo-router')return{router:{back(){},dismissTo(){}},useLocalSearchParams:()=>({id:'7'})};
  if(id==='@/features/trips/hooks/use-trips')return{useTrip:()=>({data:trip})};
  if(id==='@/features/auth/services/account-boundary')return{getAccountGeneration:()=>1,subscribeAccountBoundary:()=>()=>{}};
+ if(id==='@/features/vehicles/use-vehicles'||(id==='./use-vehicles'&&parent.filename.includes('/vehicles/')))return{useVehicles:()=>({owner:'1',data:{vehicles:[{id:'v1',year:2020,make:'Test',model:'Car',deleted:false}]}})};
  if(id==='@/features/vehicles/use-fuel-assumptions')return{useFuelAssumptions:()=>({assumptions})};
  if(id==='@/features/trips/hooks/use-update-trip')return{useUpdateTrip:()=>({isPending:false,mutateAsync:async input=>{calls.push(input);if(failSave)throw Error('offline');trip={...trip,...input.trip};}})};
  if(id==='@/features/trips/hooks/use-delete-trip')return{useDeleteTrip:()=>({isPending:false,mutateAsync:async id=>{calls.push({deleted:id});}})};
@@ -43,7 +44,7 @@ let renders=0;
 for(const language of ['en','es'])for(const w of [320,390,430,768,1024,1366])for(const scale of [1,1.5,2])for(const theme of [false,true])for(const fuel of ['gasoline','electric','missing']){
  core.setRuntimeLanguage(language);width=w;fontScale=scale;dark=theme;slots=[];trip={...initialTrip};
  assumptions=fuel==='missing'?null:{vehicle:'2012 Honda Odyssey',fuelType:fuel,economy:fuel==='electric'?28:22,price:fuel==='electric'?.16:3.94,source:'Saved manual fuel price'};
- const html=render();assert(html.includes(language==='es'?'Detalles del viaje':'Trip Details'));assert(html.includes(initialTrip.start_address));assert(html.includes(language==='es'?'Dirección no disponible':'Address unavailable'));assert(!html.includes('NaN'));assert(!html.includes('Infinity'));
+ const html=render();assert(html.includes(language==='es'?'Detalles del viaje':'Trip Details'));assert(html.includes(initialTrip.start_address.replace(', ', '\n')));assert.equal(trip.start_address,initialTrip.start_address);assert(html.includes(language==='es'?'Dirección no disponible':'Address unavailable'));assert(!html.includes('NaN'));assert(!html.includes('Infinity'));
  if(assumptions)assert(html.includes(language==='es'?spanish['Based on current saved vehicle and price settings, not historical trip data.']:'Based on current saved vehicle and price settings, not historical trip data.'));
  renders++;
 }

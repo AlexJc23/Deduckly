@@ -57,6 +57,7 @@ async def create_expense_endpoint(
 
     expense.receipt_url = generate_presigned_url(
         expense.receipt_url,
+        user_id=current_user.id,
     )
 
     return expense
@@ -95,6 +96,7 @@ async def upload_expense_receipt(
         if expense.receipt_url:
             delete_file_from_s3(
                 expense.receipt_url,
+                user_id=current_user.id,
             )
 
         expense.receipt_url = upload_file_to_s3(
@@ -107,6 +109,7 @@ async def upload_expense_receipt(
 
         expense.receipt_url = generate_presigned_url(
             expense.receipt_url,
+            user_id=current_user.id,
         )
 
         return expense
@@ -141,6 +144,7 @@ def get_expense_endpoint(
 
     expense.receipt_url = generate_presigned_url(
         expense.receipt_url,
+        user_id=current_user.id,
     )
 
     return expense
@@ -171,6 +175,7 @@ def get_expenses_endpoint(
     for expense in expenses:
         expense.receipt_url = generate_presigned_url(
             expense.receipt_url,
+            user_id=current_user.id,
         )
 
     return expenses
@@ -196,6 +201,7 @@ async def update_expense_endpoint(
 
     expense.receipt_url = generate_presigned_url(
         expense.receipt_url,
+        user_id=current_user.id,
     )
 
     return expense
@@ -217,6 +223,7 @@ def delete_expense_endpoint(
         try:
             delete_file_from_s3(
                 expense.receipt_url,
+                user_id=current_user.id,
             )
         except Exception:
             pass
@@ -256,6 +263,7 @@ def delete_expense_receipt(
     try:
         delete_file_from_s3(
             expense.receipt_url,
+            user_id=current_user.id,
         )
 
         expense.receipt_url = None

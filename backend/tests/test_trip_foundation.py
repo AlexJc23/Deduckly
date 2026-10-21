@@ -161,7 +161,9 @@ class TripFoundationTests(unittest.TestCase):
             tax_method=TaxMethod.STANDARD_MILEAGE, business_type=None)
         report = generate_tax_report(self.db, user, year=2026)
         self.assertEqual(report["total_miles"], business.distance_miles)
-        self.assertEqual(report["mileage_deduction"], business.deduction_amount)
+        from app.services.business_mileage import deduction
+        self.assertEqual(report["mileage_deduction"], deduction(business.distance_miles,business.start_time.date()))
+        self.assertNotEqual(report["mileage_deduction"], personal.deduction_amount)
         self.assertEqual(len(get_trips_for_user(self.db, 1)), 2)
 
     def test_unique_race_recovers_existing_creation(self):

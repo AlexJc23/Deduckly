@@ -7,6 +7,7 @@ from app.models.enums import TripPlatform, TripCategory
 
 # Base (shared structure)
 class TripBase(BaseModel):
+    vehicle_id: Optional[str] = Field(default=None, max_length=36)
     start_time: datetime
     end_time: datetime
 
@@ -32,6 +33,7 @@ class TripCreate(TripBase):
 
 # Update (ALL optional, no inheritance)
 class TripUpdate(BaseModel):
+    vehicle_id: Optional[str] = Field(default=None, max_length=36)
     notes: Optional[str] = Field(default=None, max_length=2000)
     income_amount: Optional[Decimal] = None
     start_time: Optional[datetime] = None

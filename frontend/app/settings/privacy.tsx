@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import DeleteAccountModal from "@/features/settings/modals/DeleteAccountModal";
 import { useAuth } from "@/features/auth/context/auth.context";
 import { useDeleteUser } from "@/features/auth/hooks/use-delete-account";
@@ -31,8 +31,8 @@ export default function PrivacyScreen() {
 
   return (
     <View style={styles.screen}>
-        <BackHeader />
-      <SafeAreaView style={styles.safeArea}>
+        <ScreenHeader title="Privacy" />
+      <SafeAreaView edges={["bottom", "left", "right"]} style={styles.safeArea}>
 
         <ScrollView
           contentContainerStyle={styles.content}

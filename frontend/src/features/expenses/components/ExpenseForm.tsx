@@ -1,3 +1,4 @@
+import { VehicleAssignment } from '@/features/vehicles/VehicleAssignment';
 import { useLanguage, Translated } from "@/i18n/language";
 import { localizedAlert } from "@/i18n/alerts";
 import { Pressable, ScrollView, Text, TextInput, View } from "@/theme/components";
@@ -12,6 +13,7 @@ import { ExpenseCategoryModal } from "../modals/ExpenseCategoryModal";
 import { EXPENSE_CATEGORY_LABELS } from "@/constants/expense-category-labels";
 
 export interface ExpenseFormValues {
+  vehicleId?:string|null;
   amount: string;
   category: ExpenseCategory;
   merchant: string;
@@ -41,6 +43,7 @@ export function ExpenseForm({
   onSubmit,
 }: Props) {
   const { locale } = useLanguage();
+  const [vehicleId,setVehicleId]=useState(initialValues.vehicleId??null);
   const [amount, setAmount] = useState(
     initialValues.amount,
   );
@@ -77,6 +80,7 @@ export function ExpenseForm({
     );
 
   useEffect(() => {
+    setVehicleId(initialValues.vehicleId??null);
     setAmount(initialValues.amount);
     setCategory(initialValues.category);
     setMerchant(initialValues.merchant);
@@ -468,6 +472,7 @@ export function ExpenseForm({
         )}
       </View>
 
+      <VehicleAssignment value={vehicleId} onChange={setVehicleId} disabled={loading}/>
       <Pressable
         disabled={
           loading ||
@@ -490,7 +495,7 @@ export function ExpenseForm({
               category,
               merchant,
               description,
-              businessPercentage,
+              businessPercentage, vehicleId,
               incurredAt,
             },
             receiptUri,

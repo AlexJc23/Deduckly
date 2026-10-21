@@ -48,52 +48,46 @@ def upload_file_to_s3(
     )
 
 
-def generate_presigned_url(file_url: str | None) -> str | None:
+def owned_receipt_key(file_url: str, user_id: int) -> str:
+    """Validate legacy and signed URLs before granting any object capability."""
+    from urllib.parse import unquote
+    try:
+        parsed = urlsplit(file_url)
+        host = f"{settings.s3_bucket}.s3.{settings.aws_region}.amazonaws.com"
+        key = unquote(parsed.path[1:])
+        if (parsed.scheme != "https" or parsed.netloc != host or parsed.fragment
+                or not parsed.path.startswith("/") or not key.startswith(f"{user_id}/")
+                or len(key.split("/")) < 2 or "%" in key or "\\" in key
+                or any(part in ("", ".", "..") for part in key.split("/"))):
+            raise ValueError("Unowned receipt")
+        return key
+    except (ValueError, TypeError, AttributeError):
+        raise HTTPException(status_code=403, detail="Receipt does not belong to this account") from None
+
+
+def owned_receipt_url(file_url: str | None, user_id: int) -> str | None:
     if not file_url:
         return None
+    from urllib.parse import quote
+    key = owned_receipt_key(file_url, user_id)
+    return f"https://{settings.s3_bucket}.s3.{settings.aws_region}.amazonaws.com/{quote(key, safe='/._-')}"
 
-    s3_client = get_s3_client()
 
-    prefix = (
-        f"https://{settings.s3_bucket}"
-        f".s3.{settings.aws_region}.amazonaws.com/"
-    )
-
-    key = file_url.removeprefix(prefix)
-
-    url = s3_client.generate_presigned_url(
-        "get_object",
-        Params={
-            "Bucket": settings.s3_bucket,
-            "Key": key,
-        },
-        ExpiresIn=3600,
+def generate_presigned_url(file_url: str | None, user_id: int) -> str | None:
+    if not file_url:
+        return None
+    key = owned_receipt_key(file_url, user_id)
+    return get_s3_client().generate_presigned_url(
+        "get_object", Params={"Bucket": settings.s3_bucket, "Key": key}, ExpiresIn=3600,
     )
 
 
-
-    return url
-
-def delete_file_from_s3(file_url: str):
-    s3_client = get_s3_client()
-
-    bucket_name = settings.s3_bucket
-
-    key = file_url.split(
-        f"https://{bucket_name}.s3.{settings.aws_region}.amazonaws.com/"
-    )[-1]
-
+def delete_file_from_s3(file_url: str, user_id: int):
+    key = owned_receipt_key(file_url, user_id)
     try:
-        s3_client.delete_object(
-            Bucket=bucket_name,
-            Key=key,
-        )
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to delete file: {str(e)}",
-        )
+        get_s3_client().delete_object(Bucket=settings.s3_bucket, Key=key)
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to delete receipt") from None
 
 def delete_user_files_from_s3(user_id: int) -> None:
     s3_client = get_s3_client()

@@ -1,6 +1,6 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable } from "@/theme/components";
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,7 +22,7 @@ export default function PrivacyScreen() {
 
     return (
         <View>
-                    <BackHeader />
+                    <ScreenHeader title="Privacy" />
                     <View>
                         <>
                         <Pressable onPress={() => router.push("/settings/privacy/sections/privacy-policy")}>

@@ -13,7 +13,7 @@ import { useDeleteExpense } from "@/features/expenses/hooks/use-delete-expense";
 import { useExpenseDetail } from "@/features/expenses/hooks/use-expense-detail";
 import { DeleteExpenseModal } from "@/features/expenses/modals/DeleteExpenseModal";
 import { EXPENSE_CATEGORY_LABELS } from "@/constants/expense-category-labels";
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function ExpenseDetailsScreen() {
@@ -71,7 +71,7 @@ export default function ExpenseDetailsScreen() {
         }}
       />
 
-      <BackHeader />
+      <ScreenHeader title="Expense Details" />
 
       <ScrollView
         style={styles.screen}

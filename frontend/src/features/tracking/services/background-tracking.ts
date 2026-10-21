@@ -33,7 +33,7 @@ async function dispatchPoints(points: ReturnType<typeof toLocationPoint>[], owne
 }
 
 export const TRIP_LOCATION_TASK = "deduckly-active-trip-location-v1";
-export type RecordingMode = "background" | "foreground" | "paused";
+export type RecordingMode = "background" | "foreground" | "paused" | "degraded";
 let mode: RecordingMode = "paused";
 let watcher: Location.LocationSubscription | null = null;
 let watchingId: string | null = null;
@@ -53,7 +53,7 @@ function control<T>(operation: () => Promise<T>): Promise<T> {
   controls = next.catch(() => {});
   return next;
 }
-function recordingError() { updateMode("paused"); }
+function recordingError() { updateMode("degraded"); }
 
 // Registered at module scope: Expo can run this without mounting any React screen.
 if (!TaskManager.isTaskDefined(TRIP_LOCATION_TASK)) {

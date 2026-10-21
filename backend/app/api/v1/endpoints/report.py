@@ -21,6 +21,44 @@ from app.schemas.v1.current_report import CurrentReport
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
+@router.get("/mileage-rates")
+def official_mileage_rates(current_user: User = Depends(get_current_user)):
+    from app.services.business_mileage import RATES
+    today = date.today()
+    return [dict(id=int(start.strftime('%Y%m%d')),effective_date=start,business_rate=rate) for start,rate in reversed(RATES) if start<=today]
+
+
+@router.get("/vehicle-summary")
+def vehicle_summary(year: int | None = Query(None,ge=2010,le=2200), month: int | None = Query(None,ge=1,le=12), day: int | None = Query(None,ge=1,le=31),start_date: date | None = None,end_date: date | None = None,vehicle_id: str | None = None,method: str | None = None,db: Session = Depends(get_db),current_user: User = Depends(get_current_user)):
+    from app.services.vehicle_reporting import report
+    from app.services.subscription_service import has_active_subscription
+    advanced=has_active_subscription(db,current_user.id)
+    if (start_date or end_date or vehicle_id) and not advanced: raise HTTPException(403,"Premium subscription required for custom and per-vehicle reports")
+    return report(db,current_user,year,month,day,start_date,end_date,vehicle_id,method,advanced)
+
+@router.get("/vehicle-exports/{format}")
+def vehicle_export(format: str,year: int | None = None,month: int | None = None,day: int | None = None,start_date: date | None = None,end_date: date | None = None,vehicle_id: str | None = None,method: str | None = None,expected_fingerprint: str | None = None,db: Session = Depends(get_db),current_user: User = Depends(require_active_subscription)):
+    from app.services.vehicle_reporting import report,export_rows
+    import csv
+    calculated=report(db,current_user,year,month,day,start_date,end_date,vehicle_id,method,True)
+    if expected_fingerprint and expected_fingerprint!=calculated["report_fingerprint"]:raise HTTPException(409,"Report changed; refresh before exporting")
+    rows=export_rows(calculated)
+    if format=='csv':
+        buffer=io.StringIO()
+        # Protect spreadsheet formula execution in vehicle names/user-controlled text.
+        csv.writer(buffer).writerows([["'"+str(v) if str(v).startswith(('=','+','-','@')) else str(v) for v in row] for row in rows])
+        payload=buffer.getvalue().encode('utf-8-sig');kind='text/csv'
+    elif format=='pdf':
+        from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer
+        from reportlab.lib.styles import getSampleStyleSheet
+        from xml.sax.saxutils import escape
+        buffer=io.BytesIO();styles=getSampleStyleSheet()
+        story=[]
+        for row in rows:story.extend([Paragraph(escape(' | '.join(str(v) for v in row)),styles['BodyText']),Spacer(1,8)])
+        SimpleDocTemplate(buffer).build(story);payload=buffer.getvalue();kind='application/pdf'
+    else:raise HTTPException(422,'Choose pdf or csv')
+    return StreamingResponse(io.BytesIO(payload),media_type=kind,headers={'Content-Disposition':f'attachment; filename="Deduckly_Report.{format}"'})
+
 @router.get("/today")
 def get_today_report(
     db: Session = Depends(get_db),

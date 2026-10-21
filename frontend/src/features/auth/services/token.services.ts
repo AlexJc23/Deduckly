@@ -7,13 +7,8 @@ export async function refreshAccessToken(
 ): Promise<AuthTokens> {
   const response = await axios.post(
     `${ENV.API_URL}/api/v1/auth/refresh`,
-    null,
-    {
-      timeout: 10000,
-      params: {
-        refresh_token: refreshToken,
-      },
-    }
+    { refresh_token: refreshToken },
+    { timeout: 10000 }
   );
 
   return response.data;

@@ -7,6 +7,7 @@ from typing import List, Optional
 from decimal import Decimal
 from sqlalchemy.exc import SQLAlchemyError
 from app.services.analytics_service import create_analytics_event
+from app.services.storage_service import owned_receipt_url
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
@@ -146,7 +147,10 @@ def create_expense(
             detail="Incurred date cannot be in the future",
         )
 
+    from app.services.vehicle_reporting import owned_vehicle
+    if expense_in.vehicle_id: owned_vehicle(db, user_id, expense_in.vehicle_id)
     db_expense = Expense(
+        vehicle_id=expense_in.vehicle_id,
         user_id=user_id,
         amount=expense_in.amount,
         category=expense_in.category,
@@ -154,11 +158,7 @@ def create_expense(
         description=expense_in.description,
         merchant=expense_in.merchant,
         business_percentage=expense_in.business_percentage,
-        receipt_url=(
-            str(expense_in.receipt_url)
-            if expense_in.receipt_url
-            else None
-        ),
+        receipt_url=owned_receipt_url(str(expense_in.receipt_url), user_id) if expense_in.receipt_url else None,
     )
 
     try:
@@ -197,9 +197,15 @@ def update_expense(
         user_id,
     )
 
+    receipt_url = owned_receipt_url(str(expense_in.receipt_url), user_id) if expense_in.receipt_url is not None else None
     now = datetime.now(timezone.utc)
 
     try:
+        if "vehicle_id" in expense_in.model_fields_set:
+            from app.services.vehicle_reporting import owned_vehicle
+            if expense_in.vehicle_id: owned_vehicle(db, user_id, expense_in.vehicle_id)
+            expense.vehicle_id = expense_in.vehicle_id
+
         if expense_in.amount is not None:
             if expense_in.amount <= 0:
                 raise HTTPException(
@@ -254,11 +260,7 @@ def update_expense(
             )
 
         if expense_in.receipt_url is not None:
-            expense.receipt_url = (
-                str(expense_in.receipt_url)
-                if expense_in.receipt_url
-                else None
-            )
+            expense.receipt_url = receipt_url
 
         db.commit()
         db.refresh(expense)

@@ -7,6 +7,7 @@ from app.models.enums import ExpenseCategory
 
 
 class ExpenseBase(BaseModel):
+    vehicle_id: Optional[str] = Field(default=None, max_length=36)
     amount: Decimal
     category: ExpenseCategory
     incurred_at: datetime
@@ -36,6 +37,7 @@ class ExpenseCreate(ExpenseBase):
 
 
 class ExpenseUpdate(BaseModel):
+    vehicle_id: Optional[str] = Field(default=None, max_length=36)
     amount: Optional[Decimal] = None
     category: Optional[ExpenseCategory] = None
     incurred_at: Optional[datetime] = None

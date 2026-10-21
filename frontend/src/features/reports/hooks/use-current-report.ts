@@ -2,6 +2,8 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { getReport } from "../api/reports.api";
 
 export type UseCurrentReportParams = {
+  vehicleId?: string;
+  method?: string;
   year?: number;
   month?: number;
   day?: number;

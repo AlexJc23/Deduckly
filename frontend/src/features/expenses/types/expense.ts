@@ -38,6 +38,7 @@ export type ExpenseCategory =
   | "other";
 
 export interface ExpenseBase {
+  vehicle_id?:string|null;
   amount: number | string;
   category: ExpenseCategory;
   incurred_at: string;
@@ -53,6 +54,7 @@ export interface ExpenseBase {
 export interface CreateExpense extends ExpenseBase {}
 
 export interface UpdateExpense {
+  vehicle_id?:string|null;
   amount?: number | string | null;
   category?: ExpenseCategory | null;
   incurred_at?: string | null;

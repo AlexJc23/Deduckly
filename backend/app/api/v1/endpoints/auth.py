@@ -3,7 +3,7 @@ import secrets
 
 from app.schemas.v1.oauth import OAuthUserCreate, GoogleStart, GoogleExchange
 from app.services import google_transaction_service as google_transactions
-from fastapi import APIRouter, Depends, HTTPException, Cookie, Response
+from fastapi import APIRouter, Depends, HTTPException, Cookie, Response, Body
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from urllib.parse import urlencode
@@ -18,7 +18,7 @@ from app.schemas.v1.user import (
     ResendVerificationRequest,
     ResetPasswordRequest,
 )
-from app.schemas.v1.auth import Enable2FAResponse, Verify2FARequest
+from app.schemas.v1.auth import Enable2FAResponse, Verify2FARequest, SessionCredentials, Disable2FARequest
 from app.services.user_service import (
     authenticate_user,
     create_user,
@@ -357,6 +357,7 @@ def get_2fa_status(
 def disable_2fa(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    data: Disable2FARequest | None = Body(default=None),
 ):
     two_fa = (
         db.query(TwoFactorAuth)
@@ -372,7 +373,11 @@ def disable_2fa(
             detail="2FA is not enabled",
         )
 
-    two_fa.is_enabled = False
+    import pyotp
+    if not isinstance(data, Disable2FARequest) or not pyotp.TOTP(two_fa.secret).verify(data.code):
+        raise HTTPException(status_code=403, detail="Enter your current authenticator code to disable 2FA")
+    # Remove the old seed so later enrollment cannot revive it.
+    db.delete(two_fa)
     db.commit()
 
     create_security_event(
@@ -462,12 +467,16 @@ async def register(
 
 @router.post("/refresh")
 def refresh_token(
-    refresh_token: str,
+    refresh_token: str | None = None,
     db: Session = Depends(get_db),
+    credentials: SessionCredentials | None = Body(default=None),
+    response: Response = None,
 ):
+    if response is not None: response.headers["Cache-Control"] = "no-store"
+    refresh_token = session_credential(refresh_token, credentials)
     session = db.query(DBSession).filter(
         DBSession.refresh_token == refresh_token
-    ).first()
+    ).with_for_update().populate_existing().first()
 
     if not session or session.is_revoked:
         raise HTTPException(
@@ -740,6 +749,8 @@ def update_password(
     user.hashed_password = hash_password(
         password_update.new_password
     )
+    from app.services.password_reset_service import invalidate_password_resets
+    invalidate_password_resets(db, user.id)
 
     db.query(DBSession).filter(
         DBSession.user_id == user.id
@@ -756,10 +767,18 @@ def update_password(
 
 @router.post("/logout")
 def logout(
-    refresh_token: str,
+    refresh_token: str | None = None,
     expo_push_token: str | None = None,
     db: Session = Depends(get_db),
+    credentials: SessionCredentials | None = Body(default=None),
+    response: Response = None,
 ):
+    if response is not None: response.headers["Cache-Control"] = "no-store"
+    refresh_token = session_credential(refresh_token, credentials)
+    if isinstance(credentials, SessionCredentials):
+        if expo_push_token is not None and expo_push_token != credentials.expo_push_token:
+            raise HTTPException(status_code=400, detail="Conflicting session credentials")
+        expo_push_token = credentials.expo_push_token
     session = (
         db.query(DBSession)
         .filter(
@@ -789,3 +808,13 @@ def logout(
     )
 
     return result
+
+def session_credential(legacy: str | None, body: SessionCredentials | None) -> str:
+    # Released clients may still send query credentials; new clients use JSON.
+    if isinstance(body, SessionCredentials):
+        if legacy is not None and legacy != body.refresh_token:
+            raise HTTPException(status_code=400, detail="Conflicting session credentials")
+        return body.refresh_token
+    if not legacy:
+        raise HTTPException(status_code=422, detail="Session credential required")
+    return legacy

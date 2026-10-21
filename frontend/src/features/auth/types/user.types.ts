@@ -35,6 +35,7 @@ export interface User {
 }
 
 export interface UserUpdate {
+  tax_method?:'standard_mileage'|'actual_expenses';
   first_name?: string;
   last_name?: string;
   email?: string;

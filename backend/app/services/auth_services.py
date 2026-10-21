@@ -13,6 +13,8 @@ import pyotp
 def generate_2fa_secret(db: Session, user: User):
     existing_2fa = db.query(TwoFactorAuth).filter(TwoFactorAuth.user_id == user.id).first()
     if existing_2fa:
+        if existing_2fa.is_enabled:
+            raise HTTPException(status_code=409, detail="2FA is already enabled")
         secret = existing_2fa.secret
     else:
         secret = pyotp.random_base32()

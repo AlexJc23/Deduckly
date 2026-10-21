@@ -36,7 +36,9 @@ for(const language of ['en','es'])for(const w of [320,390,1024])for(const d of [
  assert(html.includes(language==='es'?'Mis vehículos':'My Vehicles'));assert(html.includes('Test configuration'));
  const result=server.renderToStaticMarkup(React.createElement(FuelPreferences));
  assert(!result.includes('NaN'));assert(!result.includes('Infinity'));
- assert.equal(result.includes(language==='es'?'Código postal':'US ZIP code'),pro);
+ // The existing preferences UI now exposes saved manual prices for both tiers.
+ const priceLabel=f==='electric'?'Electricity price (USD / kWh)':'Fuel price (USD / US gallon)';
+ assert(result.includes(language==='es'?spanish[priceLabel]:priceLabel));
  const analysis=analyzeIntegratedOffer({payout:18.5,distance:7.2},pro?{costPerMile:.2,minimumProfit:10,minimumHourRate:20,minimumDollarsPerMile:2,preferredMaxDistance:20}:null,{vehicle:'2020 Test Car',fuelType:f,economy:30,price:3.5,source:'Saved manual fuel price'});
  const card=server.renderToStaticMarkup(React.createElement(OfferResultCard,{result:analysis}));
  assert(!card.includes('NaN'));assert(card.includes(language==='es'?spanish[f==='electric'?'Estimated energy cost':'Estimated fuel cost']:f==='electric'?'Estimated energy cost':'Estimated fuel cost'));

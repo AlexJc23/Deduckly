@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import { StyleSheet } from "react-native";
 
 import { Ionicons } from "@/theme/icons";
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
 export default function FeedbackScreen() {
   useLanguage();
@@ -19,7 +19,7 @@ export default function FeedbackScreen() {
     // add profanity feature to feedback form
   return (
     <View style={styles.screen}>
-      <BackHeader />
+      <ScreenHeader title="Help & Feedback" />
 
       <ScrollView
         contentContainerStyle={styles.container}

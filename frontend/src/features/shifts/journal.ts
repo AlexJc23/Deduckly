@@ -14,6 +14,7 @@ type Journal = { version: 1; recording: { owner: string; clientId: string } | nu
 const KEY = '@deduckly/shift-journal:v1';
 let queue: Promise<unknown> = Promise.resolve();
 const listeners = new Set<() => void>();
+const deletedOwners = new Set<string>();
 export function subscribeShifts(fn: () => void) { listeners.add(fn); return () => { listeners.delete(fn); }; }
 const id = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const iso = (time: number) => new Date(time).toISOString();
@@ -30,7 +31,7 @@ async function read(): Promise<Journal> {
   if (j.version !== 1 || !Array.isArray(j.entries) || !(j.recording === null || (typeof j.recording?.owner === 'string' && typeof j.recording?.clientId === 'string')) || !j.entries.every(e => typeof e.owner === 'string' && e.data?.client_id && Array.isArray(e.data.segments) && Array.isArray(e.data.platform_sessions) && Number.isInteger(e.data.revision) && e.detector)) throw Error('Invalid Shift journal');
   return j;
 }
-async function write(j: Journal) { await AsyncStorage.setItem(KEY, JSON.stringify(j)); listeners.forEach(fn => fn()); }
+async function write(j: Journal) { j.entries = j.entries.filter(e => !deletedOwners.has(e.owner)); if (j.recording && deletedOwners.has(j.recording.owner)) j.recording = null; await AsyncStorage.setItem(KEY, JSON.stringify(j)); listeners.forEach(fn => fn()); }
 function touch(e: Entry) { e.dirty = true; e.sequence++; }
 function active(j: Journal, owner: string) { return j.entries.find(e => e.owner === owner && e.local && !e.data.ended_at); }
 export function listShifts(owner: string) { return serial(async () => (await read()).entries.filter(e => e.owner === owner)); }
@@ -159,3 +160,8 @@ export function setBlockedConversions(owner: string, blocked: { shift_client_id:
   for (const e of j.entries.filter(e => e.owner === owner)) e.blockedSegments = blocked.filter(b => b.shift_client_id === e.data.client_id).map(b => b.client_id);
   await write(j);
 }); }
+
+export function purgeShiftOwner(owner: string) {
+  deletedOwners.add(owner);
+  return serial(async () => { const journal = await read(); await write(journal); });
+}

@@ -1,3 +1,4 @@
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { PlatformTiles } from '@/components/ui/PlatformTiles';
 import { CompactSelect } from '@/components/ui/CompactSelect';
 import { elapsedMinutes, platformName, shiftMiles } from '@/features/shifts/presentation';
@@ -6,7 +7,7 @@ import { plannedEndAt } from '@/features/shifts/duration';
 import { requestShiftNotifications } from '@/features/shifts/notifications';
 import { useEffect, useState } from 'react';
 import { Alert, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { View, Text, Pressable, ScrollView, SafeAreaView } from '@/theme/components';
 import { useAppTheme } from '@/theme/theme';
 import { useLanguage } from '@/i18n/language';
@@ -46,8 +47,9 @@ export default function ShiftsScreen() {
   }
   return <SafeAreaView style={{ flex: 1, backgroundColor: dark ? '#101722' : '#F8FAFC' }}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScreenHeader title="Shift Mode" safeArea={false} right={<Pressable accessibilityRole="button" disabled={busy || !owner} onPress={() => { setBusy(true); void sync().finally(() => setBusy(false)); }} style={styles.navAction}><Text style={{ color: '#4A6FE3' }}>{t('Sync now')}</Text></Pressable>} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={styles.navigation}><Pressable accessibilityRole="button" accessibilityLabel={t('Back')} onPress={() => router.back()} style={styles.navAction}><Text style={{ color: '#4A6FE3' }}>‹ {t('Back')}</Text></Pressable><Text accessibilityRole="header" style={styles.title}>{t('Shift Mode')}</Text><Pressable accessibilityRole="button" disabled={busy || !owner} onPress={() => { setBusy(true); void sync().finally(() => setBusy(false)); }} style={styles.navAction}><Text style={{ color: '#4A6FE3' }}>{t('Sync now')}</Text></Pressable></View>
+
         {!owner && <Text>{t('Sign in to manage Shifts.')}</Text>}
         {syncError && <Text accessibilityRole="alert">{t('Sync needs attention. Data is saved locally; a server conflict may need review.')}</Text>}
         {!active && <View style={styles.card}>
@@ -71,7 +73,7 @@ export default function ShiftsScreen() {
           {!entry.data.ended_at && entry.local && <>{button(t('End Shift'), () => Alert.alert(t('End Shift?'), t(entry.detector.driving ? 'A drive is active. End Shift will finish it now. Continue?' : 'Saved segments will remain available for review.'), [{ text: t('Cancel'), style: 'cancel' }, { text: t('End Shift'), style: 'destructive', onPress: () => void act(() => endShiftRecording(owner!, entry.data.client_id)) }]))}</>}
           </View>
           {!entry.data.ended_at && <>
-            {(!entry.local || mode !== 'background') && <Text accessibilityRole="alert">{t(!entry.local ? 'This Shift was started on another device.' : mode === 'foreground' ? 'Keep the app open to record mileage.' : 'Recording paused. Check location access and reopen the app.')}</Text>}
+            {(!entry.local || mode !== 'background') && <Text accessibilityRole="alert">{t(!entry.local ? 'This Shift was started on another device.' : mode === 'foreground' ? 'Keep the app open to record mileage.' : mode === 'degraded' ? 'Recording needs attention. Location may still be active. Check location access and storage, or end tracking.' : 'Recording paused. Check location access and reopen the app.')}</Text>}
             {entry.local && <View style={styles.card}><Text style={styles.heading}>{t('Platform')}</Text>{platformButtons(p => void act(async () => { await switchPlatform(owner!, entry.data.client_id, p); }), entry.data.platform_sessions.find(p => !p.ended_at)?.platform ?? null)}
 </View>}
 

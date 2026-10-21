@@ -49,10 +49,12 @@ export function getRefreshToken() {
 async function eraseTokens() {
   beginAccountBoundary();
   try {
-    await pauseRecording();
-    await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
-    invalidationListeners.forEach(listener => listener());
+    try { await pauseRecording(); }
+    finally {
+      await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+      await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+      invalidationListeners.forEach(listener => listener());
+    }
   } finally { finishAccountBoundary(); }
 }
 

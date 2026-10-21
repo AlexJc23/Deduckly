@@ -6,7 +6,7 @@ import { router } from "expo-router";
 
 import { IncomeForm } from "@/features/income/components/IncomeForm";
 import { useCreateIncome } from "@/features/income/hooks/use-create-income";
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
 
 export default function CreateIncomeScreen() {
@@ -23,7 +23,7 @@ export default function CreateIncomeScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <BackHeader />
+      <ScreenHeader title="Add Income" />
       <IncomeForm
         submitLabel="Create Income"
         loading={createIncomeMutation.isPending}

@@ -36,7 +36,8 @@ class ScheduleTests(unittest.TestCase):
         for date, period in (("2026-09-01T12:00:00", "2026-09"), ("2027-01-01T13:00:00", "2027-01")):
             result = due_reminders(user(), instant(date))
             self.assertEqual(result[0][:2], ("monthly_kickoff", period))
-            self.assertIn("$3,000.00", result[0][2][1])
+            self.assertNotIn("$", result[0][2][1])
+            self.assertIn("Open Deduckly", result[0][2][1])
         self.assertNotIn("monthly_kickoff", [x[0] for x in due_reminders(user(), instant("2026-09-02T12:00:00"))])
 
     def test_local_timezone_and_dst(self):

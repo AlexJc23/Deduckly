@@ -30,6 +30,10 @@ def get_business_rate_for_date(
     db: Session,
     trip_date: date,
 ) -> MileageRate:
+    from app.services.business_mileage import rate_for
+    from types import SimpleNamespace
+    official = rate_for(trip_date)
+    if official is not None: return SimpleNamespace(business_rate=official, effective_date=trip_date)
     mileage_rate = (
         db.query(MileageRate)
         .filter(MileageRate.effective_date <= trip_date)
@@ -37,7 +41,7 @@ def get_business_rate_for_date(
         .first()
     )
 
-    if mileage_rate is None:
+    if mileage_rate is None or mileage_rate.effective_date.year != trip_date.year:
         raise HTTPException(
             status_code=404,
             detail=f"No mileage rate found for {trip_date}"

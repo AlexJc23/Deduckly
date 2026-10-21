@@ -19,3 +19,5 @@ from .google_oauth_transaction import GoogleOAuthTransaction
 from .shift import Shift, ShiftPlatformSession, ShiftSegment
 
 from .vehicle import UserVehicle
+
+from .vehicle_tax import VehicleTaxSetting

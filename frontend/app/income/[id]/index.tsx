@@ -1,7 +1,8 @@
+import { platformIcons, type PlatformName } from '@/constants/platform-icons';
 import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, View } from "@/theme/components";
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, StyleSheet } from "react-native";
+import { ActivityIndicator, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@/theme/icons";
 
 import { useIncomeDetail } from "@/features/income/hooks/use-income-detail";
@@ -12,11 +13,11 @@ import {
 import { useState } from "react";
 import { DeleteIncomeModal } from "@/features/income/components/DeleteIncomeModal";
 import { useDeleteIncome } from "@/features/income/hooks/use-delete-income";
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 export default function IncomeDetailsScreen() {
-  useLanguage();
+  const { t, locale } = useLanguage();
   const { id } = useLocalSearchParams<{
     id: string;
   }>();
@@ -65,13 +66,10 @@ export default function IncomeDetailsScreen() {
     ? PLATFORM_LABELS[
         income.platform as keyof typeof PLATFORM_LABELS
       ] ?? "Other"
-    : income.source ?? "Unknown";
-
-  const sourceLabel = income.source
-    ? SOURCE_LABELS[
-        income.source as keyof typeof SOURCE_LABELS
-      ] ?? "Other"
     : "Unknown";
+
+  const sourceLabel = ({ gig_platform: 'Gig Platform', business: 'Business', employment: 'Employment', passive: 'Passive income', other: 'Other' } as Record<string, string>)[income.source]
+    ?? SOURCE_LABELS[income.source as keyof typeof SOURCE_LABELS] ?? 'Unknown';
 
   return (
     <>
@@ -81,7 +79,7 @@ export default function IncomeDetailsScreen() {
         }}
       />
 
-      <BackHeader />
+      <ScreenHeader title="Income Details" />
 
       <ScrollView
         style={styles.screen}
@@ -89,17 +87,6 @@ export default function IncomeDetailsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.contentInner}>
-          <View style={styles.header}>
-            <Text style={styles.eyebrow}>
-              <Translated text={"INCOME"} /></Text>
-
-            <Text style={styles.title}>
-              <Translated text={"Income Details"} /></Text>
-
-            <Text style={styles.subtitle}>
-              <Translated text={"Review the details of this income entry."} /></Text>
-          </View>
-
           <View style={styles.card}>
             <View style={styles.amountSection}>
               <View style={styles.incomeIcon}>
@@ -125,7 +112,7 @@ export default function IncomeDetailsScreen() {
                 <Translated text={"Source"} /></Text>
 
               <Text style={styles.value}>
-                {sourceLabel}
+                {t(income.source === "business" ? "Business" : sourceLabel)}
               </Text>
             </View>
 
@@ -134,9 +121,10 @@ export default function IncomeDetailsScreen() {
                 <Text style={styles.label}>
                   <Translated text={"Platform"} /></Text>
 
-                <Text style={styles.value}>
-                  {platformLabel}
-                </Text>
+                <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
+                  {income.platform in platformIcons && <Image accessible={false} source={platformIcons[income.platform as PlatformName]} resizeMode="contain" style={{ width: 32, height: 26 }} />}
+                  <Text style={[styles.value, { flex: 0, flexShrink: 1 }]}>{t(platformLabel)}</Text>
+                </View>
               </View>
             )}
 
@@ -147,7 +135,6 @@ export default function IncomeDetailsScreen() {
 
                 <Text
                   style={styles.value}
-                  numberOfLines={2}
                 >
                   {income.business_name}
                 </Text>
@@ -162,7 +149,7 @@ export default function IncomeDetailsScreen() {
                 {new Date(
                   income.received_at ??
                     income.created_at,
-                ).toLocaleString()}
+                ).toLocaleString(locale)}
               </Text>
             </View>
 

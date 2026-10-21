@@ -1,4 +1,5 @@
 import { api } from "./client";
+import { flushPendingLogouts, protectRegisteredDestination } from '@/features/auth/services/pending-logout';
 import * as SecureStore from "expo-secure-store";
 import { getAccountGeneration, isAccountChanging } from "@/features/auth/services/account-boundary";
 
@@ -17,6 +18,8 @@ export function savePushToken(expoPushToken: string | null) {
     const generation = getAccountGeneration();
     const operation = writes.then(async () => {
         if (isAccountChanging() || generation !== getAccountGeneration() || signingOutGeneration === generation) return;
+        await flushPendingLogouts();
+        if (isAccountChanging() || generation !== getAccountGeneration() || signingOutGeneration === generation) return;
         // Save before POST so a lost registration response can still be unregistered.
         if (expoPushToken) await SecureStore.setItemAsync(PUSH_TOKEN_KEY, expoPushToken);
         const response = await api.post(
@@ -24,6 +27,7 @@ export function savePushToken(expoPushToken: string | null) {
             { expo_push_token: expoPushToken, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
             { deducklyGeneration: generation }
         );
+        if (expoPushToken) await protectRegisteredDestination(expoPushToken);
         return response.data;
     });
     writes = operation.catch(() => {});

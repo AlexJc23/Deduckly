@@ -17,7 +17,7 @@ class ShiftConversionTests(ShiftApiTests):
     def segment(self, identity, **changes):
         return dict(client_id=identity, started_at=self.now, ended_at=self.now+timedelta(minutes=20), distance_miles=Decimal('5.25'), category='personal', platform_client_id='p1', **changes)
     def convert(self, owner=1, hours=1):
-        with patch('app.services.shift_conversion_service._trip_deduction', side_effect=lambda db,c,t,d: (d*Decimal('.70')).quantize(Decimal('.01')) if c==TripCategory.BUSINESS else Decimal(0)):
+        with patch('app.services.shift_conversion_service._trip_deduction', side_effect=lambda db,c,t,d,zone: (d*Decimal('.70')).quantize(Decimal('.01')) if c==TripCategory.BUSINESS else Decimal(0)):
             return convert_pending(self.db, owner, self.now+timedelta(hours=hours))
     def test_manual_retry_response_loss_and_deleted_trip_tombstone(self):
         self.seed([self.segment('one', save_requested=True)])

@@ -1,16 +1,19 @@
+/* global __dirname */
 const fs = require('fs'), path = require('path'), Module = require('module'), assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '..');
 const ts = require('typescript'), React = require('react'), server = require('react-dom/server'), native = require('react-native-web');
 const storage = new Map();
-let width = 320, dark = false, saved, captured, rejectSave = false;
+let width = 320, height = 844, fontScale = 1, dark = false, saved, captured, rejectSave = false;
 const original = Module._load;
 Module._load = function(id, parent, main) {
   if (id === '@react-native-async-storage/async-storage') return { getItem: async key => storage.get(key) ?? null, setItem: async (key, value) => { storage.set(key, value); } };
-  if (id === 'react-native') return { ...native, Keyboard: { dismiss() {} }, useWindowDimensions: () => ({ width, height: 844, scale: 1, fontScale: 1 }) };
+  if (id === 'react-native') return { ...native, Keyboard: { dismiss() {} }, useWindowDimensions: () => ({ width, height, scale: 1, fontScale }) };
   if (id === '@/theme/theme' || (id === './theme' && parent.filename.includes('/theme/'))) return { useAppTheme: () => ({ dark }) };
   if (id === 'react-native-safe-area-context') return { SafeAreaView: native.View };
   if (id === '@/theme/icons') return { Ionicons: () => null };
   if (id === 'expo-router') return { router: { push() {} } };
+  if (id === 'expo-location' || id === 'expo-notifications' || id === '@/services/notifications') return {};
+  if (id === '../components/ios-permission-screen') return { IOSPermissionScreen: props => { const {OnboardingScreen}=require(root+'/src/features/onboarding/components/onboarding-screen.tsx'); return React.createElement(OnboardingScreen,{screen:props.content,onboarding:props.onboarding,onContinue:()=>{},onSkip:props.optional?()=>{}:undefined}); } };
   if (id === 'expo-symbols') return { SymbolView: () => null };
   if (id.endsWith('.svg')) return () => null;
   if (id === '@tanstack/react-query') return { useQueryClient: () => ({ invalidateQueries: async () => {} }) };
@@ -75,6 +78,26 @@ const { GoalsScreen } = require('../src/features/onboarding/screens/goals-screen
     assert.ok(body.includes(lang === 'es' ? '3 de 4' : '3 of 4'));
     fs.writeFileSync(`${output}/goals-${lang}-${dark ? 'dark' : 'light'}-${width}.html`, `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}${native.StyleSheet.getSheet().textContent}</style><main style="width:${width}px;max-width:100%;margin:auto">${body}</main>`);
   }
+  const screens = [
+    [0, require('../src/features/onboarding/screens/location-screen.ios.tsx').LocationScreen],
+    [1, require('../src/features/onboarding/screens/notifications-screen.ios.tsx').NotificationsScreen],
+    [2, GoalsScreen],
+    [3, require('../src/features/onboarding/screens/welcome-screen.tsx').WelcomeScreen],
+  ];
+  let layoutRenders=0;
+  for(const lang of ['en','es'])for(dark of [false,true])for(const dimensions of [[320,568],[390,700],[430,830],[768,1000],[1024,700],[1366,900],[500,700]])for(fontScale of [1,2]){
+    [width,height]=dimensions;core.setRuntimeLanguage(lang);
+    for(const [step,Component] of screens){
+      const onboarding={initialGoals:{daily:'150',monthly:'3000',currency:'USD'},step,userId:1,loading:false,isLoading:false,busy:false,error:'',runAction(){},setError(){}};
+      const body=server.renderToStaticMarkup(React.createElement(Component,{onboarding}));
+      assert(body.includes(lang==='es'?`${step+1} de 4`:`${step+1} of 4`));
+      assert(!body.includes('Enable location'));assert(!body.includes('Enable notifications'));assert(!body.includes('NaN'));
+      const css=native.StyleSheet.getSheet().textContent;
+      fs.writeFileSync(`${output}/step-${step}-${lang}-${dark?'dark':'light'}-${width}x${height}-font${fontScale}.html`,`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;width:100%;height:100%;background:${dark?'#081320':'#F7F9FC'}}main{display:flex;height:100%;flex-direction:column}${css}</style><main>${body}</main>`);
+      layoutRenders++;
+    }
+  }
+  console.log(`PASS ${layoutRenders} onboarding renders across phone/tablet/landscape/constrained widths, English/Spanish, themes and large text; native font scaling still needs simulator testing.`);
   let advanced = 0, failure = '', pending;
   const onboarding = { initialGoals: { daily: '150,50', monthly: '', currency: 'USD' }, step: 2, userId: 1, loading: false, isLoading: false, busy: false, error: '', setError: message => { failure = message; }, runAction: action => { pending = (async () => { try { if (!action || await action()) advanced++; } catch { failure = 'save failed'; } })(); return pending; } };
   server.renderToStaticMarkup(React.createElement(GoalsScreen, { onboarding }));

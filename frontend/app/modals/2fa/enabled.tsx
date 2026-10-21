@@ -1,5 +1,5 @@
 import { useLanguage, Translated } from "@/i18n/language";
-import { Text, Pressable, View } from "@/theme/components";
+import { Text, TextInput, Pressable, View } from "@/theme/components";
 import { ActivityIndicator, StyleSheet } from "react-native";
 import { useState } from "react";
 import { router } from "expo-router";
@@ -10,7 +10,8 @@ import { disable2FA } from "@/features/auth/api/auth.api";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 
 export default function TwoFAEnabledScreen() {
-  useLanguage();
+  const { t } = useLanguage();
+  const [code, setCode] = useState("");
   const { data: user } = useCurrentUser();
   const queryClient = useQueryClient();
 
@@ -30,7 +31,7 @@ export default function TwoFAEnabledScreen() {
   });
 
   const handleDisable = () => {
-    disableMutation.mutate();
+    disableMutation.mutate(code);
   };
 
   return (
@@ -184,6 +185,13 @@ export default function TwoFAEnabledScreen() {
             <Text style={styles.modalText}>
               <Translated text={"Your account will no longer require two-factor authentication when signing in."} /></Text>
 
+            <TextInput
+              value={code} onChangeText={value => setCode(value.replace(/[^0-9]/g, '').slice(0, 6))}
+              keyboardType="number-pad" textContentType="oneTimeCode" maxLength={6}
+              placeholder={t("Current authenticator code")} accessibilityLabel={t("Current authenticator code")}
+              style={{ minHeight: 48, borderWidth: 1, borderColor: '#94A3B8', borderRadius: 12, padding: 12, marginTop: 16 }}
+            />
+            {disableMutation.isError && <Text accessibilityRole="alert">{t("Check your authenticator code and try again.")}</Text>}
             <View style={styles.modalButtons}>
               <Pressable
                 style={styles.cancelButton}
@@ -201,12 +209,9 @@ export default function TwoFAEnabledScreen() {
               <Pressable
                 style={styles.confirmButton}
                 onPress={() => {
-                  setShowConfirm(false);
                   handleDisable();
                 }}
-                disabled={
-                  disableMutation.isPending
-                }
+                disabled={disableMutation.isPending || code.length !== 6}
               >
                 {disableMutation.isPending ? (
                   <ActivityIndicator

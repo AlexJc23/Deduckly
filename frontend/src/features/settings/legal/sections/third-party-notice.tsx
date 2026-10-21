@@ -1,7 +1,8 @@
+import { ReportingDisclosures } from '@/features/settings/components/ReportingDisclosures';
 import { View, ScrollView, Text, TouchableOpacity } from "@/theme/components";
 import React from 'react';
 import { Linking, StyleSheet } from 'react-native';
-import { BackHeader } from '@/components/ui/BackButton';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
 
 export default function ThirdPartyServicesNoticeScreen() {
   const openLink = (url: string) => {
@@ -51,7 +52,7 @@ export default function ThirdPartyServicesNoticeScreen() {
 
   return (
     <View style={styles.wrapper}>
-      <BackHeader />
+      <ScreenHeader title="Third-Party Notices" />
 
       <ScrollView
         style={styles.scroll}
@@ -79,7 +80,8 @@ export default function ThirdPartyServicesNoticeScreen() {
           by these providers as necessary to provide their services.
         </Text>
 
-        <Section number="1" title="DigitalOcean">
+        <ReportingDisclosures />
+          <Section number="1" title="DigitalOcean">
           <Text style={styles.paragraph}>
             Deduckly uses DigitalOcean cloud infrastructure for:
           </Text>
@@ -113,7 +115,6 @@ export default function ThirdPartyServicesNoticeScreen() {
           <Bullet>Receipt storage</Bullet>
           <Bullet>File uploads</Bullet>
           <Bullet>Expense documentation storage</Bullet>
-          <Bullet>Backup and file management</Bullet>
 
           <Text style={styles.paragraph}>
             Uploaded receipts, images, and supporting documentation may be

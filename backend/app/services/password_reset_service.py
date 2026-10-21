@@ -3,7 +3,7 @@ import secrets
 
 from datetime import datetime, timedelta
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, lazyload
 
 from app.models import User
 from app.models.password_reset import PasswordResetToken
@@ -67,20 +67,25 @@ def reset_password(
 
     user = (
         db.query(User)
-        .filter(
-            User.id == reset_token.user_id
-        )
+        .options(lazyload("*"))
+        .filter(User.id == reset_token.user_id)
+        .with_for_update()
         .first()
     )
 
     if not user:
         return False
 
+    # Re-read after the owner lock: another reset may have consumed this token.
+    db.refresh(reset_token)
+    if reset_token.used or reset_token.expires_at <= datetime.utcnow():
+        return False
+
     user.hashed_password = hash_password(
         new_password
     )
 
-    reset_token.used = True
+    invalidate_password_resets(db, user.id)
 
     from app.models import Session as DBSession
 
@@ -99,3 +104,9 @@ def reset_password(
     db.commit()
 
     return True
+
+def invalidate_password_resets(db: Session, user_id: int) -> None:
+    db.query(PasswordResetToken).filter(
+        PasswordResetToken.user_id == user_id,
+        PasswordResetToken.used == False,
+    ).update({"used": True}, synchronize_session="fetch")

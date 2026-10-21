@@ -1,9 +1,11 @@
+import { Translated } from '@/i18n/language';
+import { ReportingDisclosures } from '@/features/settings/components/ReportingDisclosures';
 import { View, Text, ScrollView, TouchableOpacity } from "@/theme/components";
 import { StyleSheet } from "react-native";
 import React from "react";
 import * as Linking from "expo-linking";
 
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 
 const Privacy = () => {
@@ -38,7 +40,7 @@ const Privacy = () => {
 
   return (
     <View style={styles.wrapper}>
-      <BackHeader />
+      <ScreenHeader title="Privacy Policy" />
 
       <ScrollView
         style={styles.scroll}
@@ -62,6 +64,7 @@ const Privacy = () => {
             <View style={styles.headerDivider} />
           </View>
 
+          <ReportingDisclosures />
           <Section number="1" title="Introduction">
             <Text style={styles.paragraph}>
               Thank you for using Deduckly ("Deduckly,"
@@ -615,10 +618,7 @@ const Privacy = () => {
             </TouchableOpacity>
 
             <Text style={styles.paragraph}>
-              Deduckly is designed to comply with applicable
-              Apple App Store privacy requirements and
-              applicable privacy laws, including GDPR, CCPA,
-              and CPRA where applicable.
+              <Translated text="Privacy requests can be sent to the support address above." />
             </Text>
           </Section>
 

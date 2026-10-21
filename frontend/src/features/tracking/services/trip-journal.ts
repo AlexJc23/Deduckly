@@ -31,6 +31,7 @@ type Journal = {
 };
 let queue: Promise<unknown> = Promise.resolve();
 const listeners = new Set<() => void>();
+const deletedOwners = new Set<string>();
 export function subscribeToTrips(listener: () => void) {
   listeners.add(listener);
   return () => { listeners.delete(listener); };
@@ -62,6 +63,9 @@ async function read(): Promise<Journal> {
   return value;
 }
 async function write(journal: Journal) {
+  journal.active = journal.active.filter(trip => !deletedOwners.has(trip.ownerId));
+  journal.pending = journal.pending.filter(trip => !deletedOwners.has(trip.ownerId));
+  if (!journal.active.some(trip => trip.id === journal.recordingId)) journal.recordingId = null;
   // The active trip and its completed upload entry move in a SINGLE storage write.
   // A restart between ending and uploading cannot resurrect the ended trip.
   await AsyncStorage.setItem(KEY, JSON.stringify(journal));
@@ -178,4 +182,9 @@ export function markUploadAttempt(id: string, ownerId: string) {
     const trip = journal.pending.find(item => item.id === id && item.ownerId === ownerId);
     if (trip) { trip.attempted = true; await write(journal); }
   });
+}
+
+export function purgeTripOwner(ownerId: string) {
+  deletedOwners.add(ownerId);
+  return serial(async () => { const journal = await read(); await write(journal); });
 }

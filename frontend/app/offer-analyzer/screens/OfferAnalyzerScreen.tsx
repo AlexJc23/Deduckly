@@ -9,7 +9,7 @@ import { View, ScrollView } from "@/theme/components";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, StyleSheet } from "react-native";
 
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import PremiumButton from "@/components/ui/PremiumButton";
 
 import { OfferForm } from "@/features/offer-analyzer/components/OfferForm";
@@ -111,7 +111,7 @@ function AccountOfferAnalyzer() {
           : undefined
       }
     >
-      <BackHeader />
+      <ScreenHeader title="Offer Analyzer" />
 
       <ScrollView ref={scroll}
         contentContainerStyle={

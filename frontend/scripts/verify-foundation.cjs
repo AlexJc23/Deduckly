@@ -76,6 +76,7 @@ function flatten(element) {
   const pending = new Promise(resolve => { release = resolve; });
   const registrations = [];
   const registration = load('src/api/notification.ts', {
+    '@/features/auth/services/pending-logout': { flushPendingLogouts: async () => {}, protectRegisteredDestination: async () => {} },
     './client': { api: { post: async (_, payload) => { registrations.push(payload.expo_push_token); await pending; return { data: {} }; } } },
     'expo-secure-store': { setItemAsync: async (_, token) => { stored = token; }, getItemAsync: async () => stored },
     '@/features/auth/services/account-boundary': { getAccountGeneration: () => generation, isAccountChanging: () => false },
@@ -100,10 +101,13 @@ function flatten(element) {
     '@/api/notification': { prepareNotificationLogout: async () => 'installation-X' },
     '@/features/auth/services/auth-service.service': { getRefreshToken: async () => 'test-refresh' },
     '../services/twofa-storage.service': {},
+    '../services/pending-logout': {
+      enqueueLogout: async (refresh, push) => { logoutRequest = { refresh_token: refresh, expo_push_token: push }; },
+      flushPendingLogouts: async () => {},
+    },
   });
   await auth.logout();
-  assert.equal(logoutRequest[0], '/api/v1/auth/logout');
-  assert.equal(logoutRequest[2].params.expo_push_token, 'installation-X');
+  assert.deepEqual(logoutRequest, { refresh_token: 'test-refresh', expo_push_token: 'installation-X' });
   console.log('PASS logout includes only this installation’s registered destination');
   for (const os of ['ios', 'android']) {
     let submitted;
@@ -113,6 +117,7 @@ function flatten(element) {
       'react-native': { Platform: { OS: os }, StyleSheet: { create: x => x } },
       'expo-router': { router: { back() {} } },
       '@/i18n/language': { useLanguage() {}, Translated: 'Translated' },
+      '@/components/ui/PlatformTiles': { PlatformTiles: 'PlatformTiles' },
       '@/theme/components': Object.fromEntries(['Pressable','ScrollView','Text','TextInput','View'].map(k => [k, k])),
     };
     const { IncomeForm } = load('src/features/income/components/IncomeForm.tsx', mocks);

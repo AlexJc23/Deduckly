@@ -1,11 +1,11 @@
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, TextInput, View, SafeAreaView } from "@/theme/components";
 import { useRef, useState } from "react";
 import { ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
 
 import { useMutation } from "@tanstack/react-query";
-import { router, useLocalSearchParams } from "expo-router";
-import { Ionicons } from "@/theme/icons";
+import { useLocalSearchParams } from "expo-router";
 import Logo from "../../assets/images/logo.svg";
 import { forgotPassword } from "@/features/auth/api/auth.api";
 import { useIsTablet } from "@/hooks/use-is-tablet";
@@ -36,12 +36,11 @@ export default function ForgotPassword() {
   }
 
   return <SafeAreaView style={s.screen}>
+    <ScreenHeader title="Forgot your password?" safeArea={false} />
     <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <ScrollView contentContainerStyle={[s.scroll, isTablet && s.tablet]} keyboardShouldPersistTaps="handled">
         <View style={s.content}>
-          <Pressable accessibilityRole="button" onPress={() => router.back()} style={s.back}>
-            <Ionicons name="arrow-back" size={20} color="#273449" /><Text style={s.backText}><Translated text={"Back to sign in"} /></Text>
-          </Pressable>
+
           <View style={s.main}>
             <Logo width={72} height={72} color="#0072B5" />
             <Text accessibilityRole="header" style={s.title}>{sentTo ? <Translated text={"Check your inbox"} /> : <Translated text={"Forgot your password?"} />}</Text>

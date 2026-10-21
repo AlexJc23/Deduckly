@@ -5,7 +5,7 @@ import { StyleSheet } from "react-native";
 
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { router } from "expo-router";
-import { BackHeader } from "@/components/ui/BackButton";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
 export default function SecuritySettingsScreen() {
   useLanguage();
@@ -14,7 +14,7 @@ export default function SecuritySettingsScreen() {
 
   return (
     <View style={styles.container}>
-      <BackHeader />
+      <ScreenHeader title="Security" />
 
       <ScrollView
         contentContainerStyle={styles.content}

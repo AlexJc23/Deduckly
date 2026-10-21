@@ -1,3 +1,4 @@
+import { VehicleReportBody } from './VehicleReportBody';
 import { useLanguage, Translated } from "@/i18n/language";
 import { Text } from "@/theme/components";
 
@@ -7,6 +8,7 @@ import { ExpenseBreakdownCard } from "./ExpenseBreakdownCard";
 
 export function ReportBody({ report }: { report: CurrentReport }) {
   useLanguage();
+  if(report.report_version===2)return <VehicleReportBody report={report}/>;
   const empty = report.total_income === 0 && report.total_expenses === 0 && report.total_miles === 0;
   return <>
     {empty && <Text style={{ color: "#64748B", fontSize: 14, lineHeight: 21, marginBottom: 20 }}><Translated text={"No income, expenses, or mileage recorded in this period yet."} /></Text>}
