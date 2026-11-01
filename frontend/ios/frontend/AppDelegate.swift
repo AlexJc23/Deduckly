@@ -1,4 +1,4 @@
-import Expo
+public import Expo
 import React
 import ReactAppDependencyProvider
 import AppIntents
@@ -19,7 +19,7 @@ public class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider {
 
     reactNativeDelegate = delegate
     reactNativeFactory = factory
-    bindReactNativeFactory(factory)
+    // bindReactNativeFactory(factory)
 
     DeducklyShortcuts.updateAppShortcutParameters()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
