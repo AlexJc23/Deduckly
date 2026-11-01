@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
   },
 
   modalOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(15, 23, 42, 0.48)",
     alignItems: "center",
     justifyContent: "center",

@@ -18,6 +18,9 @@ from app.services.report_service import generate_tax_report
 from app.services.trip_service import get_daily_trip_breakdown
 from app.schemas.v1.current_report import CurrentReport
 
+from app.services.report_access import allowed_period, monthly_comparison
+from app.services.subscription_service import has_active_subscription
+
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
@@ -34,7 +37,11 @@ def vehicle_summary(year: int | None = Query(None,ge=2010,le=2200), month: int |
     from app.services.subscription_service import has_active_subscription
     advanced=has_active_subscription(db,current_user.id)
     if (start_date or end_date or vehicle_id) and not advanced: raise HTTPException(403,"Premium subscription required for custom and per-vehicle reports")
-    return report(db,current_user,year,month,day,start_date,end_date,vehicle_id,method,advanced)
+    year, month = allowed_period(current_user, advanced, year, month, day, start_date, end_date, vehicle_id)
+    result = report(db,current_user,year,month,day,start_date,end_date,vehicle_id,method,advanced)
+    if year and month and day is None and not start_date and not end_date:
+        result['comparison'] = monthly_comparison(db, current_user, year, month, vehicle_id)
+    return result
 
 @router.get("/vehicle-exports/{format}")
 def vehicle_export(format: str,year: int | None = None,month: int | None = None,day: int | None = None,start_date: date | None = None,end_date: date | None = None,vehicle_id: str | None = None,method: str | None = None,expected_fingerprint: str | None = None,db: Session = Depends(get_db),current_user: User = Depends(require_active_subscription)):
@@ -131,7 +138,9 @@ def get_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return generate_tax_report(
+    year, month = allowed_period(current_user, has_active_subscription(db, current_user.id),
+                                 year, month, day, start_date, end_date)
+    result = generate_tax_report(
         db=db,
         user=current_user,
         year=year,
@@ -140,6 +149,9 @@ def get_report(
         start_date=start_date,
         end_date=end_date,
     )
+    if year and month and day is None and not start_date and not end_date:
+        result['comparison'] = monthly_comparison(db, current_user, year, month)
+    return result
 
 
 @router.post("/exports/pdf")

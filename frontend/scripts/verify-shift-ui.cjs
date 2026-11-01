@@ -5,6 +5,8 @@ const ts = require('typescript'), React = require('react'), server = require('re
 let dark = false, entries = [], width = 320;
 const original = Module._load;
 Module._load = function(id, parent, isMain) {
+ if(id==='@/features/vehicles/use-fuel-assumptions')return{useFuelAssumptions:()=>({owner:'1',data:{prices:{gasoline:'3.49'}},assumptions:{fuelType:'gasoline'}})};
+ if(id==='@/features/vehicles/store')return{savePrice:async()=>{}};
  if(id==='@/theme/icons')return{Ionicons:()=>null};
  if(id==='@/constants/platform-icons')return{platformIcons:{lyft:{uri:'test:lyft'},spark:{uri:'test:spark'},uber:{uri:'test:uber'}},PlatformName:{}};
   if(id === 'react-native') return {...native, useWindowDimensions:()=>({width,height:800,scale:1,fontScale:1.5})};
@@ -41,6 +43,7 @@ for(const language of ['en','es']) for(const w of [320,390,1024]) for(const isDa
   assert(html.includes(language==='es'?'Modo turno':'Shift Mode'));
   assert(html.includes(language==='es'?'Historial de turnos':'Shift history'));
   if(state!=='empty') assert(html.includes(language==='es'?'Revisar tramos':'Review segments'));
+  if(state==='empty') { assert(html.includes(language==='es'?'Precio de combustible':'Fuel price'));assert(html.includes('3.49')); }
   assert(!html.includes('NaN')); renders++;
 }
 const source=fs.readFileSync(path.join(root,'app/shifts.tsx'),'utf8');

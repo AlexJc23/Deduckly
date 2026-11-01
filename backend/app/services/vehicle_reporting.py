@@ -4,11 +4,13 @@ from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from fastapi import HTTPException
-from app.models import Trip, Expense, Income, User
+from app.models import Trip, Expense, Income, User, TaxBracket
+from app.models.enums import TaxMethod
+from types import SimpleNamespace
 from app.models.vehicle import UserVehicle
 from app.models.vehicle_tax import VehicleTaxSetting
 from app.services.business_mileage import rate_for, money, period_for
-from app.services.report_service import CATEGORY_RULES
+from app.services.report_service import CATEGORY_RULES, calculate_expense_summary, calculate_tax
 
 D=Decimal
 METHODS={'standard_mileage','actual_expenses'}
@@ -112,7 +114,18 @@ def report(db,user,year=None,month=None,day=None,start_date=None,end_date=None,v
         key=when.replace(tzinfo=when.tzinfo or timezone.utc).astimezone(tz).strftime('%Y-%m');trends[key][field]+=item.amount
     income=sum((i.amount for i in incomes),D(0))
     data.update(report_version=2,year=year,month=month,day=day,start_date=start,end_date=end,generated_at_utc=datetime.now(timezone.utc),first_name=user.first_name,last_name=user.last_name,filing_status=user.filing_status.value,business_type=user.business_type.value if hasattr(user.business_type,'value') else user.business_type,tax_method=method,total_income=income,net_profit=income-data['total_deductions'],taxable_income=max(D(0),income-data['total_deductions']),estimated_tax_owed=None,estimated_tax_savings=None,non_deductible_expense_total=max(D(0),data['total_expenses']-data['deductible_expense_total']),largest_expense_category=None,largest_expense_amount=0,expense_breakdown={},deductible_breakdown={},non_deductible_breakdown={},saved_trip_count=len(trips),vehicle_filter=vehicle_id,unallocated_income=unassigned_income,trends=[dict(period=k,**v) for k,v in sorted(trends.items())] if advanced else [],advanced=advanced)
-    # No federal tax projection without complete filing inputs; do not display invented zeros.
+    # Preserve the existing report's expense chart and configured-bracket estimate.
+    # Vehicle allocation above remains unchanged; do not replace its totals with
+    # a different deduction calculation while filling presentation fields.
+    spending = calculate_expense_summary(SimpleNamespace(tax_method=TaxMethod(method)), expenses, data['mileage_deduction'])
+    for field in ('expense_breakdown', 'largest_expense_category', 'largest_expense_amount'):
+        data[field] = spending[field]
+    brackets = db.query(TaxBracket).filter(
+        TaxBracket.year == year, TaxBracket.filing_status == user.filing_status,
+    ).order_by(TaxBracket.min_income.asc()).all()
+    if brackets and data['calculation_complete']:
+        data['estimated_tax_owed'] = calculate_tax(data['taxable_income'], brackets)
+        data['estimated_tax_savings'] = money(calculate_tax(income, brackets) - data['estimated_tax_owed'])
     data['caveats'].append('This report estimates deductions, not federal or state tax owed. It does not include self-employment tax or your complete return.')
     import hashlib, json
     data['report_fingerprint']=hashlib.sha256(json.dumps(export_rows(data),default=str,sort_keys=True).encode()).hexdigest()

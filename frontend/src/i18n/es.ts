@@ -1,5 +1,30 @@
 // App-owned interface copy. Brand names, user content, and API values are not translated.
 export const spanish: Record<string, string> = {
+  "This month so far compared with the full previous month.": "Este mes hasta ahora comparado con el mes anterior completo.",
+  "Selected month compared with the full previous month.": "Mes seleccionado comparado con el mes anterior completo.",
+
+  "Compared with last month": "Comparación con el mes pasado",
+  "This period so far compared with the full previous month.": "Este período hasta ahora comparado con el mes anterior completo.",
+  "Your free report includes this month and a comparison with last month.": "Tu informe gratuito incluye este mes y una comparación con el mes pasado.",
+  "Review past months, choose custom dates, and export your reports.": "Revisa meses anteriores, elige fechas y exporta tus informes.",
+  "Access past months and years": "Accede a meses y años anteriores",
+  "Filters and reporting preferences": "Filtros y preferencias de informes",
+  "Vehicle filter active": "Filtro de vehículo activo",
+  "Saved for fuel estimates. Leave blank to keep your saved price. No expense is added.": "Se guarda para estimar el combustible. Déjalo en blanco para mantener el precio guardado. No se añade ningún gasto.",
+  "Enter a price from 0 to 100 with up to 4 decimal places.": "Introduce un precio de 0 a 100 con hasta 4 decimales.",
+  "More actions": "Más acciones",
+  "View details": "Ver detalles",
+
+  "Methods vary by vehicle": "Los métodos varían según el vehículo",
+  "Estimated deduction subtotal": "Subtotal estimado de deducciones",
+  "Combined estimate from the selected vehicle methods": "Estimación combinada de los métodos seleccionados por vehículo",
+
+  "Show vehicle details": "Mostrar detalles de vehículos",
+  "Hide vehicle details": "Ocultar detalles de vehículos",
+  "Vehicle breakdown": "Desglose por vehículo",
+  "Vehicle estimates use your saved yearly assumptions.": "Las estimaciones por vehículo usan tus supuestos anuales guardados.",
+  "Tax estimates are unavailable for this period or the recorded inputs are incomplete. Your activity totals are still shown.": "Las estimaciones de impuestos no están disponibles para este período o los datos están incompletos. Los totales de tu actividad siguen disponibles.",
+
   "Expo delivers app updates using a persistent installation identifier and runtime/update metadata. Push delivery uses Expo and Apple or Android notification services. These identifiers may persist after logout.": "Expo entrega actualizaciones usando un identificador persistente de instalación y metadatos de versión y actualización. Las notificaciones usan Expo y los servicios de Apple o Android. Estos identificadores pueden persistir después de cerrar sesión.",
   "Transactional and support emails use Resend. Endpoint address lookup sends coordinates to the device platform geocoding service. External provider retention is separate from account deletion.": "Los correos transaccionales y de soporte usan Resend. La búsqueda de direcciones envía coordenadas al servicio de geocodificación del dispositivo. La retención de proveedores externos es independiente de la eliminación de la cuenta.",
   "Account deletion removes associated server records and initiates device cleanup. Interrupted device cleanup is retried. Copies you shared elsewhere and provider or backup retention may remain outside this process.": "La eliminación de la cuenta borra los registros asociados del servidor e inicia la limpieza del dispositivo. La limpieza interrumpida se reintenta. Las copias compartidas y la retención de proveedores o copias de seguridad pueden quedar fuera de este proceso.",

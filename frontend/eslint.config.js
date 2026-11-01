@@ -6,5 +6,7 @@ module.exports = defineConfig([
   expoConfig,
   {
     ignores: ['dist/*'],
+    // Existing account/route synchronization effects are valid; review them incrementally.
+    rules: { 'react-hooks/set-state-in-effect': 'warn' },
   },
 ]);

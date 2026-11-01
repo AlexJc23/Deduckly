@@ -629,7 +629,7 @@ export default function PaywallScreen() {
 const getStyles = (isTablet: boolean) =>
   StyleSheet.create({
     confettiContainer: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       zIndex: 100,
       overflow: "hidden",
     },
@@ -641,7 +641,7 @@ const getStyles = (isTablet: boolean) =>
     },
 
     successOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       zIndex: 90,
       alignItems: "center",
       justifyContent: "center",

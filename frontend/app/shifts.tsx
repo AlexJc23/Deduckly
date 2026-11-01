@@ -6,23 +6,34 @@ import { DurationPicker } from '@/features/shifts/duration-picker';
 import { plannedEndAt } from '@/features/shifts/duration';
 import { requestShiftNotifications } from '@/features/shifts/notifications';
 import { useEffect, useState } from 'react';
-import { Alert, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { Alert, StyleSheet, KeyboardAvoidingView, Keyboard } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { View, Text, Pressable, ScrollView, SafeAreaView } from '@/theme/components';
+import { View, Text, TextInput, Pressable, ScrollView, SafeAreaView } from '@/theme/components';
 import { useAppTheme } from '@/theme/theme';
 import { useLanguage } from '@/i18n/language';
 import { useShifts } from '@/features/shifts/context';
 import { editShift, switchPlatform, requestTripSave } from '@/features/shifts/journal';
 import { startShiftRecording, endShiftRecording, getRecordingMode, subscribeToRecording } from '@/features/tracking/services/background-tracking';
+import { useFuelAssumptions } from '@/features/vehicles/use-fuel-assumptions';
+import { parseFuelPrice } from '@/features/vehicles/fuel-price-input';
+import { savePrice } from '@/features/vehicles/store';
+
 export default function ShiftsScreen() {
   const { owner, entries, syncError, sync } = useShifts();
   const { t, locale } = useLanguage(); const { dark } = useAppTheme();
+  const fuel = useFuelAssumptions();
+  const fuelType = fuel.assumptions?.fuelType ?? 'gasoline';
+  const [fuelDraft, setFuelDraft] = useState<{ scope: string; value: string } | null>(null);
+  const fuelScope = `${owner}:${fuelType}`;
+  const fuelValue = fuelDraft?.scope === fuelScope ? fuelDraft.value : fuel.data?.prices[fuelType] ?? '';
+  const parsedFuel = parseFuelPrice(fuelValue);
+  const fuelLabel = fuelType === 'electric' ? 'Electricity price (USD / kWh)' : 'Fuel price (USD / US gallon)';
   const params = useLocalSearchParams<{ id?: string }>();
   const [selected, setSelected] = useState<string | null>(params.id ?? null);
   const [platform, setPlatform] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false); const [showEnd, setShowEnd] = useState(false);
   const [minutes, setMinutes] = useState(0); const [busy, setBusy] = useState(false);
-  const [now, setNow] = useState(Date.now()); const [mode, setMode] = useState(getRecordingMode());
+  const [now, setNow] = useState(() => Date.now()); const [mode, setMode] = useState(getRecordingMode());
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); const off = subscribeToRecording(() => setMode(getRecordingMode())); return () => { clearInterval(timer); off(); }; }, []);
   useEffect(() => { setSelected(null); setShowEnd(false); setShowHistory(false); }, [owner]);
   useEffect(() => { if (params.id) setSelected(params.id); }, [params.id]);
@@ -36,7 +47,7 @@ export default function ShiftsScreen() {
     catch { Alert.alert(t('Shift could not be updated'), t('Saved Shift data remains on this device. Check permissions and storage, then try again.')); }
     finally { setBusy(false); }
   }
-  const planned = () => plannedEndAt(Date.now(), minutes);
+  const planned = () => plannedEndAt(now, minutes);
   const platformLabel = (value: string) => t(platformName(value));
   const date = (value: string) => new Date(value).toLocaleString(locale);
   function button(label: string, fn: () => void, chosen = false, key = label) {
@@ -46,7 +57,7 @@ export default function ShiftsScreen() {
     return <PlatformTiles value={current} onChange={fn} disabled={busy || !owner} />;
   }
   return <SafeAreaView style={{ flex: 1, backgroundColor: dark ? '#101722' : '#F8FAFC' }}>
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       <ScreenHeader title="Shift Mode" safeArea={false} right={<Pressable accessibilityRole="button" disabled={busy || !owner} onPress={() => { setBusy(true); void sync().finally(() => setBusy(false)); }} style={styles.navAction}><Text style={{ color: '#4A6FE3' }}>{t('Sync now')}</Text></Pressable>} />
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
 
@@ -57,7 +68,17 @@ export default function ShiftsScreen() {
           {platformButtons(setPlatform, platform)}
           <Text>{t('End in (optional)')}</Text>
           <DurationPicker value={minutes} onChange={setMinutes} />
+          <Text>{t(fuelLabel)} · {t('Optional')}</Text>
+          <TextInput accessibilityLabel={t(fuelLabel)} keyboardType="decimal-pad" value={fuelValue}
+            placeholder={fuelType === 'electric' ? '0.18' : '3.49'} editable={!busy && !!owner}
+            onChangeText={value => setFuelDraft({ scope: fuelScope, value: value.replace(',', '.') })}
+            style={styles.input} />
+          <Text style={styles.muted}>{t('Saved for fuel estimates. Leave blank to keep your saved price. No expense is added.')}</Text>
+          {!parsedFuel.valid && <Text accessibilityRole="alert">{t('Enter a price from 0 to 100 with up to 4 decimal places.')}</Text>}
           {button(t('Start Shift'), () => void act(async () => {
+            if (!parsedFuel.valid) return;
+            Keyboard.dismiss();
+            if (parsedFuel.price !== null) await savePrice(owner!, fuelType, String(parsedFuel.price));
             if (!await startShiftRecording(owner!, platform, planned())) throw Error('Location unavailable');
             setSelected(null);
             if (minutes) await requestShiftNotifications();

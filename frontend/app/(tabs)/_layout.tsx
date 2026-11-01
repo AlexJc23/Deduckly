@@ -62,7 +62,7 @@ export default function TabsLayout() {
                   : "home-outline"
               }
               size={size}
-              color={color}
+              color={typeof color === "number" ? undefined : color ?? undefined}
             />
           ),
         }}
@@ -84,7 +84,7 @@ export default function TabsLayout() {
                   : "list-outline"
               }
               size={size}
-              color={color}
+              color={typeof color === "number" ? undefined : color ?? undefined}
             />
           ),
         }}
@@ -106,7 +106,7 @@ export default function TabsLayout() {
                   : "bar-chart-outline"
               }
               size={size}
-              color={color}
+              color={typeof color === "number" ? undefined : color ?? undefined}
             />
           ),
         }}
@@ -128,7 +128,7 @@ export default function TabsLayout() {
                   : "settings-outline"
               }
               size={size}
-              color={color}
+              color={typeof color === "number" ? undefined : color ?? undefined}
             />
           ),
         }}

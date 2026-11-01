@@ -12,7 +12,7 @@ from fastapi import HTTPException, FastAPI
 from fastapi.testclient import TestClient
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
-from app.models import User, Trip, Expense, Income
+from app.models import User, Trip, Expense, Income, TaxBracket
 from app.models.enums import TripCategory, ExpenseCategory, TaxMethod
 from app.models.vehicle import UserVehicle
 from app.models.vehicle_tax import VehicleTaxSetting
@@ -90,7 +90,7 @@ class CalculationTests(unittest.TestCase):
 class DatabaseReportingTests(unittest.TestCase):
     def setUp(self):
         self.engine=create_engine('sqlite://')
-        for model in [User,UserVehicle,Trip,Expense,Income,VehicleTaxSetting]:model.__table__.create(self.engine)
+        for model in [User,UserVehicle,Trip,Expense,Income,VehicleTaxSetting,TaxBracket]:model.__table__.create(self.engine)
         self.db=Session(self.engine,expire_on_commit=False)
         self.db.add_all([User(id=i,first_name='Test',last_name='User',email=f'{i}@example.test',timezone='America/New_York',tax_method=TaxMethod.STANDARD_MILEAGE) for i in (1,2)])
         self.db.commit();self.user=self.db.query(User).options(lazyload("*")).filter_by(id=1).one()
@@ -108,6 +108,28 @@ class DatabaseReportingTests(unittest.TestCase):
         self.assertIsNone(data['estimated_tax_owed'])
         self.assertEqual(self.db.query(Trip).filter_by(user_id=1).first().vehicle_id,None)
         with self.assertRaises(HTTPException):report(self.db,self.user,2026,vehicle_id='2',advanced=True)
+    def test_vehicle_report_keeps_spending_breakdown_and_existing_tax_estimate(self):
+        from app.models.enums import IncomeType
+        t = self.add_trip(vehicle_id='1')
+        self.db.add_all([
+            Income(user_id=1,trip_id=t.id,amount=D('1000'),received_at=datetime(2026,6,30,12,tzinfo=timezone.utc),source=IncomeType.GIG_PLATFORM),
+            Income(user_id=2,amount=D('9999'),received_at=datetime(2026,6,30,12,tzinfo=timezone.utc),source=IncomeType.GIG_PLATFORM),
+            Expense(user_id=1,vehicle_id='1',amount=D('50'),category=ExpenseCategory.FUEL,business_percentage=100,incurred_at=datetime(2026,6,30,12,tzinfo=timezone.utc)),
+            Expense(user_id=1,vehicle_id='1',amount=D('25'),category=ExpenseCategory.PHONE,business_percentage=100,incurred_at=datetime(2026,6,30,12,tzinfo=timezone.utc)),
+            TaxBracket(year=2026,filing_status=self.user.filing_status,min_income=0,max_income=None,rate=D('.10')),
+        ])
+        self.db.commit()
+        data = report(self.db,self.user,2026,vehicle_id='1',advanced=True)
+        self.assertEqual(data['total_income'],D('1000'))
+        self.assertEqual(data['total_expenses'],D('75'))
+        self.assertEqual(data['expense_breakdown']['fuel']['amount'],D('50'))
+        self.assertEqual(data['expense_breakdown']['phone']['amount'],D('25'))
+        self.assertEqual(data['largest_expense_category'],'fuel')
+        from app.services.report_service import calculate_tax
+        brackets = self.db.query(TaxBracket).all()
+        self.assertEqual(data['estimated_tax_owed'],calculate_tax(data['taxable_income'],brackets))
+        self.assertEqual(data['estimated_tax_savings'],calculate_tax(data['total_income'],brackets)-data['estimated_tax_owed'])
+
     def test_filter_and_stable_fingerprint_changes_after_update(self):
         t=self.add_trip(vehicle_id='1')
         a=report(self.db,self.user,2026,vehicle_id='1',advanced=True)
@@ -206,7 +228,21 @@ class AccessExportTests(unittest.TestCase):
     def test_free_cannot_access_new_advanced_filter_but_legacy_route_remains(self):
         with patch('app.services.subscription_service.has_active_subscription',return_value=False):
             self.assertEqual(self.client.get('/reports/vehicle-summary?vehicle_id=x').status_code,403)
-        self.assertTrue(any(r.path=='/reports' or r.path=='/reports/' for r in self.app.routes))
+        self.assertIn('/reports', self.app.openapi()['paths'])
+    def test_existing_report_endpoint_keeps_original_response(self):
+        original = {'year':2025,'month':7,'total_income':100,'expense_breakdown':{'phone':{'amount':20,'count':1}},'estimated_tax_owed':8}
+        with patch('app.api.v1.endpoints.report.generate_tax_report',return_value=original.copy()) as calculate, patch('app.api.v1.endpoints.report.has_active_subscription',return_value=True), patch('app.api.v1.endpoints.report.monthly_comparison',return_value={'year':2025,'month':6}):
+            response = self.client.get('/reports?year=2025&month=7')
+        self.assertEqual(response.status_code,200)
+        self.assertEqual(response.json(),original | {'comparison': {'year':2025,'month':6}})
+        self.assertEqual(calculate.call_args.kwargs['year'],2025)
+        self.assertEqual(calculate.call_args.kwargs['month'],7)
+
+    def test_free_history_is_denied_on_both_report_routes(self):
+        with patch('app.api.v1.endpoints.report.has_active_subscription',return_value=False), patch('app.services.subscription_service.has_active_subscription',return_value=False), patch('app.services.report_access.local_today',return_value=date(2026,1,10)):
+            for path in ['/reports?year=2025&month=12', '/reports/vehicle-summary?year=2025&month=12']:
+                self.assertEqual(self.client.get(path).status_code,403)
+
     def test_export_entitlement(self):
         from app.api.dependencies.subscription import require_active_subscription
         def denied():raise HTTPException(403,'Premium required')

@@ -12,7 +12,7 @@ export function ReportControls({year,premium,vehicleId,onVehicle,method,onMethod
  const [error,setError]=useState(''),[busy,setBusy]=useState(false);
  const effective=method||(user.data as {tax_method?:string}|undefined)?.tax_method||'standard_mileage';
  const vehicles=(data?.vehicles??[]);
- async function changeMethod(value:string){setBusy(true);setError('');try{await updateCurrentUser({tax_method:value as 'standard_mileage'|'actual_expenses'});await cache.invalidateQueries({queryKey:['current-user']});onMethod(value);}catch{setError('Connect to save your reporting preference.');}finally{setBusy(false);}}
+ async function changeMethod(value:string){setBusy(true);setError('');try{await updateCurrentUser({tax_method:value as 'standard_mileage'|'actual_expenses'});await cache.invalidateQueries({queryKey:['current-user']});await cache.invalidateQueries({queryKey:['report']});onMethod(value);}catch{setError('Connect to save your reporting preference.');}finally{setBusy(false);}}
  return <View style={{gap:12,marginBottom:18}}>
  <CompactSelect label={t('Reporting preference')} value={effective} choices={[{value:'standard_mileage',label:t('Standard Mileage')},{value:'actual_expenses',label:t('Actual Expenses')}]} onChange={v=>void changeMethod(v)} disabled={busy}/>
  <Text style={{fontSize:13,color:'#64748B'}}>{t('Reporting preference only; this does not file a tax election.')} {t('Saved yearly vehicle methods take precedence over the general preference.')}</Text>

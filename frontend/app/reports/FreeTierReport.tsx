@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { CompactSelect } from '@/components/ui/CompactSelect';
+import { useEffect, useState } from 'react';
 import { ReportControls } from '@/features/reports/components/ReportControls';
 import { useLanguage, Translated } from '@/i18n/language';
 import { ScrollView, Text, View, SafeAreaView, Pressable } from '@/theme/components';
-import { StyleSheet } from 'react-native';
+import { AppState, StyleSheet } from 'react-native';
 import { useCurrentReport } from '@/features/reports/hooks/use-current-report';
+import { useCurrentUser } from '@/features/auth/hooks/use-current-user';
 import { formatReportDate, getCurrentMonthAndYear } from '@/features/reports/utils/date';
 import { ReportBody } from '@/features/reports/components/ReportBody';
 import { ReportLoadState } from '@/features/reports/components/ReportPresentation';
@@ -14,32 +14,36 @@ import { useIsTablet } from '@/hooks/use-is-tablet';
 
 export default function FreeTierReportScreen() {
   const { locale, t } = useLanguage();
-  const current = getCurrentMonthAndYear();
-  const [month, setMonth] = useState(current.month);
-  const [year, setYear] = useState(current.year);
+  const profile = useCurrentUser();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const update = () => setNow(Date.now());
+    const timer = setInterval(update, 60_000);
+    const app = AppState.addEventListener('change', state => { if (state === 'active') update(); });
+    return () => { clearInterval(timer); app.remove(); };
+  }, []);
+  const current = getCurrentMonthAndYear(profile.data?.timezone ?? 'America/New_York', new Date(now));
   const [method, setMethod] = useState('');
   const [vehicleId, setVehicleId] = useState('');
   const [showPreferences, setShowPreferences] = useState(false);
   const isTablet = useIsTablet();
-  const { data, isLoading, isError, isPlaceholderData, refetch } = useCurrentReport({ year, month, method: method || undefined });
+  const { data, isLoading, isError, isPlaceholderData, refetch } = useCurrentReport({ year: current.year, month: current.month, method: method || undefined }, { enabled: !!profile.data });
   const { data: monthlyGoal } = useMonthlyGoal();
-  const currentPeriod = month === current.month && year === current.year;
+  const { year, month } = current;
+  const waitingForProfile = !profile.data && !profile.isError;
   return <SafeAreaView edges={['top']} style={s.screen}>
     <ScrollView contentContainerStyle={[s.content, isTablet && s.tablet]} showsVerticalScrollIndicator={false}>
       <View style={s.inner}>
         <Text accessibilityRole="header" style={s.title}><Translated text="Reports" /></Text>
-        <Text style={s.period}>{formatReportDate(year, month, undefined, locale)} {t(currentPeriod ? '· Month to date' : '· Selected period')}</Text>
-        <View style={s.selectors}>
-          <View style={s.month}><CompactSelect label={t('Month')} value={String(month)} choices={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: new Date(year, i, 1).toLocaleDateString(locale, { month: 'long' }) }))} onChange={m => setMonth(Number(m))} /></View>
-          <View style={s.year}><CompactSelect label={t('Year')} value={String(year)} choices={Array.from({ length: current.year - 2009 }, (_, i) => ({ value: String(current.year - i), label: String(current.year - i) }))} onChange={y => setYear(Number(y))} /></View>
-        </View>
-        {isLoading || isPlaceholderData || isError || !data ? <ReportLoadState loading={isLoading || isPlaceholderData} retry={() => void refetch()} /> : <ReportBody report={data} />}
-        {currentPeriod && monthlyGoal && monthlyGoal.goal > 0 && <View style={s.goal}>
+        <Text style={s.period}>{formatReportDate(year, month, undefined, locale)} {t('· Month to date')}</Text>
+        <Text style={{ color: '#64748B', lineHeight: 21 }}>{t('Your free report includes this month and a comparison with last month.')}</Text>
+        {waitingForProfile || isLoading || isPlaceholderData || isError || !data ? <ReportLoadState loading={waitingForProfile || isLoading || isPlaceholderData} retry={() => { if (!profile.data) void profile.refetch(); else void refetch(); }} /> : <ReportBody report={data} />}
+        {monthlyGoal && monthlyGoal.goal > 0 && <View style={s.goal}>
           <Text>{t('Monthly income goal')}</Text><Text style={s.goalValue}>{new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD' }).format(monthlyGoal.current)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD' }).format(monthlyGoal.goal)}</Text>
         </View>}
         <Pressable accessibilityRole="button" accessibilityState={{ expanded: showPreferences }} onPress={() => setShowPreferences(!showPreferences)} style={s.preferences}><Text style={s.preferenceTitle}>{t('Reporting preferences')} {showPreferences ? '−' : '+'}</Text></Pressable>
         {showPreferences && <ReportControls year={year} premium={false} vehicleId={vehicleId} onVehicle={setVehicleId} method={method} onMethod={setMethod} />}
-        <PremiumButton title="Put your numbers to work." message="Explore custom dates and save or share detailed reports." features={['Choose the dates that matter to you', 'Export reports as PDF or CSV']} />
+        <PremiumButton title="Put your numbers to work." message="Review past months, choose custom dates, and export your reports." features={['Access past months and years', 'Choose the dates that matter to you', 'Export reports as PDF or CSV']} />
       </View>
     </ScrollView>
   </SafeAreaView>;

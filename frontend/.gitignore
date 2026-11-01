@@ -39,7 +39,15 @@ yarn-error.*
 app-example
 
 # generated native folders
-/ios
+/ios/*
+!/ios/Podfile
+!/ios/Podfile.lock
+!/ios/Podfile.properties.json
+!/ios/frontend/
+/ios/frontend/*
+!/ios/frontend/Supporting/
+/ios/frontend/Supporting/*
+!/ios/frontend/Supporting/Expo.plist
 /android
 
 # Android signing credentials
