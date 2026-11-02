@@ -4,6 +4,8 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
+import { useAppTheme } from "@/theme/theme";
+import { NAVY } from "@/theme/palette";
 
 import { SortTripsModal } from "@/features/trips/components/SortTripsModal";
 import { useTrips } from "@/features/trips/hooks/use-trips";
@@ -137,6 +139,7 @@ function TripItem({ item }: { item: Trip }) {
 
 export default function ActivityScreen() {
   useLanguage();
+  const { dark } = useAppTheme();
   const [tab, setTab] =
     useState<TabValue>("trips");
 
@@ -324,7 +327,7 @@ export default function ActivityScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: dark ? NAVY.background : "#F8FAFC" }]}>
       <View style={styles.header}>
 
         <Text style={styles.title}>

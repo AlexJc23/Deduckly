@@ -14,8 +14,8 @@ export function appearanceColor(value: unknown, property: string, dark: boolean)
     if (/^#[0-9a-f]{3}$/.test(color)) color = "#" + color.slice(1).split("").map(c => c + c).join("");
     if (!/^#[0-9a-f]{6}$/.test(color) || property === "shadowColor") return value;
     if (property === 'backgroundColor') {
-        if (['#f8fafc','#f9fafb','#101722','#0f172a'].includes(color)) return NAVY.background;
-        if (['#ffffff','#1b2635'].includes(color)) return NAVY.card;
+        if (['#f8fafc','#f9fafb','#f6f8fa','#f6f8fb','#f5f7fa','#f7f9fc','#101722','#0f172a'].includes(color)) return NAVY.background;
+        if (['#ffffff','#fbfcfd','#fafbfc','#1b2635'].includes(color)) return NAVY.card;
         if (['#f1f5f9','#f3f4f6','#203449'].includes(color)) return NAVY.surface;
         if (['#4a6fe3','#0072b5','#4267d9'].includes(color)) return NAVY.blue;
         if (['#17382d','#f0fdf4'].includes(color)) return NAVY.active;
