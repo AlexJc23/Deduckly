@@ -328,6 +328,7 @@ export default function ActivityScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: dark ? NAVY.background : "#F8FAFC" }]}>
+      <View style={styles.content}>
       <View style={styles.header}>
 
         <Text style={styles.title}>
@@ -483,6 +484,7 @@ export default function ActivityScreen() {
       {tab === "income" && renderIncome()}
       {tab === "expenses" &&
         renderExpenses()}
+      </View>
 
       <ActivityDateModal
         visible={showDateModal}
@@ -530,7 +532,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 72,
-    width: "90%",
+    paddingHorizontal: 20,
+  },
+
+  content: {
+    flex: 1,
+    width: "100%",
+    maxWidth: 760,
     alignSelf: "center",
   },
 
