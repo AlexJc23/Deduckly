@@ -32,6 +32,11 @@ assert.equal(color('#FFFFFF', 'color', true), '#FFFFFF');
 assert.equal(color('#F0FDF4', 'backgroundColor', true), '#0B2A24');
 assert.equal(color('#FFF5F5', 'backgroundColor', true), '#40252D');
 assert.equal(color('#0072B5', 'backgroundColor', true), '#2D6AF4');
+for (const surface of ['#F6F8FA', '#F6F8FB', '#F5F7FA', '#F7F9FC']) {
+  assert.equal(color(surface, 'backgroundColor', true), '#081320');
+  assert.equal(color(surface, 'backgroundColor', false), surface);
+}
+for (const surface of ['#FBFCFD', '#FAFBFC']) assert.equal(color(surface, 'backgroundColor', true), '#102334');
 const style = [{ padding: 20, backgroundColor: '#FFFFFF' }, { opacity: .5 }];
 assert.equal(themedStyle(style, false), style);
 assert.deepEqual(themedStyle(style, true), { padding: 20, backgroundColor: '#102334', opacity: .5 });

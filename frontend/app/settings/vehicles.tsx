@@ -3,6 +3,8 @@ import { Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { View, Text, ScrollView } from '@/theme/components';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { useLanguage } from '@/i18n/language';
+import { useAppTheme } from '@/theme/theme';
+import { NAVY } from '@/theme/palette';
 import { useVehicles } from '@/features/vehicles/use-vehicles';
 import { saveLocalVehicle } from '@/features/vehicles/store';
 import type { Vehicle, VehicleData } from '@/features/vehicles/types';
@@ -12,8 +14,8 @@ const empty = (): VehicleData => ({ year: 0, make: '', model: '', trim: null,
   fuel_type: 'gasoline', city_mpg: null, highway_mpg: null, combined_mpg: null, custom_mpg: null,
   kwh_per_100_miles: null, epa_id: null, is_default: false });
 export default function VehiclesScreen() {
-  const state = useVehicles(); const { t } = useLanguage();
-  return <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><ScreenHeader title="My Vehicles" />
+  const state = useVehicles(); const { t } = useLanguage(); const { dark } = useAppTheme();
+  return <KeyboardAvoidingView style={{ flex: 1, backgroundColor: dark ? NAVY.background : "#F8FAFC" }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><ScreenHeader title="My Vehicles" />
     <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}>
       <Text style={styles.title}>{t('My Vehicles')}</Text>
       {state.owner && state.data ? <VehiclesEditor key={state.owner} state={state} /> : <Text>{t('Sign in to manage vehicles.')}</Text>}

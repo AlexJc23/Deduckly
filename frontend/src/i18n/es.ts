@@ -1,5 +1,16 @@
 // App-owned interface copy. Brand names, user content, and API values are not translated.
 export const spanish: Record<string, string> = {
+  "Important legal documents and information related to your use of Deduckly.": "Documentos legales importantes e información sobre el uso de Deduckly.",
+  "Defines the rules and conditions for using Deduckly.": "Define las reglas y condiciones para usar Deduckly.",
+  "The software license governing your use of the app.": "La licencia de software que rige el uso de la app.",
+  "Learn how account deletion works and what data is removed.": "Conoce cómo funciona la eliminación de la cuenta y qué datos se borran.",
+  "View licenses and acknowledgements for third-party software.": "Consulta las licencias y los reconocimientos del software de terceros.",
+  "Understand how your information is collected, used, and protected.": "Conoce cómo se recopila, usa y protege tu información.",
+  "End User License Agreement": "Acuerdo de licencia de usuario final",
+  "Terms of Service": "Términos de servicio",
+  "Data Deletion Information": "Información sobre la eliminación de datos",
+  "mi": "mi",
+  "Custom app icons are available on iOS.": "Los íconos personalizados de la app están disponibles en iOS.",
   "This month so far compared with the full previous month.": "Este mes hasta ahora comparado con el mes anterior completo.",
   "Selected month compared with the full previous month.": "Mes seleccionado comparado con el mes anterior completo.",
 
