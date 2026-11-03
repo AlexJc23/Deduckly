@@ -5,11 +5,14 @@ import { OnboardingGate } from "@/features/onboarding/components/onboarding-gate
 import { Tabs } from "expo-router";
 import { Ionicons } from "@/theme/icons";
 import { StyleSheet } from "react-native";
-import { useIsTablet } from "@/hooks/use-is-tablet";
+import { useAdaptiveLayout } from '@/hooks/use-adaptive-layout';
+import { bottomTabMetrics, sidebarTabItemHeight, tabBarPosition } from '@/hooks/adaptive-layout';
 
 export default function TabsLayout() {
   const { t } = useLanguage();
-  const isTablet = useIsTablet();
+  const layout = useAdaptiveLayout();
+  const position = tabBarPosition(layout, layout.fontScale);
+  const isTablet = position === 'left';
   const { dark } = useAppTheme();
 
   return (
@@ -25,16 +28,14 @@ export default function TabsLayout() {
           ? (dark ? "#203449" : "#E8EEFF")
           : undefined,
 
-        // iPhone: bottom navigation
-        // iPad: left-side navigation
-        tabBarPosition: isTablet
-          ? "left"
-          : "bottom",
+        tabBarPosition: position,
 
-        tabBarStyle: themedStyle(isTablet ? styles.tabletTabBar : styles.tabBar, dark),
+        tabBarStyle: themedStyle(isTablet
+          ? [styles.tabletTabBar, { paddingTop: Math.max(50, layout.insets.top), paddingBottom: layout.insets.bottom }]
+          : [styles.tabBar, bottomTabMetrics(layout.insets.bottom, layout.fontScale)], dark),
 
         tabBarItemStyle: isTablet
-          ? styles.tabletTabBarItem
+          ? [styles.tabletTabBarItem, { height: sidebarTabItemHeight(layout.fontScale), minHeight: sidebarTabItemHeight(layout.fontScale) }]
           : styles.tabBarItem,
 
         tabBarLabelStyle:
@@ -43,7 +44,9 @@ export default function TabsLayout() {
         tabBarIconStyle:
           styles.tabBarIcon,
 
-        tabBarHideOnKeyboard: true,
+        // iOS display transitions can leave the JS navigator's keyboard "will"
+        // visibility stale. Use its default visible navigation; no remounts.
+        tabBarHideOnKeyboard: false,
       }}
     >
       <Tabs.Screen
@@ -140,9 +143,6 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: 84,
-    paddingTop: 8,
-    paddingBottom: 10,
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#E5E7EB",
