@@ -27,4 +27,10 @@ assert(scene.includes('provider.window = window'));
 for(const callback of ['forwarder.open','forwarder.continue','forwarder.didBecomeActive','forwarder.didEnterBackground'])assert(scene.includes(callback));
 assert(scene.includes('userActivity: browsingWebActivity'));
 assert(plist.UIBackgroundModes.includes('location'));
+assert.equal(JSON.parse(fs.readFileSync(path.join(root,'app.json'),'utf8')).expo.orientation,'default');
+for(const orientation of ['Portrait','PortraitUpsideDown','LandscapeLeft','LandscapeRight']) {
+  assert(plist.UISupportedInterfaceOrientations.includes('UIInterfaceOrientation'+orientation));
+  assert(plist['UISupportedInterfaceOrientations~ipad'].includes('UIInterfaceOrientation'+orientation));
+}
 console.log('PASS SDK 58 scene wiring: Expo-owned single window/runtime, cold/warm links, lifecycle forwarding, Siri setup and background location preserved.');
+console.log('PASS Expo/native phone and iPad orientation configuration stays aligned for runtime resizing.');
