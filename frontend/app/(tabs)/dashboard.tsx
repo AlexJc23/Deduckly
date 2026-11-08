@@ -1,3 +1,4 @@
+import { dashboardUsesColumns, contentNeedsScrolling } from '@/hooks/adaptive-layout';
 import { dashboardType } from '@/theme/typography';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -22,7 +23,7 @@ import { ShiftEntryPoint } from '@/features/shifts/entry-point';
 import { useShifts } from '@/features/shifts/context';
 import { elapsedMinutes, platformName } from '@/features/shifts/presentation';
 import { getPendingTrip } from '@/services/siri.service';
-import { Pressable, SafeAreaView, Text, View } from '@/theme/components';
+import { Pressable, SafeAreaView, ScrollView, Text, View } from '@/theme/components';
 import { Ionicons } from '@/theme/icons';
 import { useAppTheme } from '@/theme/theme';
 
@@ -31,9 +32,10 @@ export default function DashboardScreen() {
   const { width, height, fontScale } = useWindowDimensions();
   const [availableWidth, setAvailableWidth] = useState(0);
   const [availableHeight, setAvailableHeight] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
   const viewportWidth = availableWidth || width;
   const viewportHeight = availableHeight || Math.max(0, height - 140);
-  const grid = viewportWidth >= 700 && viewportHeight >= 400 && fontScale <= 1.3;
+  const grid = dashboardUsesColumns(viewportWidth, viewportHeight, fontScale);
   const { t, locale } = useLanguage();
   const userQuery = useCurrentUser();
   const { saved } = useLocalSearchParams();
@@ -417,9 +419,12 @@ export default function DashboardScreen() {
           setAvailableHeight(event.nativeEvent.layout.height);
         }}
       >
-      <View
+      <ScrollView
+        style={{ flex: 1 }}
+        scrollEnabled={contentNeedsScrolling(contentHeight, viewportHeight)}
+        onContentSizeChange={(_, measuredHeight) => setContentHeight(measuredHeight)}
         testID={condensed ? 'dashboard-condensed' : grid ? 'dashboard-wide' : 'dashboard-standard'}
-        style={[s.content, grid && s.wideContent, { gap: layout.gap }]}
+        contentContainerStyle={[s.content, grid && s.wideContent, { gap: layout.gap }]}
       >
         <View style={[s.header, compact && s.compactHeader]}>
           <Pressable
@@ -480,7 +485,7 @@ export default function DashboardScreen() {
             <Text style={s.muted}>{t('Check trip tracking')}</Text>
           </Pressable>
         )}
-      </View>
+      </ScrollView>
 
       </View>
 
@@ -505,7 +510,7 @@ const s = StyleSheet.create({
   compactGoal: { paddingVertical: 4 },
   screen: { flex: 1, backgroundColor: '#F8FAFC', },
   content: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'flex-start',
     width: '100%',
     maxWidth: 760,

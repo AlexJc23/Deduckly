@@ -67,3 +67,24 @@ the next design phase, with the current production interface as the reference.
 - [Apple HIG: Layout](https://developer.apple.com/design/human-interface-guidelines/layout)
 - [React Native: useWindowDimensions](https://reactnative.dev/docs/usewindowdimensions)
 - [React Navigation: bottom tabs](https://reactnavigation.org/docs/bottom-tab-navigator/)
+
+## Screen adaptation pass — November 8, 2026
+
+Implemented on the existing feature branch:
+
+- Activity and Settings now use runtime top/left/right safe-area padding rather
+  than fixed status-bar clearance. Reports also respect left/right safe areas.
+- Dashboard columns use measured screen-local width/height, including short
+  landscape windows. A stable ScrollView enables scrolling only if its measured
+  content exceeds the viewport, preserving a non-scrolling fit where possible.
+- No screen/navigation keys, tracking services, backend contracts, versions, or
+  data models changed. Existing forms and detail screens retain their established
+  scroll/max-width layouts.
+
+Focused layout tests, TypeScript, scene validation, trip recovery and detector
+checks passed. Screen lint had zero errors and two existing Dashboard effect
+warnings. Native visual checks for this pass remain pending: no simulator was
+running at validation time. Do not treat modeled window tests as physical
+fold/unfold validation. Verify authenticated Dashboard (idle, Shift, Trip),
+Activity, Settings and Reports with rotation, keyboard and large text before
+release.

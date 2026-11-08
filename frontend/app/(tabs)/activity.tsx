@@ -1,5 +1,5 @@
 import { useLanguage, Translated } from "@/i18n/language";
-import { Pressable, Text, View } from "@/theme/components";
+import { Pressable, SafeAreaView, Text, View } from "@/theme/components";
 import { router } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet } from "react-native";
@@ -327,7 +327,7 @@ export default function ActivityScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: dark ? NAVY.background : "#F8FAFC" }]}>
+    <SafeAreaView edges={["top", "left", "right"]} style={[styles.container, { backgroundColor: dark ? NAVY.background : "#F8FAFC" }]}>
       <View style={styles.content}>
       <View style={styles.header}>
 
@@ -524,14 +524,14 @@ export default function ActivityScreen() {
         value={sort}
         onChange={setSort}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 72,
+    paddingTop: 16,
     paddingHorizontal: 20,
   },
 

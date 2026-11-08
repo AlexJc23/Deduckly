@@ -34,3 +34,12 @@ export function bottomTabMetrics(bottomInset: number, fontScale: number) {
   const minimumRowHeight = Math.max(44, 28 + Math.ceil(14 * fontScale));
   return { height: Math.max(84, paddingTop + minimumRowHeight + paddingBottom), paddingTop, paddingBottom };
 }
+
+// Screen-local measurements already exclude navigator and safe-area padding.
+export function dashboardUsesColumns(width: number, height: number, fontScale: number) {
+  return width >= 620 && height >= 280 && fontScale <= 1.3;
+}
+
+export function contentNeedsScrolling(contentHeight: number, viewportHeight: number) {
+  return contentHeight > viewportHeight + 1;
+}

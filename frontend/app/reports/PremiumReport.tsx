@@ -31,7 +31,7 @@ export default function PremiumReportScreen() {
   const ready = !!data && !isError && !isPlaceholderData && !isLoading;
   const vehicleDetails = useCurrentReport({ ...reportParams, method: method || undefined, vehicleSummary: true }, { enabled: ready && showVehicleDetails && !vehicleId });
   const periodLabel = reportPeriodLabel(reportParams, locale);
-  return <SafeAreaView edges={["top"]} style={s.screen}>
+  return <SafeAreaView edges={["top", "left", "right"]} style={s.screen}>
     <ScrollView contentContainerStyle={[s.content, isTablet && s.tablet]} showsVerticalScrollIndicator={false}>
       <View style={s.inner}>
         <View style={s.titleRow}><Text accessibilityRole="header" style={s.title}><Translated text={"Reports"} /></Text><Text style={s.badge}><Translated text={"PRO"} /></Text></View>

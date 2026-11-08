@@ -31,7 +31,7 @@ export default function FreeTierReportScreen() {
   const { data: monthlyGoal } = useMonthlyGoal();
   const { year, month } = current;
   const waitingForProfile = !profile.data && !profile.isError;
-  return <SafeAreaView edges={['top']} style={s.screen}>
+  return <SafeAreaView edges={['top', 'left', 'right']} style={s.screen}>
     <ScrollView contentContainerStyle={[s.content, isTablet && s.tablet]} showsVerticalScrollIndicator={false}>
       <View style={s.inner}>
         <Text accessibilityRole="header" style={s.title}><Translated text="Reports" /></Text>

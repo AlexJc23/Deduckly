@@ -74,3 +74,15 @@ for (const bottom of [0, 10, 21, 34, 64]) for (const fontScale of [1, 1.3, 2, 3]
   assert(metrics.height - metrics.paddingTop - metrics.paddingBottom >= 44);
 }
 console.log('PASS 8 layout configurations, runtime dimensions/insets/font-scale updates, legacy width compatibility, short-window navigation, safe tab-bar sizing, and keyboard visibility policy.');
+
+const { dashboardUsesColumns, contentNeedsScrolling } = require(root + '/src/hooks/adaptive-layout.ts');
+for (const [width, height, scale, expected] of [
+  [390, 760, 1, false], [620, 340, 1, true], [951, 560, 1, true],
+  [669, 820, 1, true], [768, 940, 1, true], [1024, 680, 1, true],
+  [951, 260, 1, false], [951, 560, 2, false],
+]) assert.equal(dashboardUsesColumns(width, height, scale), expected);
+assert.equal(contentNeedsScrolling(600, 600), false);
+assert.equal(contentNeedsScrolling(600.5, 600), false);
+assert.equal(contentNeedsScrolling(660, 600), true);
+assert.equal(contentNeedsScrolling(600, 700), false);
+console.log('PASS dashboard responsive columns and measured accessibility overflow.');
