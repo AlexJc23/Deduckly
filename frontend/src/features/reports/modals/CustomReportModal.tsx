@@ -1,7 +1,8 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable, AnimatedView } from "@/theme/components";
 import { useState, useRef, useEffect } from "react";
-import { Modal, StyleSheet, Animated, Easing } from "react-native";
+import { StyleSheet, Animated, Easing } from "react-native";
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import { Ionicons } from "@/theme/icons";
 import DateTimePicker from "@/components/ui/DateField";
 

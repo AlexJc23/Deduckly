@@ -1,6 +1,7 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, TextInput, Pressable, AnimatedView } from "@/theme/components";
-import { Modal, Animated, Easing, StyleSheet, KeyboardAvoidingView, Platform, Keyboard, InputAccessoryView } from "react-native";
+import { Animated, Easing, StyleSheet, KeyboardAvoidingView, Platform, Keyboard, InputAccessoryView } from "react-native";
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import { useEffect, useRef, useState } from "react";
 import { Ionicons } from "@/theme/icons";
 

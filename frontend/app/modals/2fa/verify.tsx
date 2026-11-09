@@ -1,5 +1,6 @@
+import { TwoFactorLayout } from "@/features/auth/components/TwoFactorLayout";
 import { useLanguage, Translated } from "@/i18n/language";
-import { Pressable, SafeAreaView, Text, TextInput, View } from "@/theme/components";
+import { Pressable, Text, TextInput, View } from "@/theme/components";
 import { ActivityIndicator, Keyboard, StyleSheet } from "react-native";
 import { useState } from "react";
 import { router } from "expo-router";
@@ -57,13 +58,7 @@ export default function TwoFAVerifyScreen() {
   const isPending = verify2FAMutation.isPending;
 
   return (
-    <View style={styles.screen}>
-      <SafeAreaView style={styles.safeArea}>
-        <Pressable
-          style={styles.flex}
-          onPress={Keyboard.dismiss}
-        >
-          <View style={styles.content}>
+    <TwoFactorLayout keyboard>
             <View style={styles.hero}>
               <View style={styles.stepBadge}>
                 <Text style={styles.stepBadgeText}>
@@ -222,34 +217,11 @@ export default function TwoFAVerifyScreen() {
                   <Translated text={"Cancel Setup"} /></Text>
               </Pressable>
             </View>
-          </View>
-        </Pressable>
-      </SafeAreaView>
-    </View>
+    </TwoFactorLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#F7F9FC",
-  },
-
-  safeArea: {
-    flex: 1,
-  },
-
-  flex: {
-    flex: 1,
-  },
-
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 30,
-    paddingBottom: 18,
-  },
-
   hero: {
     alignItems: "center",
   },

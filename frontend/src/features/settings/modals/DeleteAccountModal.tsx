@@ -1,7 +1,8 @@
 import { localizedAlert } from "@/i18n/alerts";
 import { useLanguage, Translated } from "@/i18n/language";
 import { ScrollView, Text, TextInput, Pressable, AnimatedView } from "@/theme/components";
-import { Modal, Animated, Easing, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
+import { Animated, Easing, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import { useEffect, useRef, useState } from "react";
 
 type DeleteAccountModalProps = {

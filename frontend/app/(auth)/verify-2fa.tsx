@@ -1,5 +1,6 @@
+import { TwoFactorLayout } from "@/features/auth/components/TwoFactorLayout";
 import { useLanguage, Translated } from "@/i18n/language";
-import { Pressable, SafeAreaView, Text, TextInput, View } from "@/theme/components";
+import { Pressable, Text, TextInput, View } from "@/theme/components";
 import { ActivityIndicator, Keyboard, StyleSheet } from "react-native";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
@@ -48,13 +49,7 @@ export default function Verify2FAScreen() {
     verify2FAMutation.isPending;
 
   return (
-    <View style={styles.screen}>
-      <SafeAreaView style={styles.safeArea}>
-        <Pressable
-          style={styles.flex}
-          onPress={Keyboard.dismiss}
-        >
-          <View style={styles.container}>
+    <TwoFactorLayout keyboard>
             <View style={styles.iconContainer}>
               <Text style={styles.icon}>
                 ✓
@@ -151,34 +146,11 @@ export default function Verify2FAScreen() {
                   <Translated text={"Two-factor authentication helps keep your Deduckly account secure."} /></Text>
               </View>
             </View>
-          </View>
-        </Pressable>
-      </SafeAreaView>
-    </View>
+    </TwoFactorLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#F7F9FC",
-  },
-
-  safeArea: {
-    flex: 1,
-  },
-
-  flex: {
-    flex: 1,
-  },
-
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 70,
-    paddingBottom: 24,
-  },
-
   iconContainer: {
     width: 52,
     height: 52,

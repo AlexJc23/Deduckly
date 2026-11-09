@@ -1,7 +1,8 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, View, AnimatedView } from "@/theme/components";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Modal, StyleSheet, useWindowDimensions } from "react-native";
+import { Animated, StyleSheet, useWindowDimensions } from "react-native";
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@/theme/icons";
 

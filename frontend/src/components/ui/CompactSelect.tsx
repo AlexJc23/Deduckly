@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Modal, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import { View, Text, Pressable, ScrollView, SafeAreaView } from '@/theme/components';
 import { useLanguage } from '@/i18n/language';
 export function CompactSelect({ label, value, choices, onChange, disabled = false }: {

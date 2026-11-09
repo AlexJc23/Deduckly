@@ -1,3 +1,4 @@
+import { TwoFactorLayout } from "@/features/auth/components/TwoFactorLayout";
 import { useLanguage, Translated } from "@/i18n/language";
 import { Text, TextInput, Pressable, View } from "@/theme/components";
 import { ActivityIndicator, StyleSheet } from "react-native";
@@ -35,8 +36,8 @@ export default function TwoFAEnabledScreen() {
   };
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.container}>
+    <TwoFactorLayout key={showConfirm ? "confirm" : "status"} keyboard={showConfirm}>
+      {!showConfirm && <View>
         <View style={styles.hero}>
           <View style={styles.iconContainer}>
             <View style={styles.iconInner}>
@@ -166,10 +167,9 @@ export default function TwoFAEnabledScreen() {
           <Text style={styles.backText}>
             <Translated text={"Back to Security"} /></Text>
         </Pressable>
-      </View>
+      </View>}
 
       {showConfirm && (
-        <View style={styles.modalOverlay}>
           <View style={styles.modal}>
             <View style={styles.modalIcon}>
               <Ionicons
@@ -224,25 +224,12 @@ export default function TwoFAEnabledScreen() {
               </Pressable>
             </View>
           </View>
-        </View>
       )}
-    </View>
+    </TwoFactorLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#F7F9FC",
-  },
-
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 70,
-    paddingBottom: 24,
-  },
-
   hero: {
     alignItems: "center",
   },
@@ -471,17 +458,10 @@ const styles = StyleSheet.create({
     color: "#64748B",
   },
 
-  modalOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(15, 23, 42, 0.48)",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-  },
-
   modal: {
     width: "100%",
     maxWidth: 420,
+    alignSelf: "center",
     borderRadius: 24,
     backgroundColor: "#FFFFFF",
     padding: 24,

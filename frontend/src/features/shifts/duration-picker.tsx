@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Modal, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import { Picker } from '@react-native-picker/picker';
 import { Pressable, Text, View } from '@/theme/components';
 import { useAppTheme } from '@/theme/theme';

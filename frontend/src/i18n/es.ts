@@ -780,6 +780,7 @@ export const spanish: Record<string, string> = {
   "Add Income": "Agregar ingreso",
   "Add Expense": "Agregar gasto",
   "Start Trip": "Iniciar viaje",
+  "Start an individual trip": "Iniciar un viaje individual",
   "Start a Trip": "Iniciar un viaje",
   "View your trips": "Ver tus viajes",
   "Trip in Progress": "Viaje en curso",

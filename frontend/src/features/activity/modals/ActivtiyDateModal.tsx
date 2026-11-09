@@ -1,7 +1,8 @@
 import { useLanguage, Translated } from "@/i18n/language";
-import { Pressable, Text, View, AnimatedView } from "@/theme/components";
+import { Pressable, Text, View, AnimatedView, SafeAreaView, ScrollView } from "@/theme/components";
 import { useState } from "react";
-import { Modal, StyleSheet, Animated, Easing } from "react-native";
+import { StyleSheet, Animated, Easing } from "react-native";
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import DateTimePicker from "@/components/ui/DateField";
 import { Ionicons } from "@/theme/icons";
 import { router } from "expo-router";
@@ -143,7 +144,7 @@ export function ActivityDateModal({
       onShow={openModal}
       onRequestClose={closeModal}
     >
-      <View style={styles.backdrop}>
+      <SafeAreaView style={styles.backdrop}>
         <AnimatedView
           pointerEvents="none"
           style={[
@@ -173,6 +174,7 @@ export function ActivityDateModal({
             },
           ]}
         >
+          <ScrollView bounces={false} contentContainerStyle={styles.sheetContent}>
           {!showCustom ? (
             <>
               <View style={styles.header}>
@@ -435,8 +437,9 @@ export function ActivityDateModal({
               </Pressable>
             </>
           )}
+          </ScrollView>
         </AnimatedView>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
@@ -451,6 +454,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    maxHeight: "100%",
+    overflow: "hidden",
+  },
+  sheetContent: {
     padding: 20,
     gap: 10,
   },

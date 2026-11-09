@@ -1,7 +1,8 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { localizedAlert } from "@/i18n/alerts";
 import { View, Text, Pressable, AnimatedView } from "@/theme/components";
-import {  Modal, Animated, Easing, StyleSheet } from "react-native";
+import { Animated, Easing, StyleSheet } from "react-native";
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import { useEffect, useRef, useState } from "react";
 import { Ionicons } from "@/theme/icons";
 

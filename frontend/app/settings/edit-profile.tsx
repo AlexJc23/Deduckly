@@ -1,7 +1,8 @@
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, SafeAreaView, Text, TextInput, View, AnimatedView, ScrollView } from "@/theme/components";
-import { ActivityIndicator, Animated, Keyboard, KeyboardAvoidingView, Modal, Platform, StyleSheet } from "react-native";
+import { ActivityIndicator, Animated, Keyboard, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import { useEffect, useRef, useState } from "react";
 import { router } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";

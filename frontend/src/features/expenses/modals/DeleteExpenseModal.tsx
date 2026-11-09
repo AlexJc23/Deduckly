@@ -1,6 +1,7 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable } from "@/theme/components";
-import { ActivityIndicator, Modal, StyleSheet } from "react-native";
+import { ActivityIndicator, StyleSheet } from "react-native";
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import { useState } from "react";
 
 type DeleteExpenseModalProps = {
