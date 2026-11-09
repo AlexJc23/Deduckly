@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "Deduckly",
@@ -15,6 +16,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Deduckly uses your camera to photograph receipts and attach them to your expenses.",
         "NSPhotoLibraryUsageDescription": "Deduckly uses your photo library so you can attach receipt images to your expenses.",
+        "NSMotionUsageDescription": "Deduckly uses motion activity to help detect driving and improve automatic mileage tracking during active shifts.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Deduckly uses your location to record mileage during trips you start, including while the app is in the background.",
         "NSLocationAlwaysUsageDescription": "Deduckly uses your location to continue recording an active trip in the background."
       },
