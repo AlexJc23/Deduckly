@@ -2,7 +2,7 @@ import { useSubscription } from "@/features/subscriptions/context/subscription.c
 import { localizedAlert } from "@/i18n/alerts";
 import { useLanguage, Translated } from "@/i18n/language";
 import { View, ScrollView, Text, Pressable, SafeAreaView, AnimatedView } from "@/theme/components";
-import { Platform, Animated, Dimensions, Easing, StyleSheet } from "react-native";
+import { Platform, Animated, useWindowDimensions, Easing, StyleSheet } from "react-native";
 
 import { Ionicons } from "@/theme/icons";
 import { useState, useEffect, useRef } from "react";
@@ -16,9 +16,6 @@ import { PurchasesPackage } from "react-native-purchases";
 import { revenueCatService } from "@/features/subscriptions/services/revenuecat.service";
 import { useRestorePurchases } from "@/features/subscriptions/hooks/use-restore-purchases";
 import { useIsTablet } from "@/hooks/use-is-tablet";
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } =
-  Dimensions.get("window");
 
 const FEATURES = [
   {
@@ -65,10 +62,11 @@ function Confetti({
   styles: ReturnType<typeof getStyles>;
 }) {
   useLanguage();
-  const pieces = useRef<ConfettiPiece[]>(
+  const { width, height } = useWindowDimensions();
+  const [pieces] = useState<ConfettiPiece[]>(() =>
     Array.from({ length: 55 }, (_, index) => ({
       id: index,
-      x: Math.random() * SCREEN_WIDTH,
+      x: Math.random(),
       color:
         CONFETTI_COLORS[
           index % CONFETTI_COLORS.length
@@ -77,16 +75,16 @@ function Confetti({
       rotation: Math.random() * 360,
       delay: Math.random() * 350,
     })),
-  ).current;
+  );
 
-  const animations = useRef(
+  const [animations] = useState(() =>
     pieces.map(() => ({
       translateY: new Animated.Value(-30),
       translateX: new Animated.Value(0),
       rotate: new Animated.Value(0),
       opacity: new Animated.Value(0),
     })),
-  ).current;
+  );
 
   useEffect(() => {
     if (!visible) {
@@ -100,10 +98,10 @@ function Confetti({
       return;
     }
 
-    animations.forEach((animation, index) => {
+    const running = animations.map((animation, index) => {
       const piece = pieces[index];
 
-      Animated.sequence([
+      const sequence = Animated.sequence([
         Animated.delay(piece.delay),
 
         Animated.parallel([
@@ -114,7 +112,7 @@ function Confetti({
           }),
 
           Animated.timing(animation.translateY, {
-            toValue: SCREEN_HEIGHT + 100,
+            toValue: height + 100,
             duration: 2200 + Math.random() * 700,
             easing: Easing.out(Easing.quad),
             useNativeDriver: true,
@@ -140,9 +138,12 @@ function Confetti({
           duration: 300,
           useNativeDriver: true,
         }),
-      ]).start();
+      ]);
+      sequence.start();
+      return sequence;
     });
-  }, [visible]);
+    return () => running.forEach((sequence) => sequence.stop());
+  }, [visible, height, animations, pieces]);
 
   if (!visible) {
     return null;
@@ -162,7 +163,7 @@ function Confetti({
             style={[
               styles.confettiPiece,
               {
-                left: piece.x,
+                left: piece.x * width,
                 width: piece.size,
                 height: piece.size * 1.6,
                 backgroundColor: piece.color,
@@ -629,7 +630,7 @@ export default function PaywallScreen() {
 const getStyles = (isTablet: boolean) =>
   StyleSheet.create({
     confettiContainer: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       zIndex: 100,
       overflow: "hidden",
     },
@@ -641,7 +642,7 @@ const getStyles = (isTablet: boolean) =>
     },
 
     successOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       zIndex: 90,
       alignItems: "center",
       justifyContent: "center",

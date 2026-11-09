@@ -1,20 +1,72 @@
 import { useLanguage } from "@/i18n/language";
 import { useAppTheme } from "@/theme/theme";
-import { themedStyle } from "@/theme/components";
+import { Pressable, Text, View, themedStyle } from "@/theme/components";
 import { OnboardingGate } from "@/features/onboarding/components/onboarding-gate";
 import { Tabs } from "expo-router";
+import { BottomTabBar, BottomTabBarHeightCallbackContext, type BottomTabBarProps } from "expo-router/js-tabs";
 import { Ionicons } from "@/theme/icons";
-import { StyleSheet } from "react-native";
-import { useIsTablet } from "@/hooks/use-is-tablet";
+import { useContext } from "react";
+import { Platform, StyleSheet } from "react-native";
+import { useAdaptiveLayout } from '@/hooks/use-adaptive-layout';
+import { bottomTabMetrics, sidebarTabItemHeight, tabBarPosition, usesBookSpread } from '@/hooks/adaptive-layout';
+
+function CompactTabs({ bar, metrics, dark, book }: {
+  bar: BottomTabBarProps;
+  metrics: ReturnType<typeof bottomTabMetrics>;
+  dark: boolean;
+  book: boolean;
+}) {
+  const setBarHeight = useContext(BottomTabBarHeightCallbackContext);
+  const symmetricInset = Math.max(metrics.style.paddingLeft, metrics.style.paddingRight);
+  return (
+    <View onLayout={event => setBarHeight?.(event.nativeEvent.layout.height)}
+      style={[styles.dock, { paddingBottom: metrics.style.paddingBottom }]}>
+      <View accessibilityRole="tablist" style={[styles.compactRow, {
+        minHeight: metrics.rowHeight,
+        marginLeft: book ? symmetricInset : metrics.style.paddingLeft,
+        marginRight: book ? symmetricInset : metrics.style.paddingRight,
+      }]}>
+        {bar.state.routes.map((route, index) => {
+          const { options } = bar.descriptors[route.key];
+          const focused = index === bar.state.index;
+          const color = focused ? (dark ? '#71C7F2' : '#4A6FE3') : (dark ? '#ACBACD' : '#64748B');
+          const label = options.title ?? route.name;
+          return (
+            <Pressable key={route.key} accessibilityRole="tab" accessibilityLabel={label}
+              accessibilityState={{ selected: focused }}
+              onPress={() => {
+                const event = bar.emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+                if (!focused && !event.defaultPrevented) bar.navigateToTab(route.key);
+              }}
+              onLongPress={() => bar.emitter.emit({ type: 'tabLongPress', target: route.key })}
+              style={[styles.compactTab, focused && styles.selectedTab, book && index === 2 && styles.spineGap]}>
+              {options.tabBarIcon?.({ color, focused, size: metrics.iconSize })}
+              <Text style={[styles.tabBarLabel, { color, fontSize: metrics.labelSize, flexShrink: 1 }]}>
+                {label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
 
 export default function TabsLayout() {
   const { t } = useLanguage();
-  const isTablet = useIsTablet();
+  const layout = useAdaptiveLayout();
+  const position = tabBarPosition(layout, layout.fontScale);
+  const isTablet = position === 'left';
+  const bottom = bottomTabMetrics(layout, layout.fontScale);
+  const book = usesBookSpread(layout.availableWidth, layout.availableHeight - bottom.style.height, layout.fontScale);
   const { dark } = useAppTheme();
 
   return (
     <OnboardingGate>
     <Tabs
+      tabBar={bar => Platform.OS === 'ios' && !isTablet && bottom.labelPosition === 'beside-icon'
+        ? <CompactTabs bar={bar} metrics={bottom} dark={dark} book={book} />
+        : <BottomTabBar {...bar} />}
       screenOptions={{
         headerShown: false,
 
@@ -25,25 +77,27 @@ export default function TabsLayout() {
           ? (dark ? "#203449" : "#E8EEFF")
           : undefined,
 
-        // iPhone: bottom navigation
-        // iPad: left-side navigation
-        tabBarPosition: isTablet
-          ? "left"
-          : "bottom",
+        tabBarPosition: position,
 
-        tabBarStyle: themedStyle(isTablet ? styles.tabletTabBar : styles.tabBar, dark),
+        tabBarStyle: themedStyle(isTablet
+          ? [styles.tabletTabBar, { paddingTop: Math.max(50, layout.insets.top), paddingBottom: layout.insets.bottom }]
+          : [styles.tabBar, bottom.style], dark),
 
         tabBarItemStyle: isTablet
-          ? styles.tabletTabBarItem
+          ? [styles.tabletTabBarItem, { height: sidebarTabItemHeight(layout.fontScale), minHeight: sidebarTabItemHeight(layout.fontScale) }]
           : styles.tabBarItem,
 
-        tabBarLabelStyle:
-          styles.tabBarLabel,
+        tabBarLabelPosition: isTablet ? 'beside-icon' : bottom.labelPosition,
+        tabBarLabelStyle: [styles.tabBarLabel, !isTablet && { fontSize: bottom.labelSize }],
+        tabBarIconStyle: isTablet ? undefined : {
+          width: bottom.iconSize,
+          height: bottom.iconSize,
+          marginBottom: bottom.labelPosition === 'below-icon' ? 2 : 0,
+        },
 
-        tabBarIconStyle:
-          styles.tabBarIcon,
-
-        tabBarHideOnKeyboard: true,
+        // iOS display transitions can leave the JS navigator's keyboard "will"
+        // visibility stale. Use its default visible navigation; no remounts.
+        tabBarHideOnKeyboard: false,
       }}
     >
       <Tabs.Screen
@@ -61,8 +115,8 @@ export default function TabsLayout() {
                   ? "home"
                   : "home-outline"
               }
-              size={size}
-              color={color}
+              size={isTablet ? size : bottom.iconSize}
+              color={typeof color === "number" ? undefined : color ?? undefined}
             />
           ),
         }}
@@ -83,8 +137,8 @@ export default function TabsLayout() {
                   ? "list"
                   : "list-outline"
               }
-              size={size}
-              color={color}
+              size={isTablet ? size : bottom.iconSize}
+              color={typeof color === "number" ? undefined : color ?? undefined}
             />
           ),
         }}
@@ -105,8 +159,8 @@ export default function TabsLayout() {
                   ? "bar-chart"
                   : "bar-chart-outline"
               }
-              size={size}
-              color={color}
+              size={isTablet ? size : bottom.iconSize}
+              color={typeof color === "number" ? undefined : color ?? undefined}
             />
           ),
         }}
@@ -127,8 +181,8 @@ export default function TabsLayout() {
                   ? "settings"
                   : "settings-outline"
               }
-              size={size}
-              color={color}
+              size={isTablet ? size : bottom.iconSize}
+              color={typeof color === "number" ? undefined : color ?? undefined}
             />
           ),
         }}
@@ -140,9 +194,6 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    height: 84,
-    paddingTop: 8,
-    paddingBottom: 10,
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#E5E7EB",
@@ -156,8 +207,15 @@ const styles = StyleSheet.create({
     },
   },
 
+  dock: { backgroundColor: "#F8FAFC", paddingTop: 3 },
+  compactRow: { flexDirection: "row", alignItems: "stretch", gap: 4, paddingHorizontal: 4,
+    backgroundColor: "#FFFFFF", borderColor: "#E2E8F0", borderWidth: 1, borderRadius: 16 },
+  selectedTab: { backgroundColor: "#E8EEFF" },
+  spineGap: { marginLeft: 32 },
+  compactTab: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 4, borderRadius: 12 },
+
   tabletTabBar: {
-    width: 250,
+    width: 176,
     paddingTop: 50,
     paddingHorizontal: 16,
     backgroundColor: "#FFFFFF",
@@ -176,7 +234,7 @@ const styles = StyleSheet.create({
   },
 
   tabBarItem: {
-    paddingVertical: 2,
+    minWidth: 0,
   },
 
   tabletTabBarItem: {
@@ -189,10 +247,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     marginVertical: 5,
     borderRadius: 14,
-  },
-
-  tabBarIcon: {
-    marginBottom: 2,
   },
 
   tabBarLabel: {

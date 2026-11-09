@@ -20,9 +20,12 @@ export function ScreenHeader({ title, safeArea = true, onBack, right }: Props) {
     <Text accessibilityRole="header" style={styles.title}>{title ? t(title) : ''}</Text>
     <View style={[styles.side, styles.right, right != null && styles.wide]}>{right}</View>
   </View>;
-  return safeArea ? <SafeAreaView edges={['top', 'left', 'right']}>{row}</SafeAreaView> : row;
+  return safeArea ? (
+    <SafeAreaView edges={['top', 'left', 'right']} style={styles.surface}>{row}</SafeAreaView>
+  ) : row;
 }
 const styles = StyleSheet.create({
+  surface: { backgroundColor: '#F8FAFC' },
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 6, minHeight: 56 },
   side: { width: 44, minHeight: 44, justifyContent: 'center' },
   wide: { width: 84 },

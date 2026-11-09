@@ -1,17 +1,45 @@
+import { TwoFactorLayout } from "@/features/auth/components/TwoFactorLayout";
 import { useLanguage, Translated } from "@/i18n/language";
-import { Pressable, SafeAreaView, Text, View } from "@/theme/components";
-import { StyleSheet, ViewStyle, TextStyle } from "react-native";
+import { Pressable, Text, View } from "@/theme/components";
+import { StyleSheet, useWindowDimensions, ViewStyle, TextStyle } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@/theme/icons";
 
 export default function TwoFAStartScreen() {
   useLanguage();
+  const { height } = useWindowDimensions();
+  const compact = height < 540;
   return (
-    <View style={styles.screen}>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.content}>
+    <TwoFactorLayout footer={
+          <View style={styles.actions}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.primaryButton,
+                pressed && styles.primaryButtonPressed,
+              ]}
+              onPress={() =>
+                router.replace("/modals/2fa/scan")
+              }
+            >
+              <Text style={styles.primaryText}>
+                <Translated text={"Continue"} /></Text>
+
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.cancelButton,
+                pressed && styles.cancelButtonPressed,
+              ]}
+              onPress={() => router.back()}
+            >
+              <Text style={styles.cancelText}>
+                <Translated text={"Not Now"} /></Text>
+            </Pressable>
+          </View>
+    }>
           <View style={styles.hero}>
-            <View style={styles.iconContainer}>
+            {!compact && <View style={styles.iconContainer}>
               <View style={styles.iconInner}>
                 <Ionicons
                   name="shield-checkmark"
@@ -19,7 +47,7 @@ export default function TwoFAStartScreen() {
                   color="#4A6FE3"
                 />
               </View>
-            </View>
+            </View>}
 
             <Text style={styles.eyebrow}>
               <Translated text={"ACCOUNT SECURITY"} /></Text>
@@ -66,35 +94,7 @@ export default function TwoFAStartScreen() {
             </View>
           </View>
 
-          <View style={styles.actions}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.primaryButton,
-                pressed && styles.primaryButtonPressed,
-              ]}
-              onPress={() =>
-                router.replace("/modals/2fa/scan")
-              }
-            >
-              <Text style={styles.primaryText}>
-                <Translated text={"Continue"} /></Text>
-
-            </Pressable>
-
-            <Pressable
-              style={({ pressed }) => [
-                styles.cancelButton,
-                pressed && styles.cancelButtonPressed,
-              ]}
-              onPress={() => router.back()}
-            >
-              <Text style={styles.cancelText}>
-                <Translated text={"Not Now"} /></Text>
-            </Pressable>
-          </View>
-        </View>
-      </SafeAreaView>
-    </View>
+    </TwoFactorLayout>
   );
 }
 
@@ -142,9 +142,6 @@ function Step({
 }
 
 type Styles = {
-  screen: ViewStyle;
-  safeArea: ViewStyle;
-  content: ViewStyle;
   hero: ViewStyle;
   iconContainer: ViewStyle;
   iconInner: ViewStyle;
@@ -176,23 +173,6 @@ type Styles = {
 };
 
 const styles = StyleSheet.create<Styles>({
-  screen: {
-    flex: 1,
-    backgroundColor: "#F7F9FC",
-  },
-
-  safeArea: {
-    flex: 1,
-  },
-
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 18,
-    justifyContent: "center",
-  },
-
   hero: {
     alignItems: "center",
     marginBottom: 22,

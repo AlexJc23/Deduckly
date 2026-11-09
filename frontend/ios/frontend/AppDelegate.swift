@@ -1,15 +1,13 @@
-import Expo
+public import Expo
 import React
 import ReactAppDependencyProvider
 import AppIntents
 
-@UIApplicationMain
-public class AppDelegate: ExpoAppDelegate {
-  var window: UIWindow?
-  var initialLaunchOptions: [UIApplication.LaunchOptionsKey: Any]?
-
+@main
+public class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider {
+  public var window: UIWindow?
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
-  var reactNativeFactory: RCTReactNativeFactory?
+  public var reactNativeFactory: RCTReactNativeFactory?
 
   public override func application(
     _ application: UIApplication,
@@ -21,17 +19,8 @@ public class AppDelegate: ExpoAppDelegate {
 
     reactNativeDelegate = delegate
     reactNativeFactory = factory
-    bindReactNativeFactory(factory)
+    // bindReactNativeFactory(factory)
 
-    initialLaunchOptions = launchOptions
-#if DEBUG
-    // SDK 54's dev launcher requires both its deferred React root and the
-    // delegate window before Expo dispatches didFinishLaunching subscribers.
-    // SceneDelegate adopts this SAME window when UIKit connects the scene.
-    let developmentWindow = UIWindow(frame: UIScreen.main.bounds)
-    window = developmentWindow
-    factory.startReactNative(withModuleName: "main", in: developmentWindow, launchOptions: launchOptions)
-#endif
     DeducklyShortcuts.updateAppShortcutParameters()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
@@ -73,68 +62,5 @@ class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
   }
 }
 
-// Expo SDK 54 has no SceneDelegate. Keep its process-level delegate and
-// subscribers, but let UIKit supply the single application window scene.
-class SceneDelegate: UIResponder, UIWindowSceneDelegate {
-  var window: UIWindow?
-  private var appDelegate: AppDelegate? { UIApplication.shared.delegate as? AppDelegate }
-
-  func scene(_ scene: UIScene, willConnectTo session: UISceneSession,
-             options connectionOptions: UIScene.ConnectionOptions) {
-    guard let windowScene = scene as? UIWindowScene, let app = appDelegate else { return }
-    if let existingWindow = app.window {
-      // Reconnect the existing React root instead of creating a second JS runtime.
-      existingWindow.windowScene = windowScene
-      window = existingWindow
-      existingWindow.makeKeyAndVisible()
-      self.scene(scene, openURLContexts: connectionOptions.urlContexts)
-      for activity in connectionOptions.userActivities { self.scene(scene, continue: activity) }
-      return
-    }
-    var options = app.initialLaunchOptions ?? [:]
-    // Scene connection options replace URL/user-activity launch options. Seed
-    // both RN's getInitialURL and Expo Linking before the JS runtime starts.
-    if let context = connectionOptions.urlContexts.first {
-      options[.url] = context.url
-      _ = app.application(UIApplication.shared, open: context.url, options: urlOptions(context))
-    }
-    if let activity = connectionOptions.userActivities.first {
-      options[.userActivityDictionary] = [
-        "UIApplicationLaunchOptionsUserActivityKey": activity,
-        "UIApplicationLaunchOptionsUserActivityTypeKey": activity.activityType
-      ]
-      _ = app.application(UIApplication.shared, continue: activity, restorationHandler: { _ in })
-    }
-    let sceneWindow = UIWindow(windowScene: windowScene)
-    window = sceneWindow
-    // Expo dev launcher / updates and other SDK 54 helpers still consult this.
-    app.window = sceneWindow
-    app.reactNativeFactory?.startReactNative(withModuleName: "main", in: sceneWindow, launchOptions: options)
-    app.initialLaunchOptions = nil
-  }
-
-  private func urlOptions(_ context: UIOpenURLContext) -> [UIApplication.OpenURLOptionsKey: Any] {
-    var options: [UIApplication.OpenURLOptionsKey: Any] = [.openInPlace: context.options.openInPlace]
-    if let source = context.options.sourceApplication { options[.sourceApplication] = source }
-    if let annotation = context.options.annotation { options[.annotation] = annotation }
-    return options
-  }
-
-  func scene(_ scene: UIScene, openURLContexts contexts: Set<UIOpenURLContext>) {
-    for context in contexts {
-      _ = appDelegate?.application(UIApplication.shared, open: context.url, options: urlOptions(context))
-    }
-  }
-
-  func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
-    _ = appDelegate?.application(UIApplication.shared, continue: userActivity, restorationHandler: { _ in })
-  }
-
-  // UIKit no longer invokes these AppDelegate UI transitions after scene
-  // adoption. Forward once for Expo subscribers; UIKit emits its own app-state
-  // notifications, so do NOT repost them (RN AppState already observes them).
-  func sceneDidBecomeActive(_ scene: UIScene) { appDelegate?.applicationDidBecomeActive(UIApplication.shared) }
-  func sceneWillResignActive(_ scene: UIScene) { appDelegate?.applicationWillResignActive(UIApplication.shared) }
-  func sceneDidEnterBackground(_ scene: UIScene) { appDelegate?.applicationDidEnterBackground(UIApplication.shared) }
-  func sceneWillEnterForeground(_ scene: UIScene) { appDelegate?.applicationWillEnterForeground(UIApplication.shared) }
-}
+// Expo owns window creation and forwards scene events to the AppDelegate and subscribers.
+class SceneDelegate: ExpoAppSceneDelegate {}

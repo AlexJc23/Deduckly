@@ -1,7 +1,8 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, View } from "@/theme/components";
 import { useRef, useState } from "react";
-import { Modal, Platform, StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@/theme/icons";
 import { useIsTablet } from "@/hooks/use-is-tablet";

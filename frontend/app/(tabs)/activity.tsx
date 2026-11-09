@@ -1,9 +1,11 @@
 import { useLanguage, Translated } from "@/i18n/language";
-import { Pressable, Text, View } from "@/theme/components";
+import { Pressable, SafeAreaView, Text, View } from "@/theme/components";
 import { router } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
+import { useAppTheme } from "@/theme/theme";
+import { NAVY } from "@/theme/palette";
 
 import { SortTripsModal } from "@/features/trips/components/SortTripsModal";
 import { useTrips } from "@/features/trips/hooks/use-trips";
@@ -137,6 +139,7 @@ function TripItem({ item }: { item: Trip }) {
 
 export default function ActivityScreen() {
   useLanguage();
+  const { dark } = useAppTheme();
   const [tab, setTab] =
     useState<TabValue>("trips");
 
@@ -324,7 +327,8 @@ export default function ActivityScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={["top", "left", "right"]} style={[styles.container, { backgroundColor: dark ? NAVY.background : "#F8FAFC" }]}>
+      <View style={styles.content}>
       <View style={styles.header}>
 
         <Text style={styles.title}>
@@ -480,6 +484,7 @@ export default function ActivityScreen() {
       {tab === "income" && renderIncome()}
       {tab === "expenses" &&
         renderExpenses()}
+      </View>
 
       <ActivityDateModal
         visible={showDateModal}
@@ -519,15 +524,21 @@ export default function ActivityScreen() {
         value={sort}
         onChange={setSort}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 72,
-    width: "90%",
+    paddingTop: 16,
+    paddingHorizontal: 20,
+  },
+
+  content: {
+    flex: 1,
+    width: "100%",
+    maxWidth: 760,
     alignSelf: "center",
   },
 

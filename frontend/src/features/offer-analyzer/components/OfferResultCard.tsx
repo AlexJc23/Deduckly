@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, findNodeHandle, StyleSheet, useWindowDimensions, type Text as NativeText } from 'react-native';
+import { AccessibilityInfo, findNodeHandle, StyleSheet, useWindowDimensions, type TextInstance as NativeText } from 'react-native';
 import { useLanguage } from '@/i18n/language';
 import { View, Text, Pressable } from '@/theme/components';
 import { useAppTheme } from '@/theme/theme';

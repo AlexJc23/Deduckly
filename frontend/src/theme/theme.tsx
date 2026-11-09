@@ -30,7 +30,7 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
         writes.current = writes.current.then(() => AsyncStorage.setItem(STORAGE_KEY, value)).catch(() => localizedAlert("Appearance wasn’t saved", "Your theme changed for this session. Please try again to save it on this device."));
     }
     useEffect(() => {
-        if (Platform.OS !== "web") Appearance.setColorScheme(preference === "system" ? null : preference);
+        if (Platform.OS !== "web") Appearance.setColorScheme(preference === "system" ? "unspecified" : preference);
     }, [preference]);
     const base = dark ? DarkTheme : DefaultTheme;
     return <ThemeContext.Provider value={{ dark, preference, setPreference }}>

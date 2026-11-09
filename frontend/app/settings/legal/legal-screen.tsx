@@ -1,10 +1,12 @@
 import { View, Text, Pressable, SafeAreaView, ScrollView } from "@/theme/components";
 import React from "react";
+import { useLanguage } from "@/i18n/language";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { StyleSheet } from "react-native";
 import { router } from "expo-router";
 
 export default function LegalScreen() {
+  const { t } = useLanguage();
   return (
     <View style={styles.container}>
       <ScreenHeader title="Legal" />
@@ -13,11 +15,10 @@ export default function LegalScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Legal</Text>
+        <Text style={styles.title}>{t('Legal')}</Text>
 
         <Text style={styles.subtitle}>
-          Important legal documents and information related to your use of
-          Deduckly.
+          {t('Important legal documents and information related to your use of Deduckly.')}
         </Text>
 
         <Pressable
@@ -28,10 +29,10 @@ export default function LegalScreen() {
         >
           <View style={styles.cardContent}>
             <View style={styles.textContainer}>
-              <Text style={styles.cardTitle}>Terms of Service</Text>
+              <Text style={styles.cardTitle}>{t('Terms of Service')}</Text>
 
               <Text style={styles.cardDescription}>
-                Defines the rules and conditions for using Deduckly.
+                {t('Defines the rules and conditions for using Deduckly.')}
               </Text>
             </View>
 
@@ -48,11 +49,11 @@ export default function LegalScreen() {
           <View style={styles.cardContent}>
             <View style={styles.textContainer}>
               <Text style={styles.cardTitle}>
-                End User License Agreement
+                {t('End User License Agreement')}
               </Text>
 
               <Text style={styles.cardDescription}>
-                The software license governing your use of the app.
+                {t('The software license governing your use of the app.')}
               </Text>
             </View>
 
@@ -71,11 +72,11 @@ export default function LegalScreen() {
           <View style={styles.cardContent}>
             <View style={styles.textContainer}>
               <Text style={styles.cardTitle}>
-                Data Deletion Information
+                {t('Data Deletion Information')}
               </Text>
 
               <Text style={styles.cardDescription}>
-                Learn how account deletion works and what data is removed.
+                {t('Learn how account deletion works and what data is removed.')}
               </Text>
             </View>
 
@@ -94,11 +95,11 @@ export default function LegalScreen() {
           <View style={styles.cardContent}>
             <View style={styles.textContainer}>
               <Text style={styles.cardTitle}>
-                Third-Party Notices
+                {t('Third-Party Notices')}
               </Text>
 
               <Text style={styles.cardDescription}>
-                View licenses and acknowledgements for third-party software.
+                {t('View licenses and acknowledgements for third-party software.')}
               </Text>
             </View>
 
@@ -117,12 +118,11 @@ export default function LegalScreen() {
           <View style={styles.cardContent}>
             <View style={styles.textContainer}>
               <Text style={styles.cardTitle}>
-                Privacy Policy
+                {t('Privacy Policy')}
               </Text>
 
               <Text style={styles.cardDescription}>
-                Understand how your information is collected, used, and
-                protected.
+                {t('Understand how your information is collected, used, and protected.')}
               </Text>
             </View>
 

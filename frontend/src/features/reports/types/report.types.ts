@@ -5,6 +5,7 @@ export interface ExpenseBreakdownItem {
 }
 
 export interface CurrentReport {
+  comparison?: { year: number; month: number; basis: 'previous_calendar_month'; total_income: number; total_expenses: number; total_miles: number };
   report_version?:2;
   start_date?:string;end_date?:string;vehicle_filter?:string|null;report_fingerprint?:string;
   personal_miles?:number;parking_tolls?:number;non_vehicle_deductions?:number;
@@ -33,6 +34,9 @@ export interface CurrentReport {
 
   tax_method: string;
   business_type: string;
+  filing_status?: string | null;
+  deductible_breakdown?: Record<string, { amount: number; count: number }>;
+  non_deductible_breakdown?: Record<string, { amount: number; count: number; reason?: string }>;
 
   largest_expense_category: string;
   largest_expense_amount: number;

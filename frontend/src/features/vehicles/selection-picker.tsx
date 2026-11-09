@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FlatList, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import { View, Text, TextInput, Pressable, SafeAreaView } from '@/theme/components';
 import { useLanguage } from '@/i18n/language';
 import { useAppTheme } from '@/theme/theme';

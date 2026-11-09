@@ -1,5 +1,5 @@
 import { useLanguage, Translated } from "@/i18n/language";
-import { ScrollView, View, Text, Pressable } from "@/theme/components";
+import { ScrollView, SafeAreaView, View, Text, Pressable } from "@/theme/components";
 import { router } from "expo-router";
 import { Platform, StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
@@ -21,8 +21,9 @@ export default function SettingsScreen() {
     const currentYear = new Date().getFullYear();
 
     return (
+        <SafeAreaView edges={["top", "left", "right"]} style={styles.container}>
         <ScrollView
-            style={styles.container}
+            style={{ flex: 1 }}
             contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
         >
@@ -254,6 +255,7 @@ export default function SettingsScreen() {
                     <Translated text={"Version 1.1.0"} /></Text>
             </View>
         </ScrollView>
+        </SafeAreaView>
     );
 }
 
@@ -262,7 +264,7 @@ const getStyles = (isTablet: boolean) =>
         container: {
             flex: 1,
             backgroundColor: "#F8FAFC",
-            paddingTop: isTablet ? 28 : 50,
+            paddingTop: 16,
         },
 
         content: {

@@ -1,4 +1,4 @@
-import { VehicleReportBody } from '@/features/reports/components/VehicleReportBody';
+import { ReportBody } from '@/features/reports/components/ReportBody';
 import { useLanguage, Translated } from "@/i18n/language";
 import { ScrollView, Text, View } from "@/theme/components";
 import { StyleSheet } from "react-native";
@@ -10,8 +10,8 @@ import { useCurrentReport } from "@/features/reports/hooks/use-current-report";
 import { money, reportPeriodLabel, reportImpact } from "@/features/reports/utils/report-display";
 import { ReportLoadState } from "@/features/reports/components/ReportPresentation";
 
-function formatLabel(value: string) {
-  return value
+function formatLabel(value?: string | null) {
+  return (value ?? '—')
     .replace(/_/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -76,7 +76,7 @@ export default function IrsSummaryScreen() {
   }
   const reportPeriod = reportPeriodLabel(startDate && endDate ? params : { year: data.year, month: data.month, day: data.day }, locale);
 
-  if(data.report_version===2)return <View style={styles.container}><ScreenHeader title="Tax summary"/><ScrollView contentContainerStyle={styles.content}><Text style={styles.subtitle}>{reportPeriod}</Text><VehicleReportBody report={data}/></ScrollView></View>;
+  if(data.report_version===2)return <View style={styles.container}><ScreenHeader title="Tax summary"/><ScrollView contentContainerStyle={styles.content}><Text style={styles.subtitle}>{reportPeriod}</Text><ReportBody report={data}/></ScrollView></View>;
   return (
     <View style={styles.container}>
       <ScreenHeader title="Tax summary" />

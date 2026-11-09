@@ -1,6 +1,7 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, Pressable } from "@/theme/components";
-import { Modal, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 
 type DeleteIncomeModalProps = {
   visible: boolean;

@@ -21,6 +21,7 @@ export interface User {
   preferred_max_distance: string | null;
 
   // Preferences
+  timezone?: string | null;
   currency: string;
   distance_unit: string;
   week_starts_on: string;

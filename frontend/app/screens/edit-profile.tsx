@@ -1,6 +1,7 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { View, Text, TextInput, Pressable, AnimatedView } from "@/theme/components";
-import { ActivityIndicator, Modal, Animated } from "react-native";
+import { ActivityIndicator, Animated } from "react-native";
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import { useEffect, useRef, useState } from "react";
 import { router } from "expo-router";
 

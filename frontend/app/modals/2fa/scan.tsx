@@ -1,5 +1,6 @@
+import { TwoFactorLayout } from "@/features/auth/components/TwoFactorLayout";
 import { useLanguage, Translated } from "@/i18n/language";
-import { Pressable, SafeAreaView, Text, View } from "@/theme/components";
+import { Pressable, Text, View } from "@/theme/components";
 import QRCode from "react-native-qrcode-svg";
 import { ActivityIndicator, StyleSheet } from "react-native";
 import { router } from "expo-router";
@@ -33,9 +34,7 @@ export default function TwoFAScanScreen() {
   const otpauthUrl = enable2FAMutation.data?.otpauth_url;
 
   return (
-    <View style={styles.screen}>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.content}>
+    <TwoFactorLayout>
           <View style={styles.hero}>
             <View style={styles.stepBadge}>
               <Text style={styles.stepBadgeText}>1</Text>
@@ -99,6 +98,7 @@ export default function TwoFAScanScreen() {
                 <QRCode
                   value={otpauthUrl}
                   size={190}
+                  quietZone={16}
                   backgroundColor="#FFFFFF"
                   color="#273449"
                 />
@@ -188,29 +188,11 @@ export default function TwoFAScanScreen() {
                 <Translated text={"Cancel Setup"} /></Text>
             </Pressable>
           </View>
-        </View>
-      </SafeAreaView>
-    </View>
+    </TwoFactorLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#F7F9FC",
-  },
-
-  safeArea: {
-    flex: 1,
-  },
-
-  content: {
-    flex: 1,
-    paddingHorizontal: 22,
-    paddingTop: 28,
-    paddingBottom: 14,
-  },
-
   hero: {
     alignItems: "center",
   },

@@ -1,6 +1,7 @@
 import { useLanguage, Translated } from "@/i18n/language";
-import { View, Text, Pressable, AnimatedView } from "@/theme/components";
-import { Modal, Animated, Easing, StyleSheet } from "react-native";
+import { Text, Pressable, AnimatedView, SafeAreaView, ScrollView } from "@/theme/components";
+import { Animated, Easing, StyleSheet } from "react-native";
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 import { useEffect, useRef, useState } from "react";
 
 const options = [
@@ -63,7 +64,7 @@ export function SortTripsModal({
       animationType="none"
       onRequestClose={onClose}
     >
-      <View
+      <SafeAreaView
         style={{
           flex: 1,
           justifyContent: "flex-end",
@@ -71,7 +72,7 @@ export function SortTripsModal({
       >
         <Pressable
           style={{
-            ...StyleSheet.absoluteFillObject,
+            ...StyleSheet.absoluteFill,
             backgroundColor: "rgba(0,0,0,0.5)",
           }}
           onPress={onClose}
@@ -83,10 +84,11 @@ export function SortTripsModal({
             backgroundColor: "white",
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
-            padding: 24,
-            minHeight: 320,
+            maxHeight: "100%",
+            overflow: "hidden",
           }}
         >
+          <ScrollView bounces={false} contentContainerStyle={{ padding: 24 }}>
           <Text
             style={{
               fontSize: 22,
@@ -136,8 +138,9 @@ export function SortTripsModal({
           >
             <Text><Translated text={"Cancel"} /></Text>
           </Pressable>
+          </ScrollView>
         </AnimatedView>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

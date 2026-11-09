@@ -1,7 +1,8 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, ScrollView, Text, View, AnimatedView } from "@/theme/components";
 import React, { useEffect } from "react";
-import { Animated, Modal, StyleSheet } from "react-native";
+import { Animated, StyleSheet } from "react-native";
+import { AdaptiveModal as Modal } from '@/components/ui/AdaptiveModal';
 
 import { ExpenseCategory } from "../types/expense";
 import { EXPENSE_CATEGORY_LABELS } from "@/constants/expense-category-labels";
