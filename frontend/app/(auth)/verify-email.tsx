@@ -1,9 +1,10 @@
 import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, SafeAreaView, Text, View } from "@/theme/components";
 import { ActivityIndicator, StyleSheet } from "react-native";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { isAxiosError } from "axios";
 import { useMutation } from "@tanstack/react-query";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, usePathname } from "expo-router";
 import { Ionicons } from "@/theme/icons";
 
 import Logo from "../../assets/images/logo.svg";
@@ -14,35 +15,40 @@ import {
 } from "@/features/auth/api/auth.api";
 
 export default function VerifyEmail() {
-  useLanguage();
   const { token, email } = useLocalSearchParams<{
     token?: string;
     email?: string;
   }>();
+  return <VerificationScreen key={token || email} token={token} email={email} />;
+}
 
-  const verifyEmailMutation = useMutation({
+function VerificationScreen({ token, email }: { token?: string; email?: string }) {
+  useLanguage();
+  const pathname = usePathname();
+  const started = useRef(false);
+  const { mutate: submitVerification, error, isPending, isSuccess } = useMutation({
     mutationFn: verifyEmail,
-
-    onSuccess: () => {
-      setTimeout(() => {
-        router.replace("/(auth)/login");
-      }, 1500);
-    },
   });
-
   const resendVerificationMutation = useMutation({
     mutationFn: resendVerification,
   });
 
   useEffect(() => {
-    if (token) {
-      verifyEmailMutation.mutate(token);
-    }
-  }, [token]);
+    if (!token || started.current) return;
+    started.current = true;
+    submitVerification(token);
+  }, [token, submitVerification]);
 
-  const isLoading = verifyEmailMutation.isPending;
-  const isSuccess = verifyEmailMutation.isSuccess;
-  const isError = verifyEmailMutation.isError;
+  useEffect(() => {
+    if (!isSuccess || pathname !== "/verify-email") return;
+    const timer = setTimeout(() => router.replace("/(auth)/login"), 1500);
+    return () => clearTimeout(timer);
+  }, [isSuccess, pathname]);
+
+  const isLoading = !!token && (isPending || (!isSuccess && !error));
+  const invalidLink = isAxiosError(error) &&
+    error.response?.status === 400 &&
+    error.response.data?.detail === "Invalid or expired email verification token";
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -225,7 +231,7 @@ export default function VerifyEmail() {
             </View>
           )}
 
-          {isError && (
+          {token && error && (
             <View style={styles.stateContainer}>
               <View
                 style={[
@@ -244,10 +250,19 @@ export default function VerifyEmail() {
                 <Translated text={"VERIFICATION FAILED"} /></Text>
 
               <Text style={styles.title}>
-                <Translated text={"Link is invalid or expired"} /></Text>
+                <Translated text={invalidLink ? "Link is invalid or expired" : "Something went wrong"} /></Text>
 
               <Text style={styles.subtitle}>
-                <Translated text={"This verification link is no longer valid. Please request a new one."} /></Text>
+                <Translated text={invalidLink
+                  ? "This verification link is no longer valid. Please request a new one."
+                  : "We couldn’t verify your email right now. Please try again."} />
+              </Text>
+
+              {!invalidLink && (
+                <Pressable style={styles.button} onPress={() => submitVerification(token)}>
+                  <Text style={styles.buttonText}><Translated text="Try again" /></Text>
+                </Pressable>
+              )}
 
               {email && (
                 <Pressable
