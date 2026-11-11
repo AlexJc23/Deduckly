@@ -116,6 +116,8 @@
 	<string>Deduckly uses your location to continue recording an active trip in the background.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Deduckly uses your location to track your trips.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Deduckly uses motion activity to help detect driving and improve automatic mileage tracking during active shifts.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Deduckly uses your photo library so you can attach receipt images to your expenses.</string>
 	<key>NSUserActivityTypes</key>

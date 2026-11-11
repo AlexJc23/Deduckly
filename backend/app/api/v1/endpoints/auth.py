@@ -419,8 +419,8 @@ async def register(
     )
 
     verification_link = (
-        f"https://api.drivededuckly.com/api/v1/auth/verify-email-link"
-        f"?token={token}&email={user.email}"
+        "https://api.drivededuckly.com/api/v1/auth/verify-email-link?"
+        + urlencode({"token": token, "email": user.email})
     )
 
     await send_email(
@@ -621,8 +621,9 @@ def verify_email_link(
     email: str,
 ):
     return RedirectResponse(
-        url=f"deduckly://verify-email?token={token}&email={email}",
+        url="deduckly://verify-email?" + urlencode({"token": token, "email": email}),
         status_code=302,
+        headers={"Cache-Control": "no-store"},
     )
 
 
@@ -647,8 +648,8 @@ async def resend_verification(
     )
 
     verification_link = (
-        f"https://api.drivededuckly.com/api/v1/auth/verify-email-link"
-        f"?token={token}&email={user.email}"
+        "https://api.drivededuckly.com/api/v1/auth/verify-email-link?"
+        + urlencode({"token": token, "email": user.email})
     )
 
     await send_email(
@@ -692,8 +693,9 @@ async def resend_verification(
 @router.get("/reset-password-link")
 def reset_password_link(token: str):
     return RedirectResponse(
-        url=f"deduckly://reset-password?token={token}",
+        url="deduckly://reset-password?" + urlencode({"token": token}),
         status_code=302,
+        headers={"Cache-Control": "no-store"},
     )
 
 

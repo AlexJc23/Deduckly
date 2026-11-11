@@ -582,6 +582,7 @@ export const spanish: Record<string, string> = {
   "Please wait while we securely verify your email address.": "Espera mientras verificamos tu correo de forma segura.",
   "Your email has been successfully verified.": "Tu correo se verificó correctamente.",
   "Taking you to login...": "Volviendo al inicio de sesión...",
+  "We couldn’t verify your email right now. Please try again.": "No pudimos verificar tu correo en este momento. Inténtalo de nuevo.",
   "Link is invalid or expired": "El enlace no es válido o ha vencido",
   "This verification link is no longer valid. Please request a new one.": "Este enlace de verificación ya no es válido. Solicita uno nuevo.",
   "Verify your identity": "Verifica tu identidad",
