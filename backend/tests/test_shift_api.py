@@ -38,6 +38,18 @@ class ShiftApiTests(unittest.TestCase):
         with self.assertRaises(HTTPException) as error: sync_shift(self.db,1,self.data(planned_end_at=self.now+timedelta(hours=2)))
         self.assertEqual(error.exception.status_code,409)
         self.assertIsNone(get_shift(self.db,1,'shift-1').planned_end_at)
+    def test_rejected_active_upload_can_reuse_revision_once_ended_locally(self):
+        sync_shift(self.db, 1, self.data())
+        competing = ShiftSnapshot(client_id='shift-2', revision=1, started_at=self.now)
+        with self.assertRaises(HTTPException) as error:
+            sync_shift(self.db, 1, competing)
+        self.assertEqual((error.exception.status_code, error.exception.detail), (409, 'Another shift is active'))
+        ended = competing.model_copy(update={'ended_at': self.now + timedelta(hours=1)})
+        saved = sync_shift(self.db, 1, ended)
+        self.assertEqual(sync_shift(self.db, 1, ended), saved)
+        self.assertEqual(self.db.query(Shift).count(), 2)
+        self.assertIsNone(get_shift(self.db, 1, 'shift-1').ended_at)
+
     def test_one_active_and_cross_user_lookup(self):
         sync_shift(self.db,1,self.data())
         other=self.data().model_copy(update={'client_id':'shift-2'})

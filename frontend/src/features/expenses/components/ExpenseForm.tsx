@@ -1,11 +1,13 @@
+import { RecordFormLayout, recordFormStyles } from "@/components/ui/RecordFormLayout";
 import { VehicleAssignment } from '@/features/vehicles/VehicleAssignment';
 import { useLanguage, Translated } from "@/i18n/language";
 import { localizedAlert } from "@/i18n/alerts";
-import { Pressable, ScrollView, Text, TextInput, View } from "@/theme/components";
+import { Pressable, Text, TextInput, View } from "@/theme/components";
 import { useEffect, useMemo, useState } from "react";
 import { Linking, Platform, Image, StyleSheet } from "react-native";
 import { Ionicons } from "@/theme/icons";
 import DateTimePicker from "@/components/ui/DateField";
+import { isDevice } from "expo-device";
 import * as ImagePicker from "expo-image-picker";
 
 import { ExpenseCategory } from "../types/expense";
@@ -23,7 +25,6 @@ export interface ExpenseFormValues {
 }
 
 type Props = {
-  mode: "create" | "edit";
   initialValues: ExpenseFormValues;
   initialReceiptUri?: string | null;
   submitLabel: string;
@@ -35,14 +36,14 @@ type Props = {
 };
 
 export function ExpenseForm({
-  mode,
   initialValues,
   initialReceiptUri,
   submitLabel,
   loading = false,
   onSubmit,
 }: Props) {
-  const { locale } = useLanguage();
+  const { locale, t } = useLanguage();
+  const canTakePhoto = Platform.OS !== "ios" || isDevice;
   const [vehicleId,setVehicleId]=useState(initialValues.vehicleId??null);
   const [amount, setAmount] = useState(
     initialValues.amount,
@@ -79,27 +80,23 @@ export function ExpenseForm({
       initialReceiptUri ?? null,
     );
 
+  const {
+    amount: savedAmount, category: savedCategory, merchant: savedMerchant, description: savedDescription,
+    businessPercentage: savedPercentage, vehicleId: savedVehicleId, incurredAt: savedDate,
+  } = initialValues;
+  const savedTime = savedDate.getTime();
   useEffect(() => {
-    setVehicleId(initialValues.vehicleId??null);
-    setAmount(initialValues.amount);
-    setCategory(initialValues.category);
-    setMerchant(initialValues.merchant);
-    setDescription(
-      initialValues.description,
-    );
-    setBusinessPercentage(
-      initialValues.businessPercentage,
-    );
-    setIncurredAt(
-      initialValues.incurredAt,
-    );
-    setReceiptUri(
-      initialReceiptUri ?? null,
-    );
-  }, [
-    initialValues,
-    initialReceiptUri,
-  ]);
+    setVehicleId(savedVehicleId ?? null);
+    setAmount(savedAmount);
+    setCategory(savedCategory);
+    setMerchant(savedMerchant);
+    setDescription(savedDescription);
+    setBusinessPercentage(savedPercentage);
+    setIncurredAt(new Date(savedTime));
+  }, [savedVehicleId, savedAmount, savedCategory, savedMerchant, savedDescription, savedPercentage, savedTime]);
+  useEffect(() => {
+    setReceiptUri(initialReceiptUri ?? null);
+  }, [initialReceiptUri]);
 
   const isFormValid = useMemo(() => {
     return (
@@ -117,6 +114,9 @@ export function ExpenseForm({
   ]);
 
   async function onTakePhoto() {
+    // UIKit can terminate the app when its camera source is unavailable on iOS Simulator.
+    if (!canTakePhoto) return;
+
     let permission = await ImagePicker.getCameraPermissionsAsync();
     if (!permission.granted && permission.canAskAgain && (Platform.OS !== "ios" || permission.status === "undetermined")) {
       permission = await ImagePicker.requestCameraPermissionsAsync();
@@ -161,413 +161,352 @@ export function ExpenseForm({
   }
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={
-        styles.container
-      }
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={styles.header}>
-  <Text style={styles.eyebrow}>
-    <Translated text={"EXPENSE"} /></Text>
+    <RecordFormLayout
+      main={
+        <View style={recordFormStyles.card}>
+          <Text style={recordFormStyles.label}>
+            <Translated text={"Amount"} /></Text>
 
-  <Text style={styles.title}>
-    {mode === "create"
-      ? <Translated text={"Add Expense"} />
-      : <Translated text={"Edit Expense"} />}
-  </Text>
+          <View style={styles.amountContainer}>
+            <Text style={styles.currency}>
+              $
+            </Text>
 
-  <Text style={styles.subtitle}>
-    {mode === "create"
-      ? <Translated text={"Keep your business expenses organized and ready for reporting."} />
-      : <Translated text={"Update your expense details and keep your records accurate."} />}
-  </Text>
-</View>
-
-      <View style={styles.card}>
-        <Text style={styles.label}>
-          <Translated text={"Amount"} /></Text>
-
-        <View style={styles.amountContainer}>
-          <Text style={styles.currency}>
-            $
-          </Text>
-
-          <TextInput
+            <TextInput
+              accessibilityLabel="Amount"
             value={amount}
-            onChangeText={Platform.OS === "android" ? value => setAmount(value.replace(",", ".")) : setAmount}
-            keyboardType="decimal-pad"
-            style={styles.amountInput}
-            placeholder="0.00"
-            placeholderTextColor="#94A3B8"
-          />
-        </View>
-
-        <Text style={styles.label}>
-          <Translated text={"Category"} /></Text>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.selectInput,
-            pressed &&
-              styles.selectInputPressed,
-          ]}
-          onPress={() =>
-            setShowCategoryModal(true)
-          }
-        >
-          <View style={styles.selectIcon}>
-            <Ionicons
-              name="grid-outline"
-              size={17}
-              color="#4A6FE3"
+              onChangeText={Platform.OS === "android" ? value => setAmount(value.replace(",", ".")) : setAmount}
+              keyboardType="decimal-pad"
+              style={styles.amountInput}
+              placeholder="0.00"
+              placeholderTextColor="#94A3B8"
             />
           </View>
 
-          <Text style={styles.inputText}>
-            {
-              EXPENSE_CATEGORY_LABELS[
-                category
-              ]
+          <Text style={[recordFormStyles.label, styles.fieldSpacing]}>
+            <Translated text={"Category"} /></Text>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.selectInput,
+              pressed &&
+                styles.selectInputPressed,
+            ]}
+            onPress={() =>
+              setShowCategoryModal(true)
             }
-          </Text>
+          >
+            <View style={styles.selectIcon}>
+              <Ionicons
+                name="grid-outline"
+                size={17}
+                color="#4A6FE3"
+              />
+            </View>
 
-          <Ionicons
-            name="chevron-down"
-            size={17}
-            color="#94A3B8"
-          />
-        </Pressable>
-
-        <ExpenseCategoryModal
-          visible={showCategoryModal}
-          value={category}
-          onClose={() =>
-            setShowCategoryModal(false)
-          }
-          onSelect={setCategory}
-        />
-
-        <Text style={styles.label}>
-          <Translated text={"Date"} /></Text>
-
-        <View style={styles.date}>
-          <View style={styles.dateIcon}>
-            <Ionicons
-              name="calendar-outline"
-              size={18}
-              color="#4A6FE3"
-            />
-          </View>
-
-          <DateTimePicker locale={locale}
-            value={incurredAt}
-            mode="date"
-            display="compact"
-            maximumDate={new Date()}
-            onChange={(_, date) => {
-              if (date) {
-                setIncurredAt(date);
+            <Text style={styles.inputText}>
+              {
+                EXPENSE_CATEGORY_LABELS[
+                  category
+                ]
               }
-            }}
-          />
-        </View>
+            </Text>
 
-        <Text style={styles.label}>
-          <Translated text={"Business %"} /></Text>
-
-        <View style={styles.inputWithIcon}>
-          <TextInput
-            value={businessPercentage}
-            onChangeText={
-              Platform.OS === "android" ? value => setBusinessPercentage(value.replace(",", ".")) : setBusinessPercentage
-            }
-            keyboardType="decimal-pad"
-            style={styles.input}
-            placeholder="100"
-            placeholderTextColor="#94A3B8"
-          />
-
-          <Text style={styles.percent}>
-            %
-          </Text>
-        </View>
-
-        <Text style={styles.label}>
-          <Translated text={"Merchant"} /></Text>
-
-        <TextInput
-          value={merchant}
-          onChangeText={setMerchant}
-          style={styles.input}
-          placeholder="Optional"
-          placeholderTextColor="#94A3B8"
-        />
-
-        <Text style={styles.label}>
-          <Translated text={"Description"} /></Text>
-
-        <TextInput
-          value={description}
-          onChangeText={
-            setDescription
-          }
-          style={[
-            styles.input,
-            styles.multiline,
-          ]}
-          multiline
-          placeholder="Optional"
-          placeholderTextColor="#94A3B8"
-        />
-      </View>
-
-      <View style={styles.receipt}>
-        <View style={styles.receiptHeader}>
-          <View style={styles.receiptIcon}>
             <Ionicons
-              name="receipt-outline"
-              size={19}
-              color="#4A6FE3"
-            />
-          </View>
-
-          <View style={styles.receiptHeaderText}>
-            <Text style={styles.receiptTitle}>
-              <Translated text={"Receipt"} /></Text>
-
-            <Text style={styles.receiptSubtitle}>
-              <Translated text={"Attach a receipt for your records."} /></Text>
-          </View>
-        </View>
-
-        {!receiptUri && (
-          <View style={styles.noReceipt}>
-            <Ionicons
-              name="document-outline"
-              size={22}
+              name="chevron-down"
+              size={17}
               color="#94A3B8"
             />
+          </Pressable>
 
-            <Text
-              style={
-                styles.receiptPlaceholder
-              }
-            >
-              <Translated text={"No receipt attached"} /></Text>
-          </View>
-        )}
+          <ExpenseCategoryModal
+            visible={showCategoryModal}
+            value={category}
+            onClose={() =>
+              setShowCategoryModal(false)
+            }
+            onSelect={setCategory}
+          />
 
-        {receiptUri ? (
-          <>
-            <Image
-              source={{
-                uri: receiptUri,
+          <Text style={[recordFormStyles.label, styles.fieldSpacing]}>
+            <Translated text={"Date"} /></Text>
+
+          <View style={styles.date}>
+            <View style={styles.dateIcon}>
+              <Ionicons
+                name="calendar-outline"
+                size={18}
+                color="#4A6FE3"
+              />
+            </View>
+
+            <DateTimePicker locale={locale}
+              value={incurredAt}
+              mode="date"
+              display="compact"
+              maximumDate={new Date()}
+              onChange={(_, date) => {
+                if (date) {
+                  setIncurredAt(date);
+                }
               }}
-              style={
-                styles.receiptPreview
+            />
+          </View>
+
+          <Text style={[recordFormStyles.label, styles.fieldSpacing]}>
+            <Translated text={"Business %"} /></Text>
+
+          <View style={styles.inputWithIcon}>
+            <TextInput
+              accessibilityLabel="Business %"
+            value={businessPercentage}
+              onChangeText={
+                Platform.OS === "android" ? value => setBusinessPercentage(value.replace(",", ".")) : setBusinessPercentage
               }
+              keyboardType="decimal-pad"
+              style={styles.input}
+              placeholder="100"
+              placeholderTextColor="#94A3B8"
             />
 
-            <Pressable
-              style={({ pressed }) => [
-                styles.receiptButton,
-                pressed &&
-                  styles.receiptButtonPressed,
-              ]}
-              onPress={
-                onChoosePhoto
-              }
-            >
-              <Ionicons
-                name="image-outline"
-                size={18}
-                color="#334155"
-              />
-
-              <Text
-                style={
-                  styles.receiptButtonText
-                }
-              >
-                <Translated text={"Replace Receipt"} /></Text>
-            </Pressable>
-
-            <Pressable
-              style={({ pressed }) => [
-                styles.removeButton,
-                pressed &&
-                  styles.removeButtonPressed,
-              ]}
-              onPress={() =>
-                setReceiptUri(null)
-              }
-            >
-              <Ionicons
-                name="trash-outline"
-                size={17}
-                color="#EF4444"
-              />
-
-              <Text
-                style={
-                  styles.removeText
-                }
-              >
-                <Translated text={"Remove Receipt"} /></Text>
-            </Pressable>
-          </>
-        ) : (
-          <View style={styles.receiptActions}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.receiptButton,
-                pressed &&
-                  styles.receiptButtonPressed,
-              ]}
-              onPress={
-                onTakePhoto
-              }
-            >
-              <Ionicons
-                name="camera-outline"
-                size={18}
-                color="#334155"
-              />
-
-              <Text
-                style={
-                  styles.receiptButtonText
-                }
-              >
-                <Translated text={"Take Photo"} /></Text>
-            </Pressable>
-
-            <Pressable
-              style={({ pressed }) => [
-                styles.receiptButton,
-                pressed &&
-                  styles.receiptButtonPressed,
-              ]}
-              onPress={
-                onChoosePhoto
-              }
-            >
-              <Ionicons
-                name="images-outline"
-                size={18}
-                color="#334155"
-              />
-
-              <Text
-                style={
-                  styles.receiptButtonText
-                }
-              >
-                <Translated text={"Choose From Library"} /></Text>
-            </Pressable>
+            <Text style={styles.percent}>
+              %
+            </Text>
           </View>
-        )}
-      </View>
 
-      <VehicleAssignment value={vehicleId} onChange={setVehicleId} disabled={loading}/>
-      <Pressable
-        disabled={
-          loading ||
-          !isFormValid
-        }
-        style={({ pressed }) => [
-          styles.button,
-          (loading ||
-            !isFormValid) &&
-            styles.buttonDisabled,
-          pressed &&
-            isFormValid &&
-            !loading &&
-            styles.buttonPressed,
-        ]}
-        onPress={() =>
-          onSubmit(
-            {
-              amount,
-              category,
-              merchant,
-              description,
-              businessPercentage, vehicleId,
-              incurredAt,
-            },
-            receiptUri,
-          )
-        }
-      >
-        <Text style={styles.buttonText}>
-          {loading
-            ? <Translated text={"Saving..."} />
-            : submitLabel}
-        </Text>
-      </Pressable>
-    </ScrollView>
+          <Text style={[recordFormStyles.label, styles.fieldSpacing]}>
+            <Translated text={"Merchant"} /></Text>
+
+          <TextInput
+            accessibilityLabel="Merchant"
+            value={merchant}
+            onChangeText={setMerchant}
+            style={styles.input}
+            placeholder="Optional"
+            placeholderTextColor="#94A3B8"
+          />
+
+          <Text style={[recordFormStyles.label, styles.fieldSpacing]}>
+            <Translated text={"Description"} /></Text>
+
+          <TextInput
+            accessibilityLabel="Description"
+            value={description}
+            onChangeText={
+              setDescription
+            }
+            style={[
+              styles.input,
+              styles.multiline,
+            ]}
+            multiline
+            placeholder="Optional"
+            placeholderTextColor="#94A3B8"
+          />
+        </View>
+      }
+      aside={
+        <>
+          <View style={recordFormStyles.card}>
+            <View style={styles.receiptHeader}>
+              <View style={styles.receiptIcon}>
+                <Ionicons
+                  name="receipt-outline"
+                  size={19}
+                  color="#4A6FE3"
+                />
+              </View>
+
+              <View style={styles.receiptHeaderText}>
+                <Text style={styles.receiptTitle}>
+                  <Translated text={"Receipt"} /></Text>
+
+                <Text style={styles.receiptSubtitle}>
+                  <Translated text={"Attach a receipt for your records."} /></Text>
+              </View>
+            </View>
+
+            {!receiptUri && (
+              <View style={styles.noReceipt}>
+                <Ionicons
+                  name="document-outline"
+                  size={22}
+                  color="#94A3B8"
+                />
+
+                <Text
+                  style={
+                    styles.receiptPlaceholder
+                  }
+                >
+                  <Translated text={"No receipt attached"} /></Text>
+              </View>
+            )}
+
+            {receiptUri ? (
+              <>
+                <Image
+                  source={{
+                    uri: receiptUri,
+                  }}
+                  style={
+                    styles.receiptPreview
+                  }
+                />
+
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.receiptButton,
+                    pressed &&
+                      styles.receiptButtonPressed,
+                  ]}
+                  onPress={
+                    onChoosePhoto
+                  }
+                >
+                  <Ionicons
+                    name="image-outline"
+                    size={18}
+                    color="#334155"
+                  />
+
+                  <Text
+                    style={
+                      styles.receiptButtonText
+                    }
+                  >
+                    <Translated text={"Replace Receipt"} /></Text>
+                </Pressable>
+
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.removeButton,
+                    pressed &&
+                      styles.removeButtonPressed,
+                  ]}
+                  onPress={() =>
+                    setReceiptUri(null)
+                  }
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={17}
+                    color="#EF4444"
+                  />
+
+                  <Text
+                    style={
+                      styles.removeText
+                    }
+                  >
+                    <Translated text={"Remove Receipt"} /></Text>
+                </Pressable>
+              </>
+            ) : (
+              <View style={styles.receiptActions}>
+                {canTakePhoto && (
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.receiptButton,
+                      pressed &&
+                        styles.receiptButtonPressed,
+                    ]}
+                    onPress={
+                      onTakePhoto
+                    }
+                  >
+                    <Ionicons
+                      name="camera-outline"
+                      size={18}
+                      color="#334155"
+                    />
+
+                    <Text
+                      style={
+                        styles.receiptButtonText
+                      }
+                    >
+                      <Translated text={"Take Photo"} /></Text>
+                  </Pressable>
+                )}
+
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.receiptButton,
+                    pressed &&
+                      styles.receiptButtonPressed,
+                  ]}
+                  onPress={
+                    onChoosePhoto
+                  }
+                >
+                  <Ionicons
+                    name="images-outline"
+                    size={18}
+                    color="#334155"
+                  />
+
+                  <Text
+                    style={
+                      styles.receiptButtonText
+                    }
+                  >
+                    <Translated text={"Choose From Library"} /></Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
+          <View style={recordFormStyles.card}>
+            <VehicleAssignment value={vehicleId} onChange={setVehicleId} disabled={loading} />
+          </View>
+        </>
+      }
+      actions={
+        <Pressable
+          accessibilityRole="button"
+          disabled={
+            loading ||
+            !isFormValid
+          }
+          style={({ pressed }) => [
+            styles.button,
+            (loading ||
+              !isFormValid) &&
+              styles.buttonDisabled,
+            pressed &&
+              isFormValid &&
+              !loading &&
+              styles.buttonPressed,
+          ]}
+          onPress={() =>
+            onSubmit(
+              {
+                amount,
+                category,
+                merchant,
+                description,
+                businessPercentage, vehicleId,
+                incurredAt,
+              },
+              receiptUri,
+            )
+          }
+        >
+          <Text style={styles.buttonText}>
+            {loading
+              ? <Translated text={"Saving..."} />
+              : t(submitLabel)}
+          </Text>
+        </Pressable>
+      }
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
-
-  container: {
-    padding: 20,
-    paddingBottom: 48,
-  },
-
-  header: {
-    marginBottom: 20,
-  },
-
-  eyebrow: {
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 1.2,
-    color: "#64748B",
-    marginBottom: 4,
-  },
-
-  title: {
-    fontSize: 28,
-    lineHeight: 34,
-    fontWeight: "800",
-    letterSpacing: -0.7,
-    color: "#111827",
-  },
-
-  subtitle: {
-    marginTop: 5,
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#64748B",
-  },
-
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    padding: 18,
-  },
-
-  label: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#334155",
-    marginBottom: 8,
-    marginTop: 18,
-  },
-
+  fieldSpacing: { marginTop: 16 },
   amountContainer: {
-    height: 58,
+    minHeight: 58,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#F8FAFC",
@@ -586,7 +525,8 @@ const styles = StyleSheet.create({
 
   amountInput: {
     flex: 1,
-    height: "100%",
+    minWidth: 0,
+    paddingVertical: 10,
     fontSize: 24,
     fontWeight: "700",
     color: "#111827",
@@ -676,15 +616,6 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
   },
 
-  receipt: {
-    marginTop: 16,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    padding: 18,
-  },
-
   receiptHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -730,6 +661,7 @@ const styles = StyleSheet.create({
 
   receiptPlaceholder: {
     marginTop: 7,
+    textAlign: "center",
     fontSize: 13,
     color: "#94A3B8",
   },
@@ -738,7 +670,8 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 220,
     borderRadius: 13,
-    resizeMode: "cover",
+    resizeMode: "contain",
+    backgroundColor: "#F1F5F9",
     marginTop: 16,
     marginBottom: 4,
   },
@@ -759,6 +692,7 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
     borderRadius: 12,
     paddingHorizontal: 14,
+    paddingVertical: 8,
     backgroundColor: "#FFFFFF",
     marginTop: 10,
   },
@@ -769,13 +703,15 @@ const styles = StyleSheet.create({
   },
 
   receiptButtonText: {
+    flexShrink: 1,
+    textAlign: "center",
     fontSize: 14,
     fontWeight: "600",
     color: "#334155",
   },
 
   removeButton: {
-    minHeight: 42,
+    minHeight: 48,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -795,7 +731,7 @@ const styles = StyleSheet.create({
 
   button: {
     minHeight: 52,
-    marginTop: 18,
+    padding: 12,
     backgroundColor: "#4A6FE3",
     borderRadius: 13,
     alignItems: "center",

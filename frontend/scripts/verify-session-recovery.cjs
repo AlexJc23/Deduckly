@@ -93,6 +93,13 @@ async function test(name, fn) { await fn(); count++; console.log(`PASS ${name}`)
       assert.equal(h.disk.get('access_token'), 'old-access'); assert.equal(h.state.invalidated, 0); assert.equal(h.state.timeout, 10000);
     });
   }
+  await test('a rejected refresh request is distinguishable from a rejected queued payload', async () => {
+    const h = harness();
+    h.state.failure = { response: { status: 422 } };
+    await assert.rejects(h.unauthorized(), error => error.code === 'ERR_REFRESH_FAILED');
+    assert.equal(h.disk.get('access_token'), 'old-access');
+    assert.equal(h.state.invalidated, 0);
+  });
   await test('concurrent expired requests share one refresh and retry successfully', async () => {
     const h = harness(); await Promise.all([h.unauthorized(), h.unauthorized()]);
     assert.equal(h.state.refreshCalls, 1); assert.equal(h.state.retries, 2); assert.equal(h.state.invalidated, 0);

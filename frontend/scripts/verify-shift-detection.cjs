@@ -117,14 +117,13 @@ async function setup(planned=null){
   const pending=await s.j.prepareShiftUpload('1');s.h.state.lostResponse=false;await sync.syncShifts();await sync.syncShifts();
   const segment=s.h.state.remoteShifts[0].segments[0];assert.equal(segment.start_lat,original.start_lat);assert.equal(segment.end_lat,arrival.latitude);assert.equal(segment.end_address,String(arrival.latitude));assert(segment.save_requested);assert.equal(s.h.state.remoteShifts.length,1);assert.deepEqual(segment,pending.segments[0]);
  });
- await test('shared background callback uses the detector and preserves manual consumer',async()=>{
+ await test('shared background callback skips Shift mileage and preserves manual consumer',async()=>{
   const h=harness(),engine=h.engine(),j=h.load('@/features/shifts/journal');await engine.startShiftRecording('1','spark',new Date(clock+30000).toISOString());
   await engine.startRecording('1',{category:'business',platform:'spark',trackingMethod:'manual'});
-  const start=clock;
   for(let i=0;i<7;i++){clock+=5000;const p={...h.point(i*5,clock),speed:10};await h.tasks.get(engine.TRIP_LOCATION_TASK)({data:{locations:[h.location(p)]}});}
-  assert((await j.activeShift('1')).detector.driving);
+  assert.equal((await j.activeShift('1')).detector.driving,false);
   for(let i=0;i<75;i++){clock+=10000;await h.tasks.get(engine.TRIP_LOCATION_TASK)({data:{locations:[h.location({...h.point(30,clock),speed:0})]}});}
-  assert(h.state.native);assert(await h.journal().getActiveTrip('1'));const shift=await j.activeShift('1');assert(shift);assert.equal(shift.data.segments.length,1);assert(Date.parse(shift.data.segments[0].started_at)>=start);
+  assert(h.state.native);assert(await h.journal().getActiveTrip('1'));const shift=await j.activeShift('1');assert(shift);assert.equal(shift.data.segments.length,0);
   await engine.endShiftRecording('1',shift.data.client_id);assert(h.state.native);
  });
  await test('moderate-speed driving with 25m accuracy is not lost to per-hop noise',async()=>{

@@ -50,6 +50,60 @@ async function test(name, fn) { await fn(); count++; console.log(`PASS ${name}`)
       await j.autoEndIfDue('1',false);assert.equal(await j.activeShift('1'),null);const saved=(await j.listShifts('1'))[0];assert(saved.autoEnded);assert.equal(saved.data.segments.length,1);
     } finally {Date.now=original;}
   });
+  await test('local midnight closes only the Shift while a manual Trip keeps recording', async () => {
+    const original = Date.now;
+    const midnight = new Date(2026, 10, 2).getTime();
+    let now = midnight - 60_000;
+    Date.now = () => now;
+    try {
+      const h = harness(), j = h.load('@/features/shifts/journal'), engine = h.engine();
+      await engine.startShiftRecording('1', 'lyft', new Date(midnight + 3_600_000).toISOString());
+      await engine.startRecording('1', {category:'business', platform:'lyft', trackingMethod:'manual'});
+      assert.equal(await j.autoEndIfDue('1', true, midnight - 1), false);
+      now = midnight + 10_000;
+      const fixes = [1, 2, 3, 4, 5, 6, 7].map(i => h.point(i * 10, midnight + (i - 6) * 10_000));
+      await h.tasks.get(engine.TRIP_LOCATION_TASK)({data:{locations:fixes.map(h.location)}});
+      const [saved] = await j.listShifts('1');
+      assert.equal(saved.data.ended_at, new Date(midnight).toISOString());
+      assert.equal(saved.data.platform_sessions[0].ended_at, saved.data.ended_at);
+      assert.equal(saved.data.segments.length, 0);
+      assert.equal(await j.recordingShift(), null);
+      assert(await h.journal().getRecordingTrip());
+      assert(h.state.native);
+      assert.equal(await j.autoEndIfDue('1', true), false);
+    } finally { Date.now = original; }
+  });
+  await test('resume closes an overdue legacy Shift and sync preserves already saved segments', async () => {
+    const original = Date.now;
+    let now = new Date(2026, 10, 1, 10).getTime();
+    Date.now = () => now;
+    try {
+      const h = harness(), j = h.load('@/features/shifts/journal');
+      const sync = h.load('@/features/shifts/sync');
+      const shift = await j.startShift('1', 'lyft', null);
+      await sync.syncShifts();
+      const key = '@deduckly/shift-journal:v1';
+      const legacy = JSON.parse(h.disk.get(key));
+      delete legacy.entries[0].midnightAt;
+      const end = new Date(2026, 10, 2, 2).toISOString();
+      const segment = {
+        client_id: 'saved-drive', started_at: shift.data.started_at, ended_at: end,
+        distance_miles: 2, category: 'personal', excluded: false, platform_client_id: null,
+      };
+      legacy.entries[0].data.segments.push(segment);
+      h.disk.set(key, JSON.stringify(legacy));
+      now = new Date(2026, 10, 4, 10).getTime();
+      await h.engine().resumeRecording('1');
+      assert.equal(h.state.native, false);
+      assert.equal(await j.activeShift('1'), null);
+      await sync.syncShifts();
+      assert.equal(h.state.remoteShifts.length, 1);
+      assert.equal(h.state.remoteShifts[0].client_id, shift.data.client_id);
+      assert.equal(h.state.remoteShifts[0].ended_at, end);
+      assert.deepEqual(h.state.remoteShifts[0].segments, [segment]);
+      assert.equal((await j.listShifts('1'))[0].dirty, false);
+    } finally { Date.now = original; }
+  });
   await test('warning replacement, logout cancellation, ended notification once', async()=>{
     const h=harness(), j=h.load('@/features/shifts/journal'), n=h.load('expo-notifications'), notices=[];let scheduled=[];
     Object.assign(n,{getPermissionsAsync:async()=>({granted:true}),getAllScheduledNotificationsAsync:async()=>scheduled,SchedulableTriggerInputTypes:{DATE:'date'},cancelScheduledNotificationAsync:async id=>{scheduled=scheduled.filter(n=>n.identifier!==id);},scheduleNotificationAsync:async req=>{notices.push(req);if(req.trigger)scheduled.push(req);return req.identifier;}});

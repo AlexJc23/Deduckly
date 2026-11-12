@@ -1,7 +1,7 @@
 /* global __dirname */
 const fs=require('node:fs'),path=require('node:path'),Module=require('node:module'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..'),ts=require('typescript'),React=require('react'),server=require('react-dom/server'),native=require('react-native-web');
-let slots=[],cursor=0,buttons=[],inputs=[],calls=[],fuelType='gasoline',saved='3.49';
+let syncRetries=[],slots=[],cursor=0,buttons=[],inputs=[],calls=[],fuelType='gasoline',saved='3.49';
 const original=Module._load;
 Module._load=function(id,parent,main){
  if(id==='react'&&parent.filename.endsWith('/app/shifts.tsx'))return{...React,useEffect(){},useState(initial){const n=cursor++;if(!(n in slots))slots[n]=typeof initial==='function'?initial():initial;return[slots[n],value=>{slots[n]=typeof value==='function'?value(slots[n]):value;}];}};
@@ -9,11 +9,13 @@ Module._load=function(id,parent,main){
  if(id==='@/theme/components')return{...native,SafeAreaView:native.View,Pressable:p=>{buttons.push(p);return React.createElement(native.Pressable,p);},TextInput:p=>{inputs.push(p);return React.createElement(native.TextInput,p);}};
  if(id==='@/theme/theme')return{useAppTheme:()=>({dark:false})};
  if(id==='@/i18n/language')return{useLanguage:()=>({locale:'en-US',t:(value)=>value})};
- if(id==='@/components/ui/ScreenHeader'||id==='@/components/ui/PlatformTiles'||id==='@/components/ui/CompactSelect')return{ScreenHeader:()=>null,PlatformTiles:()=>null,CompactSelect:()=>null};
+ if(id==='@/components/ui/PlatformTiles'||id==='@/components/ui/CompactSelect')return{ScreenHeader:()=>null,PlatformTiles:()=>null,CompactSelect:()=>null};
  if(id==='@/features/shifts/duration-picker')return{DurationPicker:()=>null};
  if(id==='@/features/shifts/notifications')return{requestShiftNotifications:async()=>{}};
  if(id==='expo-router')return{useLocalSearchParams:()=>({})};
- if(id==='@/features/shifts/context')return{useShifts:()=>({owner:'1',entries:[],sync:async()=>{}})};
+ if(id==='@/features/trips/hooks/use-trip-sync')return{useTripSyncIssue:()=>null};
+ if(id==='@/components/ui/ScreenHeader')return{ScreenHeader:p=>p.right};
+ if(id==='@/features/shifts/context')return{useShifts:()=>({owner:'1',entries:[],sync:async retryTrips=>{if(retryTrips)syncRetries.push(retryTrips);}})};
  if(id==='@/features/shifts/journal')return{};
  if(id==='@/features/tracking/services/background-tracking')return{getRecordingMode:()=> 'background',subscribeToRecording:()=>()=>{},startShiftRecording:async()=>{calls.push('record');return true;}};
  if(id==='@/features/vehicles/use-fuel-assumptions')return{useFuelAssumptions:()=>({owner:'1',data:{prices:{[fuelType]:saved}},assumptions:{fuelType}})};
@@ -26,7 +28,7 @@ function render(){cursor=0;buttons=[];inputs=[];return server.renderToStaticMark
 function text(node){return Array.isArray(node)?node.map(text).join(''):node&&typeof node==='object'?text(node.props?.children):String(node??'');}
 async function start(){buttons.find(p=>text(p.children)==='Start Shift').onPress();await new Promise(resolve=>setImmediate(resolve));}
 (async()=>{
- slots=[];render();assert.equal(inputs[0].value,'3.49');assert.equal(inputs[0].accessibilityLabel,'Fuel price (USD / US gallon)');
+ slots=[];render();buttons.find(p=>text(p.children)==='Sync now').onPress();await new Promise(resolve=>setImmediate(resolve));assert.deepEqual(syncRetries,[true]);assert.equal(inputs[0].value,'3.49');assert.equal(inputs[0].accessibilityLabel,'Fuel price (USD / US gallon)');
  inputs[0].onChangeText('4,25');render();await start();assert.deepEqual(calls,[{owner:'1',type:'gasoline',value:'4.25'},'record']);
  slots=[];calls=[];render();inputs[0].onChangeText('');render();await start();assert.deepEqual(calls,['record']);
  slots=[];calls=[];render();inputs[0].onChangeText('-2');const invalid=render();assert(invalid.includes('Enter a price from 0 to 100'));await start();assert.deepEqual(calls,[]);

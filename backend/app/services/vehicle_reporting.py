@@ -136,7 +136,17 @@ def report(db,user,year=None,month=None,day=None,start_date=None,end_date=None,v
 
 def export_rows(data):
     rows=[['Deduckly — estimated report'],['Period',str(data['start_date']),str(data['end_date'])],['Reporting method',data['tax_method']],['Income',str(data['total_income'])],['Recorded expenses',str(data['total_expenses'])],['Business miles',str(data['total_miles'])],['Personal miles',str(data['personal_miles'])],['Estimated deductions / incomplete subtotal',str(data['total_deductions'])],['Business parking and tolls',str(data['parking_tolls'])],['Other business deductions',str(data['non_vehicle_deductions'])],['Complete operating-cost inputs',str(data['calculation_complete'])],['Vehicle','Business miles','Personal miles','Method','Business use %','Standard estimate','Actual operating subtotal','Eligibility']]
-    for r in data['vehicle_rows']:rows.append([r['vehicle_name'],str(r['business_miles']),str(r['personal_miles']),r['method'],str(r['business_use_percentage']),str(r['standard']),str(r['actual']),r['eligibility']])
+    for r in data['vehicle_rows']:rows.append([r['vehicle_name'],str(r['business_miles']),str(r['personal_miles']),r['method'],r['business_use_percentage'],str(r['standard']),r['actual'],r['eligibility']])
     for r in data['rate_periods']:rows.append(['IRS rate per mile',r['rate'],str(r['effective_start']),str(r['effective_end']),'Business miles',str(r['miles'])])
     rows.extend([['Assumption / limitation',c] for c in data['caveats']])
+    rows.extend([
+        [],
+        ['Tax estimate', 'Amount (USD)'],
+        ['Income after deductions', data.get('net_profit')],
+        ['Estimated income tax', data.get('estimated_tax_owed')],
+        ['Estimated reduction from deductions', data.get('estimated_tax_savings')],
+    ])
+    if data.get('trends'):
+        rows.extend([[], ['Month', 'Income (USD)', 'Expenses (USD)']])
+        rows.extend([r['period'], r['income'], r['expenses']] for r in data['trends'])
     return rows

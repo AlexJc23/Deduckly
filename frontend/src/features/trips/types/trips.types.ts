@@ -25,6 +25,7 @@ export interface Trip {
 
 
 export type TripCreate = {
+  vehicle_id?: string;
   client_id?: string;
   start_time: string;
   end_time: string;

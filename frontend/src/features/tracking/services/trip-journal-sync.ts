@@ -1,4 +1,6 @@
-import { reverseGeocode } from "./location.service";
+import { syncVehicleDependency } from "@/features/vehicles/store";
+import { uploadAddress } from "./upload-address";
+import { describeSyncIssue, isRecordRejection, type SyncIssue } from "./sync-issue";
 import { api } from "@/api/client";
 import { getAccessToken } from "@/features/auth/services/auth-service.service";
 import { trackingOwnerFromToken } from "./tracking-owner";
@@ -15,42 +17,79 @@ function invalidateSavedTrips(generation: number) {
   }
 }
 
-let syncing: Promise<void> | null = null;
-export function syncRecordedTrips(): Promise<void> {
+let latest: { generation: number; issue: SyncIssue | null } | undefined;
+const listeners = new Set<() => void>();
+export function subscribeTripSyncIssue(listener: () => void) {
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
+}
+export function getTripSyncIssue() {
+  return latest?.generation === getAccountGeneration() && !isAccountChanging() ? latest.issue : null;
+}
+
+let syncing: Promise<SyncIssue | null> | null = null;
+export function syncRecordedTrips(): Promise<SyncIssue | null> {
   if (syncing) return syncing;
-  syncing = upload().finally(() => { syncing = null; });
+  const generation = getAccountGeneration();
+  syncing = upload(generation).then(issue => {
+    if (isAccountChanging() || getAccountGeneration() !== generation) return null;
+    latest = { generation, issue };
+    listeners.forEach(listener => listener());
+    return issue;
+  }).finally(() => { syncing = null; });
   return syncing;
 }
-async function upload() {
+async function upload(generation: number): Promise<SyncIssue | null> {
+  const current = () => !isAccountChanging() && getAccountGeneration() === generation;
+  let firstIssue: SyncIssue | null = null;
   try {
-    const generation = getAccountGeneration();
     const ownerId = trackingOwnerFromToken(await getAccessToken());
-    if (!ownerId) return;
+    if (!ownerId || !current()) return null;
+    const config = { deducklyOwnerId: ownerId, deducklyGeneration: generation };
     for (const pending of await pendingTrips(ownerId)) {
-      const config = { deducklyOwnerId: ownerId, deducklyGeneration: generation };
-      if (pending.attempted && !pending.payload.client_id) {
-        // The previous POST may have succeeded before its response was lost.
-        // Legacy journal records predate server-enforced identity. Keep their fallback.
-        const response = await api.get<Trip[]>("/api/v1/trips/", config);
-        if (!Array.isArray(response.data)) return;
-        const existing = response.data.find(trip =>
-          new Date(trip.start_time).getTime() === new Date(pending.payload.start_time).getTime() &&
-          new Date(trip.end_time).getTime() === new Date(pending.payload.end_time).getTime() &&
-          trip.category === pending.payload.category && trip.platform === pending.payload.platform &&
-          Math.abs(Number(trip.distance_miles) - pending.payload.distance_miles) < 0.011);
-        if (existing) { await acknowledgeTrip(pending.id, ownerId); invalidateSavedTrips(generation); continue; }
-      }
-      const payload = { ...pending.payload };
+      if (!current()) return null;
       try {
-        payload.start_address = payload.start_address ?? await reverseGeocode(payload.start_lat, payload.start_lng);
-        payload.end_address = payload.end_address ?? await reverseGeocode(payload.end_lat, payload.end_lng);
-      } catch { /* Address lookup must not prevent mileage from syncing. */ }
-      await markUploadAttempt(pending.id, ownerId);
-      await api.post("/api/v1/trips/", payload, config);
-      await acknowledgeTrip(pending.id, ownerId);
-      invalidateSavedTrips(generation);
+        if (pending.attempted && !pending.payload.client_id) {
+          // A legacy POST may have succeeded before its response was lost.
+          const response = await api.get<Trip[]>("/api/v1/trips/", config);
+          if (!current()) return null;
+          if (!Array.isArray(response.data)) throw Error("Invalid Trip history response");
+          const existing = response.data.find(trip =>
+            new Date(trip.start_time).getTime() === new Date(pending.payload.start_time).getTime() &&
+            new Date(trip.end_time).getTime() === new Date(pending.payload.end_time).getTime() &&
+            trip.category === pending.payload.category && trip.platform === pending.payload.platform &&
+            Math.abs(Number(trip.distance_miles) - pending.payload.distance_miles) < 0.011);
+          if (existing) { await acknowledgeTrip(pending.id, ownerId); invalidateSavedTrips(generation); continue; }
+        }
+        const payload = { ...pending.payload };
+        await syncVehicleDependency(ownerId, payload.vehicle_id);
+        // Only the outgoing address is shortened; original local data and the
+        // trip creation fingerprint (which excludes addresses) stay unchanged.
+        [payload.start_address, payload.end_address] = await Promise.all([
+          payload.start_address?.slice(0, 100) ?? uploadAddress(payload.start_lat, payload.start_lng),
+          payload.end_address?.slice(0, 100) ?? uploadAddress(payload.end_lat, payload.end_lng),
+        ]);
+        if (!current()) return null;
+        if (!pending.attempted) await markUploadAttempt(pending.id, ownerId);
+        if (!current()) return null;
+        const { data } = await api.post<Trip>("/api/v1/trips/", payload, config);
+        if (!current()) return null;
+        if (!data || !Number.isSafeInteger(data.id) || data.id <= 0 || String(data.user_id) !== ownerId ||
+            (payload.client_id && data.client_id !== payload.client_id)) {
+          throw Error("Invalid Trip acknowledgement");
+        }
+        await acknowledgeTrip(pending.id, ownerId);
+        invalidateSavedTrips(generation);
+      } catch (error) {
+        if (!current()) return null;
+        if (!isRecordRejection(error, 'trip')) throw error;
+        firstIssue ??= describeSyncIssue(error, 'trip');
+      }
     }
-  } catch {
-    // Keep the complete payload on disk. Retry when connectivity/app focus returns.
+  } catch (error) {
+    // Keep the complete payload on disk. A network or session failure stops
+    // this pass; a record-specific rejection above does not block later trips.
+    return current() ? describeSyncIssue(error, 'trip') : null;
   }
+  return firstIssue;
 }

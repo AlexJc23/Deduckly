@@ -1,3 +1,5 @@
+import { useTripSyncIssue } from "@/features/trips/hooks/use-trip-sync";
+import { syncRecordedTrips } from "@/features/tracking/services/trip-journal-sync";
 import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, SafeAreaView, Text, View } from "@/theme/components";
 import { router } from "expo-router";
@@ -138,7 +140,9 @@ function TripItem({ item }: { item: Trip }) {
 }
 
 export default function ActivityScreen() {
-  useLanguage();
+  const { t } = useLanguage();
+  const tripSyncIssue = useTripSyncIssue();
+  const [retryingTrips, setRetryingTrips] = useState(false);
   const { dark } = useAppTheme();
   const [tab, setTab] =
     useState<TabValue>("trips");
@@ -480,6 +484,12 @@ export default function ActivityScreen() {
         </Pressable>
       </View>
 
+      {tab === "trips" && tripSyncIssue && <Pressable accessibilityRole="button" disabled={retryingTrips}
+        style={{ minHeight: 44, paddingVertical: 8 }}
+        onPress={() => { setRetryingTrips(true); void syncRecordedTrips().finally(() => setRetryingTrips(false)); }}>
+        <Text accessibilityRole="alert">{t('Trip sync')}: {t(tripSyncIssue.message)} {tripSyncIssue.status ? `(HTTP ${tripSyncIssue.status}) ` : ''}{t('Your records are still on this device.')}</Text>
+        <Text>{t(retryingTrips ? 'Syncing…' : 'Sync now')}</Text>
+      </Pressable>}
       {tab === "trips" && renderTrips()}
       {tab === "income" && renderIncome()}
       {tab === "expenses" &&

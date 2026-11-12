@@ -251,9 +251,19 @@ class AccessExportTests(unittest.TestCase):
     def test_server_exports_same_rows_and_stale_fingerprint(self):
         summary=summarize([trip()],[expense()],[vehicle()],[],'standard_mileage',2026)
         summary.update(start_date=date(2026,1,1),end_date=date(2026,12,31),tax_method='standard_mileage',total_income=D(100),report_fingerprint='current')
+        summary.update(net_profit=D('-10.50'), estimated_tax_owed=None,
+                       trends=[{'period': '2026-01', 'income': D('100'), 'expenses': D('-5.25')}])
+        summary['vehicle_rows'][0]['vehicle_name'] = '  =1+1'
         with patch('app.services.vehicle_reporting.report',return_value=summary):
             csv=self.client.get('/reports/vehicle-exports/csv?expected_fingerprint=current')
             self.assertEqual(csv.status_code,200);self.assertIn('7.25',csv.text);self.assertNotIn('receipt',csv.text)
+            import csv as csv_module
+            from io import StringIO
+            rows = list(csv_module.reader(StringIO(csv.content.decode('utf-8-sig'))))
+            self.assertIn(['Income after deductions', '-10.50'], rows)
+            self.assertIn(['Estimated income tax', ''], rows)
+            self.assertIn(['2026-01', '100', '-5.25'], rows)
+            self.assertTrue(any(row and row[0] == "'  =1+1" for row in rows))
             pdf=self.client.get('/reports/vehicle-exports/pdf?expected_fingerprint=current')
             self.assertEqual(pdf.status_code,200);self.assertTrue(pdf.content.startswith(b'%PDF'))
             self.assertEqual(self.client.get('/reports/vehicle-exports/pdf?expected_fingerprint=old').status_code,409)

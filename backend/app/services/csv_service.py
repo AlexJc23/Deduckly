@@ -1,106 +1,124 @@
 from app.services.report_helper import get_report_period
 import csv
+import re
+
+
+def safe_csv_cell(value):
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        return value
+    # Negative decimal amounts remain spreadsheet numbers. Formula-like
+    # text, including strings with leading whitespace, is forced to text.
+    if re.fullmatch(r"[+-]?[0-9]+(?:\.[0-9]+)?", value):
+        return value
+    if value.startswith(("\t", "\r", "\n")) or value.lstrip().startswith(("=", "+", "-", "@")):
+        return "'" + value
+    return value
 
 
 def build_tax_report_csv(buffer, data):
     writer = csv.writer(buffer)
 
+    def row(values):
+        writer.writerow(map(safe_csv_cell, values))
+
     writer.writerow(["Deduckly Tax Report"])
     writer.writerow([])
 
     # User Info
-    writer.writerow(
+    row(
         ["Report Period", get_report_period(data)]
     )
-    writer.writerow(["First Name", data["first_name"]])
-    writer.writerow(["Last Name", data["last_name"]])
-    writer.writerow(["Filing Status", data["filing_status"]])
-    writer.writerow(["Generated", data["generated_at_utc"]])
+    row(["First Name", data["first_name"]])
+    row(["Last Name", data["last_name"]])
+    row(["Filing Status", data["filing_status"]])
+    row(["Generated", data["generated_at_utc"]])
 
-    writer.writerow([])
+    row([])
 
     # Income
-    writer.writerow(["Income"])
-    writer.writerow(["Total Income", data["total_income"]])
+    row(["Income"])
+    row(["Total Income", data["total_income"]])
 
-    writer.writerow([])
+    row([])
 
     # Expenses
-    writer.writerow(["Expenses"])
-    writer.writerow(["Total Expenses", data["total_expenses"]])
-    writer.writerow(
+    row(["Expenses"])
+    row(["Total Expenses", data["total_expenses"]])
+    row(
         ["Deductible Expenses", data["deductible_expense_total"]]
     )
-    writer.writerow(
+    row(
         [
             "Non-Deductible Expenses",
             data["non_deductible_expense_total"],
         ]
     )
-    writer.writerow(
+    row(
         ["Vehicle Expenses", data["vehicle_expense_total"]]
     )
 
-    writer.writerow([])
+    row([])
 
     # Mileage
-    writer.writerow(["Mileage"])
-    writer.writerow(["Business Miles", data["total_miles"]])
-    writer.writerow(
+    row(["Mileage"])
+    row(["Business Miles", data["total_miles"]])
+    row(
         ["Mileage Deduction", data["mileage_deduction"]]
     )
 
-    writer.writerow([])
+    row([])
 
     # Tax Summary
-    writer.writerow(["Tax Summary"])
-    writer.writerow(
+    row(["Tax Summary"])
+    row(
         ["Total Deductions", data["total_deductions"]]
     )
-    writer.writerow(["Net Profit", data["net_profit"]])
-    writer.writerow(
+    row(["Net Profit", data["net_profit"]])
+    row(
         ["Taxable Income", data["taxable_income"]]
     )
-    writer.writerow(
+    row(
         ["Estimated Tax Owed", data["estimated_tax_owed"]]
     )
-    writer.writerow(
+    row(
         [
             "Estimated Tax Savings",
             data["estimated_tax_savings"],
         ]
     )
 
-    writer.writerow([])
+    row([])
 
     # Business Information
-    writer.writerow(["Business Information"])
-    writer.writerow(
+    row(["Business Information"])
+    row(
         ["Business Type", data["business_type"]]
     )
-    writer.writerow(
+    row(
         ["Tax Method", data["tax_method"]]
     )
 
-    writer.writerow(
+    row(
         [
             "Largest Expense Category",
             data["largest_expense_category"] or "None",
         ]
     )
 
-    writer.writerow(
+    row(
         [
             "Largest Expense Amount",
             data["largest_expense_amount"] or 0,
         ]
     )
 
-    writer.writerow([])
+    row([])
 
     # Expense Breakdown
-    writer.writerow(["Expense Breakdown"])
-    writer.writerow(
+    row(["Expense Breakdown"])
+    row(
         [
             "Category",
             "Amount",
@@ -111,7 +129,7 @@ def build_tax_report_csv(buffer, data):
 
     if data["expense_breakdown"]:
         for category, details in data["expense_breakdown"].items():
-            writer.writerow(
+            row(
                 [
                     category.replace("_", " ").title(),
                     details["amount"],
@@ -120,13 +138,13 @@ def build_tax_report_csv(buffer, data):
                 ]
             )
     else:
-        writer.writerow(["No expenses", 0, 0, "-"])
+        row(["No expenses", 0, 0, "-"])
 
-    writer.writerow([])
+    row([])
 
     # Non-Deductible Breakdown
-    writer.writerow(["Non-Deductible Breakdown"])
-    writer.writerow(
+    row(["Non-Deductible Breakdown"])
+    row(
         [
             "Category",
             "Amount",
@@ -139,7 +157,7 @@ def build_tax_report_csv(buffer, data):
         for category, details in data[
             "non_deductible_breakdown"
         ].items():
-            writer.writerow(
+            row(
                 [
                     category.replace("_", " ").title(),
                     details["amount"],
@@ -148,6 +166,9 @@ def build_tax_report_csv(buffer, data):
                 ]
             )
     else:
-        writer.writerow(
+        row(
             ["None", 0, 0, "No non-deductible expenses"]
         )
+
+    row([])
+    row(["Important note", "Estimates based on recorded activity. Review with a qualified tax professional before filing."])

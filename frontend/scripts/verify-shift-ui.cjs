@@ -5,6 +5,7 @@ const ts = require('typescript'), React = require('react'), server = require('re
 let dark = false, entries = [], width = 320;
 const original = Module._load;
 Module._load = function(id, parent, isMain) {
+ if(id==='@/features/trips/hooks/use-trip-sync')return{useTripSyncIssue:()=>null};
  if(id==='@/features/vehicles/use-fuel-assumptions')return{useFuelAssumptions:()=>({owner:'1',data:{prices:{gasoline:'3.49'}},assumptions:{fuelType:'gasoline'}})};
  if(id==='@/features/vehicles/store')return{savePrice:async()=>{}};
  if(id==='@/theme/icons')return{Ionicons:()=>null};

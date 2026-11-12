@@ -12,6 +12,6 @@ export function useExpenseDetail(
     ],
     queryFn: () =>
       getExpenseById(expenseId),
-    enabled: !!expenseId,
+    enabled: Number.isSafeInteger(expenseId) && expenseId > 0,
   });
 }

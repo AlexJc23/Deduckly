@@ -3,6 +3,7 @@ import { api } from '@/api/client';
 import { getAccessToken } from '@/features/auth/services/auth-service.service';
 import { trackingOwnerFromToken } from '@/features/tracking/services/tracking-owner';
 import { getAccountGeneration, isAccountChanging } from '@/features/auth/services/account-boundary';
+import { defaultVehicle } from './energy';
 import type { FuelType, FuelQuote, Vehicle, VehicleData, VehicleJournal } from './types';
 const listeners = new Set<() => void>();
 const deletedOwners = new Set<string>();
@@ -71,6 +72,30 @@ export function syncVehicles(owner: string) {
     if (!Array.isArray(response.data)) throw Error('Invalid vehicles response');
     j.vehicles = response.data; await write(j);
   });
+}
+
+export async function getRecordingVehicleId(owner: string) {
+  const generation = getAccountGeneration();
+  const cached = await readVehicles(owner);
+  if (cached.vehicles.length || cached.pending.length) return defaultVehicle(cached.vehicles)?.id;
+
+  // A fresh install may start recording before vehicle settings have synced.
+  const response = await api.get<Vehicle[]>('/api/v1/vehicles/', {
+    deducklyOwnerId: owner, deducklyGeneration: generation, timeout: 1500,
+  });
+  await assertOwner(owner, generation);
+  const latest = await readVehicles(owner);
+  const vehicles = latest.vehicles.length || latest.pending.length ? latest.vehicles : response.data;
+  return Array.isArray(vehicles) ? defaultVehicle(vehicles)?.id : undefined;
+}
+
+export async function syncVehicleDependency(owner: string, identity?: string) {
+  if (!identity) return;
+  const journal = await readVehicles(owner);
+  // A newly created offline vehicle must reach the API before its trips.
+  if (journal.pending.some(op => op.id === identity && op.data.expected_version === 0)) {
+    await syncVehicles(owner);
+  }
 }
 
 export function saveFuelArea(owner: string, postalCode: string) {

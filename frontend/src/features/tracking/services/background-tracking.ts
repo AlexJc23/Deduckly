@@ -10,7 +10,8 @@ import { Linking, Platform } from "react-native";
 import { getCurrentLocation, toLocationPoint, watchLocation } from "./location.service";
 import { beginTrip, discardTrip, finishTrip, getActiveTrip, getRecordingTrip, recordPoints, setRecording, type TripStart } from "./trip-journal";
 
-import { activeShift, recordingShift, recordShiftPoints, setShiftRecording, startShift, endShift, autoEndIfDue, listShifts } from '@/features/shifts/journal';
+import { getRecordingVehicleId } from "@/features/vehicles/store";
+import { activeShift, suspendShiftDetection, recordingShift, recordShiftPoints, setShiftRecording, startShift, endShift, autoEndIfDue, listShifts } from '@/features/shifts/journal';
 
 async function dispatchPoints(points: ReturnType<typeof toLocationPoint>[], owner?: string) {
   const states = await Promise.allSettled([getRecordingTrip(), recordingShift()]);
@@ -19,11 +20,15 @@ async function dispatchPoints(points: ReturnType<typeof toLocationPoint>[], owne
   if (trip && shift && trip.ownerId !== shift.owner) throw Error("Recording owner mismatch");
   const writes: Promise<unknown>[] = [];
   if (trip && (!owner || trip.ownerId === owner)) writes.push(recordPoints(trip.id, points));
-  if (shift && (!owner || shift.owner === owner)) writes.push(recordShiftPoints(shift.data.client_id, points, !!await getActiveTrip(shift.owner)));
+  const activeManualTrip = shift && (!owner || shift.owner === owner) ? await getActiveTrip(shift.owner) : null;
+  if (shift && (!owner || shift.owner === owner)) {
+    if (activeManualTrip) writes.push(suspendShiftDetection(shift.owner, activeManualTrip.startTime));
+    else writes.push(recordShiftPoints(shift.data.client_id, points));
+  }
   const results = await Promise.allSettled(writes);
   if (states.some(result => result.status === 'rejected') || results.some(result => result.status === 'rejected')) throw Error('Recording storage failure');
   if (shift && (!owner || shift.owner === owner)) {
-    if (await autoEndIfDue(shift.owner, !!await getActiveTrip(shift.owner)) || !await activeShift(shift.owner)) {
+    if (await autoEndIfDue(shift.owner, !!activeManualTrip) || !await activeShift(shift.owner)) {
       // Only stop the recorder when no independent manual Trip still needs it.
       if (!await getRecordingTrip()) await stopNative();
       await reconcileShiftNotifications(shift.owner, await listShifts(shift.owner));
@@ -81,7 +86,10 @@ async function stopNative() {
 async function attach(ownerId: string, backgroundGranted: boolean) {
   const trip = await getActiveTrip(ownerId);
   await setRecording(trip?.id ?? null);
-  try { await setShiftRecording(ownerId); } catch (error) { if (!trip) throw error; }
+  try {
+    if (trip) await suspendShiftDetection(ownerId, trip.startTime);
+    await setShiftRecording(ownerId);
+  } catch (error) { if (!trip) throw error; }
   const id = ownerId;
   if (backgroundGranted && Platform.OS !== "web" && await TaskManager.isAvailableAsync()) {
     try {
@@ -126,7 +134,10 @@ async function restoreConsumers(ownerId: string | null) {
   }
   const trip = await getActiveTrip(ownerId);
   let shift;
-  try { shift = await activeShift(ownerId); } catch (error) { if (!trip) throw error; }
+  try {
+    await autoEndIfDue(ownerId, !!trip);
+    shift = await activeShift(ownerId);
+  } catch (error) { if (!trip) throw error; }
   if (!trip && !shift) { await stopNative(); await setRecording(null); await setShiftRecording(null); return; }
   const foreground = await Location.getForegroundPermissionsAsync();
   if (!foreground.granted) { await stopNative(); await setRecording(null); await setShiftRecording(null); return; }
@@ -164,10 +175,18 @@ export function startRecording(ownerId: string, data: TripStart, shiftOptions?: 
       }
     }
     if (trackingOwnerFromToken(await getAccessToken()) !== ownerId || isAccountChanging() || generation !== getAccountGeneration()) return false;
-    if (shiftOptions) await startShift(ownerId, data.platform, shiftOptions.planned);
+    // Snapshot the owner’s default at recording start. Existing journals are
+    // never reassigned when the default changes or a later sync takes place.
+    const vehicleId = await getRecordingVehicleId(ownerId).catch(() => undefined);
+    if (isAccountChanging() || generation !== getAccountGeneration()) return false;
+    if (shiftOptions) await startShift(ownerId, data.platform, shiftOptions.planned, vehicleId);
     else {
       const existing = await getActiveTrip(ownerId);
-      if (!existing) await beginTrip(ownerId, data, toLocationPoint(await getCurrentLocation()));
+      if (!existing) {
+        const point = toLocationPoint(await getCurrentLocation());
+        if (isAccountChanging() || generation !== getAccountGeneration()) return false;
+        await beginTrip(ownerId, { ...data, vehicleId }, point);
+      }
     }
     try { await attach(ownerId, background); }
     catch { recordingError(); /* Preserve the trip even if the native listener fails. */ }
@@ -177,6 +196,8 @@ export function startRecording(ownerId: string, data: TripStart, shiftOptions?: 
 export function endRecording(ownerId: string, income?: number | null) {
   return control(async () => {
     // Commit locally before stopping. If storage fails, the active trip keeps recording.
+    const trip = await getActiveTrip(ownerId);
+    if (trip) await suspendShiftDetection(ownerId, Math.max(Date.now(), trip.last.timestamp)).catch(recordingError);
     const result = await finishTrip(ownerId, income);
     try { await restoreConsumers(ownerId); } catch { recordingError(); }
     return result;
@@ -184,6 +205,8 @@ export function endRecording(ownerId: string, income?: number | null) {
 }
 export function cancelRecording(ownerId: string) {
   return control(async () => {
+    const trip = await getActiveTrip(ownerId);
+    if (trip) await suspendShiftDetection(ownerId, Math.max(Date.now(), trip.last.timestamp)).catch(recordingError);
     await discardTrip(ownerId);
     try { await restoreConsumers(ownerId); } catch { recordingError(); }
   });

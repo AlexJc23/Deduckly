@@ -122,7 +122,6 @@ export default function EditExpenseScreen() {
       <ScreenHeader title="Edit Expense" />
 
       <ExpenseForm
-      mode="edit"
         initialValues={{
           amount: String(
             expense.amount,

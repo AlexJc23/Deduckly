@@ -1,18 +1,5 @@
-import { reverseGeocode } from '@/features/tracking/services/location.service';
+import { uploadAddress } from '@/features/tracking/services/upload-address';
 import { editShift, listShifts } from './journal';
-
-async function address(lat: number, lng: number) {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  try {
-    // Address enrichment must not hold up mileage synchronization indefinitely.
-    const value = await Promise.race([
-      reverseGeocode(lat, lng),
-      new Promise<null>(resolve => { timer = setTimeout(() => resolve(null), 3000); }),
-    ]);
-    return value?.trim().slice(0, 100) || null;
-  } catch { return null; }
-  finally { if (timer) clearTimeout(timer); }
-}
 
 export async function enrichShiftAddresses(owner: string, current: () => boolean) {
   for (const entry of await listShifts(owner)) {
@@ -24,7 +11,7 @@ export async function enrichShiftAddresses(owner: string, current: () => boolean
         if (!current()) return;
         const lat = segment[`${side}_lat`], lng = segment[`${side}_lng`];
         if (segment[`${side}_address`] || lat == null || lng == null) continue;
-        const value = await address(lat, lng);
+        const value = await uploadAddress(lat, lng);
         if (!current()) return;
         if (value) await editShift(owner, entry.data.client_id, e => {
           const s = e.data.segments.find(s => s.client_id === segment.client_id);

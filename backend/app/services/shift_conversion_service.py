@@ -41,7 +41,7 @@ def convert_pending(db, owner, now=None):
                 blocked.append(segment.client_id); continue
             category = segment.category if segment.reviewed else TripCategory.BUSINESS
             platform = segment.platform_session.platform if segment.platform_session else None
-            trip = Trip(user_id=owner, client_id=f'shift-segment-{segment.id}',
+            trip = Trip(user_id=owner, vehicle_id=segment.shift.vehicle_id, client_id=f'shift-segment-{segment.id}',
                 start_time=segment.started_at, end_time=segment.ended_at,
                 start_lat=segment.start_lat, start_lng=segment.start_lng, end_lat=segment.end_lat, end_lng=segment.end_lng,
                 start_address=segment.start_address, end_address=segment.end_address, category=category, platform=platform,

@@ -1,6 +1,7 @@
+import { RecordFormLayout, recordFormStyles } from "@/components/ui/RecordFormLayout";
 import { PlatformTiles } from '@/components/ui/PlatformTiles';
 import { useLanguage, Translated } from "@/i18n/language";
-import { Pressable, ScrollView, Text, TextInput, View } from "@/theme/components";
+import { Pressable, Text, TextInput, View } from "@/theme/components";
 import { useEffect, useState } from "react";
 import { Platform, StyleSheet } from "react-native";
 
@@ -39,7 +40,7 @@ export function IncomeForm({
   loading = false,
   onSubmit,
 }: IncomeFormProps) {
-  useLanguage();
+  const { t } = useLanguage();
   const [amount, setAmount] = useState("");
   const [source, setSource] =
     useState<IncomeType>("gig_platform");
@@ -87,126 +88,124 @@ export function IncomeForm({
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={styles.header}>
-        <Text style={styles.eyebrow}>
-          <Translated text={"INCOME"} /></Text>
+    <RecordFormLayout
+      main={
+        <View style={recordFormStyles.card}>
+          <Text style={recordFormStyles.label}>
+            <Translated text={"Amount"} /></Text>
 
-        <Text style={styles.title}>
-          <Translated text={"Add income"} /></Text>
+          <View style={styles.amountContainer}>
+            <Text style={styles.currency}>
+              $
+            </Text>
 
-        <Text style={styles.subtitle}>
-          <Translated text={"Keep your earnings organized and ready for reporting."} /></Text>
-      </View>
+            <TextInput
+              style={styles.amountInput}
+              accessibilityLabel="Amount"
+              keyboardType="decimal-pad"
+              value={amount}
+              onChangeText={Platform.OS === "android" ? value => setAmount(value.replace(",", ".")) : setAmount}
+              placeholder="0.00"
+              placeholderTextColor="#94A3B8"
+            />
+          </View>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>
-          <Translated text={"Amount"} /></Text>
+          <Text style={[recordFormStyles.label, styles.fieldSpacing]}>
+            <Translated text={"Income Source"} /></Text>
 
-        <View style={styles.amountContainer}>
-          <Text style={styles.currency}>
-            $
-          </Text>
+          <View style={styles.row}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.choice,
+                source === "gig_platform" &&
+                  styles.choiceActive,
+                pressed && styles.choicePressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: source === "gig_platform" }}
+              onPress={() =>
+                setSource("gig_platform")
+              }
+            >
+              <Text
+                style={[
+                  styles.choiceText,
+                  source === "gig_platform" &&
+                    styles.choiceTextActive,
+                ]}
+              >
+                <Translated text={"Gig Platform"} /></Text>
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.choice,
+                source === "business" &&
+                  styles.choiceActive,
+                pressed && styles.choicePressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: source === "business" }}
+              onPress={() =>
+                setSource("business")
+              }
+            >
+              <Text
+                style={[
+                  styles.choiceText,
+                  source === "business" &&
+                    styles.choiceTextActive,
+                ]}
+              >
+                <Translated text={"Business"} /></Text>
+            </Pressable>
+          </View>
+
+          {source === "gig_platform" && (
+            <>
+              <Text style={[recordFormStyles.label, styles.fieldSpacing]}>
+                <Translated text={"Platform"} /></Text>
+
+              <PlatformTiles platforms={platforms} value={platform} onChange={value => { if (value) setPlatform(value as TripPlatform); }} disabled={loading} />
+            </>
+          )}
+
+          {source === "business" && (
+            <>
+              <Text style={[recordFormStyles.label, styles.fieldSpacing]}>
+                <Translated text={"Business Name"} /></Text>
+
+              <TextInput
+                style={styles.input}
+                accessibilityLabel="Business Name"
+                value={businessName}
+                onChangeText={setBusinessName}
+                placeholder="Business Name"
+                placeholderTextColor="#94A3B8"
+              />
+            </>
+          )}
+        </View>
+      }
+      aside={
+        <View style={recordFormStyles.card}>
+          <Text style={recordFormStyles.label}>
+            <Translated text={"Notes"} /></Text>
 
           <TextInput
-            style={styles.amountInput}
-            keyboardType="decimal-pad"
-            value={amount}
-            onChangeText={Platform.OS === "android" ? value => setAmount(value.replace(",", ".")) : setAmount}
-            placeholder="0.00"
+            style={[styles.input, styles.notes]}
+            multiline
+            accessibilityLabel="Notes"
+            value={notes}
+            onChangeText={setNotes}
+            placeholder="Optional notes..."
             placeholderTextColor="#94A3B8"
           />
         </View>
-
-        <Text style={styles.label}>
-          <Translated text={"Income Source"} /></Text>
-
-        <View style={styles.row}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.choice,
-              source === "gig_platform" &&
-                styles.choiceActive,
-              pressed && styles.choicePressed,
-            ]}
-            onPress={() =>
-              setSource("gig_platform")
-            }
-          >
-            <Text
-              style={[
-                styles.choiceText,
-                source === "gig_platform" &&
-                  styles.choiceTextActive,
-              ]}
-            >
-              <Translated text={"Gig Platform"} /></Text>
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.choice,
-              source === "business" &&
-                styles.choiceActive,
-              pressed && styles.choicePressed,
-            ]}
-            onPress={() =>
-              setSource("business")
-            }
-          >
-            <Text
-              style={[
-                styles.choiceText,
-                source === "business" &&
-                  styles.choiceTextActive,
-              ]}
-            >
-              <Translated text={"Business"} /></Text>
-          </Pressable>
-        </View>
-
-        {source === "gig_platform" && (
-          <>
-            <Text style={styles.label}>
-              <Translated text={"Platform"} /></Text>
-
-            <PlatformTiles platforms={platforms} value={platform} onChange={value => { if (value) setPlatform(value as TripPlatform); }} disabled={loading} />
-          </>
-        )}
-
-        {source === "business" && (
-          <>
-            <Text style={styles.label}>
-              <Translated text={"Business Name"} /></Text>
-
-            <TextInput
-              style={styles.input}
-              value={businessName}
-              onChangeText={setBusinessName}
-              placeholder="Business Name"
-              placeholderTextColor="#94A3B8"
-            />
-          </>
-        )}
-
-        <Text style={styles.label}>
-          <Translated text={"Notes"} /></Text>
-
-        <TextInput
-          style={[styles.input, styles.notes]}
-          multiline
-          value={notes}
-          onChangeText={setNotes}
-          placeholder="Optional notes..."
-          placeholderTextColor="#94A3B8"
-        />
-
+      }
+      actions={
         <Pressable
+          accessibilityRole="button"
           disabled={loading || (Platform.OS === "android" && (!Number.isFinite(Number(amount)) || Number(amount) <= 0))}
           style={({ pressed }) => [
             styles.button,
@@ -218,70 +217,18 @@ export function IncomeForm({
           onPress={handleSubmit}
         >
           <Text style={styles.buttonText}>
-            {loading ? <Translated text={"Saving..."} /> : submitLabel}
+            {loading ? <Translated text={"Saving..."} /> : t(submitLabel)}
           </Text>
         </Pressable>
-      </View>
-    </ScrollView>
+      }
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
-
-  content: {
-    padding: 20,
-    paddingBottom: 48,
-  },
-
-  header: {
-    marginBottom: 20,
-  },
-
-  eyebrow: {
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 1.2,
-    color: "#64748B",
-    marginBottom: 4,
-  },
-
-  title: {
-    fontSize: 28,
-    lineHeight: 34,
-    fontWeight: "800",
-    letterSpacing: -0.7,
-    color: "#111827",
-  },
-
-  subtitle: {
-    marginTop: 5,
-    fontSize: 14,
-    lineHeight: 20,
-    color: "#64748B",
-  },
-
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    padding: 18,
-  },
-
-  label: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#334155",
-    marginBottom: 8,
-    marginTop: 18,
-  },
-
+  fieldSpacing: { marginTop: 16 },
   amountContainer: {
-    height: 58,
+    minHeight: 58,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#F8FAFC",
@@ -300,7 +247,8 @@ const styles = StyleSheet.create({
 
   amountInput: {
     flex: 1,
-    height: "100%",
+    minWidth: 0,
+    paddingVertical: 10,
     fontSize: 24,
     fontWeight: "700",
     color: "#111827",
@@ -321,6 +269,7 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 12,
+    paddingVertical: 8,
   },
 
   choiceActive: {
@@ -333,48 +282,13 @@ const styles = StyleSheet.create({
   },
 
   choiceText: {
+    textAlign: "center",
     fontSize: 14,
     fontWeight: "600",
     color: "#475569",
   },
 
   choiceTextActive: {
-    color: "#3559C7",
-    fontWeight: "700",
-  },
-
-  wrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-
-  platform: {
-    paddingHorizontal: 13,
-    paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    backgroundColor: "#FFFFFF",
-  },
-
-  platformActive: {
-    backgroundColor: "#DCE6FF",
-    borderColor: "#4A6FE3",
-  },
-
-  platformPressed: {
-    transform: [{ scale: 0.97 }],
-  },
-
-  platformText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#475569",
-    textTransform: "capitalize",
-  },
-
-  platformTextActive: {
     color: "#3559C7",
     fontWeight: "700",
   },
@@ -391,14 +305,14 @@ const styles = StyleSheet.create({
   },
 
   notes: {
-    height: 110,
+    minHeight: 110,
     paddingTop: 14,
     textAlignVertical: "top",
   },
 
   button: {
     minHeight: 52,
-    marginTop: 24,
+    padding: 12,
     borderRadius: 13,
     backgroundColor: "#4A6FE3",
     alignItems: "center",

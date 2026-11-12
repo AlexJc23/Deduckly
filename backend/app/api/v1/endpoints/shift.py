@@ -27,7 +27,7 @@ def detail(client_id: str, db: Session = Depends(get_db), user: User = Depends(g
     return snapshot(get_shift(db, user.id, client_id))
 
 @router.put('/{client_id}', response_model=ShiftSnapshot)
-def synchronize(client_id: str, data: ShiftSnapshot, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+def synchronize(client_id: str, data: ShiftSnapshot, vehicle_id: str | None = Query(None, max_length=36), db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     if data.client_id != client_id:
         raise HTTPException(422, 'Shift identity mismatch')
-    return sync_shift(db, user.id, data)
+    return sync_shift(db, user.id, data, vehicle_id=vehicle_id)

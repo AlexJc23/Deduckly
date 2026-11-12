@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session, lazyload
 from app.models import User, Shift, ShiftPlatformSession, ShiftSegment
 from app.schemas.v1.shift import ShiftSnapshot
+from app.services.vehicle_reporting import owned_vehicle
 
 
 LOCATION_FIELDS = ('start_lat', 'start_lng', 'end_lat', 'end_lng', 'start_address', 'end_address')
@@ -30,7 +31,7 @@ def snapshot(row):
             excluded=s.excluded, reviewed=s.reviewed, save_requested=s.save_requested, converted_at=iso(s.converted_at), trip_id=s.trip_id, platform_client_id=sessions.get(s.platform_session_id)) for s in sorted(row.segments, key=lambda x: (iso(x.started_at), x.client_id))])
 
 
-def sync_shift(db: Session, owner: int, data: ShiftSnapshot):
+def sync_shift(db: Session, owner: int, data: ShiftSnapshot, *, vehicle_id: str | None = None):
     # User lock serializes same-owner creates (including competing new IDs).
     try:
         user = db.query(User).options(lazyload("*")).filter_by(id=owner).with_for_update().populate_existing().first()
@@ -50,6 +51,8 @@ def sync_shift(db: Session, owner: int, data: ShiftSnapshot):
         digest = hashlib.sha256(json.dumps(canonical, sort_keys=True).encode()).hexdigest()
         row = db.query(Shift).filter_by(user_id=owner, client_id=data.client_id).with_for_update().populate_existing().first()
         if row and row.revision == data.revision and row.sync_fingerprint == digest:
+            if vehicle_id and not row.vehicle_id:
+                row.vehicle_id = owned_vehicle(db, owner, vehicle_id, allow_deleted=True).id
             result = snapshot(row)
             db.commit()
             return result
@@ -76,6 +79,8 @@ def sync_shift(db: Session, owner: int, data: ShiftSnapshot):
             row = Shift(user_id=owner, client_id=data.client_id, started_at=data.started_at)
             db.add(row)
             db.flush()
+        if vehicle_id and not row.vehicle_id:
+            row.vehicle_id = owned_vehicle(db, owner, vehicle_id, allow_deleted=True).id
         row.ended_at, row.planned_end_at = data.ended_at, data.planned_end_at
         periods = {p.client_id: p for p in row.platform_sessions}
         for p in data.platform_sessions:
