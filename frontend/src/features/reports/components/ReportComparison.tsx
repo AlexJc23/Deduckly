@@ -1,6 +1,7 @@
 import { View, Text } from '@/theme/components';
 import { useLanguage } from '@/i18n/language';
 import { CurrentReport } from '../types/report.types';
+import { reportImpactColor } from '../utils/report-display';
 import { ReportSection } from './ReportPresentation';
 
 export function ReportComparison({ report }: { report: CurrentReport }) {
@@ -22,10 +23,11 @@ export function ReportComparison({ report }: { report: CurrentReport }) {
       ] as const).map(([label, key, currency]) => {
         const current = Number(report[key]); const before = Number(previous[key]);
         const delta = current - before;
+        const color = reportImpactColor(delta, key === 'total_expenses');
         return <View key={key} style={{ gap: 4 }}>
           <Text style={{ fontWeight: '600' }}>{t(label)}</Text>
           <Text>{amount(current, currency)}{!currency ? ` ${t('miles')}` : ''} · {t('Last month')}: {amount(before, currency)}{!currency ? ` ${t('miles')}` : ''}</Text>
-          <Text style={{ color: '#64748B', fontSize: 13 }}>{delta > 0 ? '+' : delta < 0 ? '−' : ''}{amount(Math.abs(delta), currency)}{!currency ? ` ${t('miles')}` : ''}{before > 0 ? ` (${delta > 0 ? '+' : ''}${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(delta / before * 100)}%)` : ''}</Text>
+          <Text style={{ color, fontSize: 13, fontWeight: '700' }}>{delta > 0 ? '+' : delta < 0 ? '−' : ''}{amount(Math.abs(delta), currency)}{!currency ? ` ${t('miles')}` : ''}{before > 0 ? ` (${delta > 0 ? '+' : ''}${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(delta / before * 100)}%)` : ''}</Text>
         </View>;
       })}
     </View>

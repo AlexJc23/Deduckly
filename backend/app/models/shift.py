@@ -28,6 +28,7 @@ class Shift(ShiftTimestamps, Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     client_id: Mapped[str] = mapped_column(String(128), nullable=False)
     revision: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    vehicle_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("user_vehicles.id", ondelete="SET NULL"), nullable=True)
     sync_fingerprint: Mapped[str | None] = mapped_column(String(64), nullable=True)
     planned_end_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # DB cascades cover account deletion without adding queries to User paths.

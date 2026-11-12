@@ -21,15 +21,82 @@ const trip = { category: 'business', platform: 'spark', trackingMethod: 'automat
     const h=harness(), e=h.engine(), j=h.load('@/features/shifts/journal');
     await e.startShiftRecording('1',null,null); await e.endShiftRecording('1',(await j.activeShift('1')).data.client_id); assert.equal(h.state.native,false);
   });
-  await test('one location batch reaches both consumers without combining their accounting', async () => {
+  await test('an individual Trip owns its GPS fixes and the Shift stays active', async () => {
     const h=harness(), e=h.engine(), j=h.load('@/features/shifts/journal');
     await e.startShiftRecording('1','spark',null); await e.startRecording('1',trip);
     await h.tasks.get(e.TRIP_LOCATION_TASK)({data:{locations:[h.location(h.point(10)),h.location(h.point(20)),h.location(h.point(30))]}});
     assert((await h.journal().getActiveTrip('1')).distanceMiles>0);
-    assert((await j.activeShift('1')).detector.miles>0);
+    assert.equal((await j.activeShift('1')).detector.miles,0);
     const shift=await j.activeShift('1'); await e.endShiftRecording('1',shift.data.client_id);
     assert(await h.journal().getActiveTrip('1')); assert.equal((await h.journal().pendingTrips('1')).length,0);
     const done=(await j.listShifts('1'))[0]; assert(done.data.segments.every(s=>s.ended_at<=done.data.ended_at));
+  });
+  await test('a mid-drive individual Trip splits Shift detection and old callbacks cannot bridge it', async () => {
+    const original = Date.now; let now = new Date(2026, 10, 10, 10).getTime(); Date.now = () => now;
+    try {
+      const h = harness(), e = h.engine(), j = h.load('@/features/shifts/journal');
+      const step = async (i) => {
+        now += 10_000;
+        await h.tasks.get(e.TRIP_LOCATION_TASK)({data:{locations:[h.location(h.point(i, now))]}});
+      };
+      await e.startShiftRecording('1', 'spark', null);
+      for (let i = 0; i < 60; i += 10) await step(i);
+      const before = await j.activeShift('1'); assert(before.detector.driving);
+      now += 1000;
+      await e.startRecording('1', trip);
+      const startedAt = (await h.journal().getActiveTrip('1')).startTime;
+      assert.equal((await j.activeShift('1')).data.segments.length, 1);
+      for (let i = 60; i < 120; i += 10) await step(i);
+      assert.equal((await j.activeShift('1')).detector.miles, 0);
+      const endedAt = now;
+      await e.endRecording('1');
+      const first = (await j.activeShift('1')).data.segments[0];
+      assert(Date.parse(first.ended_at) <= startedAt);
+      await h.tasks.get(e.TRIP_LOCATION_TASK)({data:{locations:[h.location(h.point(111, endedAt - 2000))]}});
+      assert.equal((await j.activeShift('1')).detector.last, undefined);
+      for (let i = 120; i < 180; i += 10) await step(i);
+      await e.endShiftRecording('1', before.data.client_id);
+      const segments = (await j.listShifts('1'))[0].data.segments;
+      assert.equal(segments.length, 2);
+      assert(Date.parse(segments[1].started_at) > endedAt);
+      assert.equal((await h.journal().pendingTrips('1')).length, 1);
+    } finally { Date.now = original; }
+  });
+  await test('the recorded default vehicle survives a default change and reaches both upload paths', async () => {
+    const h = harness(), e = h.engine(), j = h.load('@/features/shifts/journal');
+    const key = '@deduckly/vehicles:v1:1';
+    const saveDefault = id => h.disk.set(key, JSON.stringify({
+      version:1, owner:'1', vehicles:[{id,is_default:true,deleted:false,version:1,make:'Make',model:'Model'}],
+      pending:[], prices:{}, quotes:{}
+    }));
+    saveDefault('start-vehicle');
+    await e.startShiftRecording('1', null, null);
+    await e.startRecording('1', trip);
+    saveDefault('next-vehicle');
+    assert.equal((await j.activeShift('1')).vehicleId, 'start-vehicle');
+    assert.equal((await h.journal().getActiveTrip('1')).vehicleId, 'start-vehicle');
+    await h.tasks.get(e.TRIP_LOCATION_TASK)({data:{locations:[h.location(h.point(10)),h.location(h.point(20)),h.location(h.point(30))]}});
+    await e.endRecording('1');
+    assert.equal((await h.journal().pendingTrips('1'))[0].payload.vehicle_id, 'start-vehicle');
+    h.state.beforeShiftUpload = (_, config) => assert.equal(config.params.vehicle_id, 'start-vehicle');
+    await h.load('@/features/shifts/sync').syncShifts();
+    await h.load('@/features/tracking/services/trip-journal-sync').syncRecordedTrips();
+    assert.equal(h.state.remote[0].vehicle_id, 'start-vehicle');
+  });
+  await test('cold vehicle cache checks the server and an offline lookup does not block recording', async () => {
+    for (const offline of [false, true]) {
+      const h = harness(), engine = h.engine(), shifts = h.load('@/features/shifts/journal');
+      h.state.remoteVehicles = [
+        { id: 'deleted-default', is_default: true, deleted: true },
+        { id: 'saved-default', is_default: true, deleted: false },
+      ];
+      h.state.vehicleLookupFails = offline;
+      await engine.startShiftRecording('1', null, null);
+      await engine.startRecording('1', trip);
+      const expected = offline ? undefined : 'saved-default';
+      assert.equal((await shifts.activeShift('1')).vehicleId, expected);
+      assert.equal((await h.journal().getActiveTrip('1')).vehicleId, expected);
+    }
   });
   await test('restart restores Shift alone and both consumers; logout isolates owners', async () => {
     for (const withTrip of [false,true]) {
@@ -105,6 +172,67 @@ const trip = { category: 'business', platform: 'spark', trackingMethod: 'automat
   await test('Shift corruption does not overwrite stored records', async () => {
     const h=harness(); h.disk.set('@deduckly/shift-journal:v1','broken'); const j=h.load('@/features/shifts/journal');
     await assert.rejects(j.startShift('1',null,null)); assert.equal(h.disk.get('@deduckly/shift-journal:v1'),'broken');
+  });
+  await test('competing active Shift recovers after local end, restart and lost acknowledgement', async () => {
+    const h=harness(), j=h.load('@/features/shifts/journal');
+    const e=await j.startShift('1','spark',null);
+    const id=e.data.client_id;
+    const rejectActive=payload=>{ if (!payload.ended_at) throw { response: { status: 409, data: { detail: 'Another shift is active' } } }; };
+    h.state.beforeShiftUpload=rejectActive;
+    const shiftSync=h.load('@/features/shifts/sync');
+    await assert.rejects(shiftSync.syncShifts(), error=>error.response.status===409);
+    // Manual Trips are independent even while this account has a blocked Shift.
+    const tripJournal=h.journal();
+    const manual=await tripJournal.beginTrip('1',trip,h.point());
+    await tripJournal.recordPoints(manual.id,[h.point(1),h.point(2),h.point(3),h.point(4)]);
+    await tripJournal.finishTrip('1');
+    assert.equal(await h.load('@/features/tracking/services/trip-journal-sync').syncRecordedTrips(),null);
+    assert.equal((await tripJournal.pendingTrips('1')).length,0);
+    assert.equal(h.state.remote.length,1);
+    const frozen=await j.prepareShiftUpload('1');
+    await j.editShift('1',id,entry=>entry.data.segments.push({
+      client_id:'recorded-segment', started_at:entry.data.started_at, ended_at:entry.data.started_at,
+      distance_miles:2.25, category:'business', excluded:false, platform_client_id:entry.data.platform_sessions[0].client_id,
+      start_lat:40, start_lng:-74, start_address:'Original address',
+    }));
+    await j.endShift('1',id);
+    assert.deepEqual(await j.prepareShiftUpload('1'),frozen);
+    const resumed=harness(h.disk), restored=resumed.load('@/features/shifts/journal');
+    resumed.state.beforeShiftUpload=rejectActive;
+    resumed.state.lostResponse=true;
+    await assert.rejects(resumed.load('@/features/shifts/sync').syncShifts(),/Response lost/);
+    const ended=await restored.prepareShiftUpload('1');
+    assert.equal(ended.client_id,id);assert.equal(ended.revision,frozen.revision);assert(ended.ended_at);
+    assert.equal(ended.segments[0].start_address,'Original address');
+    assert.equal(ended.segments[0].distance_miles,2.25);
+    resumed.state.lostResponse=false;
+    await resumed.load('@/features/shifts/sync').syncShifts();
+    assert.equal(resumed.state.remoteShifts.length,1);assert.equal(await restored.prepareShiftUpload('1'),null);
+  });
+  await test('a revision conflict preserves the frozen snapshot and does not block unrelated records', async () => {
+    const h=harness(), j=h.load('@/features/shifts/journal');
+    const first=await j.startShift('1',null,null);
+    const frozen=await j.prepareShiftUpload('1');
+    await j.endShift('1',first.data.client_id);
+    const second=await j.startShift('1',null,null);
+    const attempts=[];
+    h.state.beforeShiftUpload=data=>{
+      attempts.push(data.client_id);
+      if(data.client_id===first.data.client_id)throw {response:{status:409,data:{detail:'Shift revision conflict'}}};
+    };
+    await assert.rejects(h.load('@/features/shifts/sync').syncShifts(),error=>error.response.status===409);
+    assert.deepEqual(attempts,[first.data.client_id,second.data.client_id]);
+    assert.deepEqual(await j.prepareShiftUpload('1'),frozen);
+    assert((await j.listShifts('1'))[0].data.ended_at);
+    assert.deepEqual(h.state.remoteShifts.map(item=>item.client_id),[second.data.client_id]);
+  });
+  await test('server-only history reflects another device ending a Shift and ignores older history', async () => {
+    const h=harness(), j=h.load('@/features/shifts/journal');
+    const snapshot={client_id:'remote-shift',revision:1,started_at:'2026-11-01T15:00:00Z',ended_at:null,platform_sessions:[],segments:[],planned_end_at:null};
+    await j.importShiftHistory('1',[snapshot]);
+    const ended={...snapshot,revision:2,ended_at:'2026-11-01T16:00:00Z'};
+    await j.importShiftHistory('1',[ended,snapshot]);
+    assert.deepEqual((await j.listShifts('1'))[0].data,ended);
   });
   console.log(`${count} Shift checks passed`);
 })().catch(error=>{console.error(error);process.exitCode=1;});

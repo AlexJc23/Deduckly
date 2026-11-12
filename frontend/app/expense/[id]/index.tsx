@@ -1,475 +1,91 @@
-import { useLanguage, Translated } from "@/i18n/language";
-import { Pressable, ScrollView, Text, View } from "@/theme/components";
-import {
-  Stack,
-  useLocalSearchParams,
-  router,
-} from "expo-router";
-import { ActivityIndicator, StyleSheet, Image } from "react-native";
-import { useCallback, useState } from "react";
-import { useFocusEffect } from "@react-navigation/native";
-
-import { useDeleteExpense } from "@/features/expenses/hooks/use-delete-expense";
-import { useExpenseDetail } from "@/features/expenses/hooks/use-expense-detail";
-import { DeleteExpenseModal } from "@/features/expenses/modals/DeleteExpenseModal";
-import { EXPENSE_CATEGORY_LABELS } from "@/constants/expense-category-labels";
-import { ScreenHeader } from "@/components/ui/ScreenHeader";
-import { useIsTablet } from "@/hooks/use-is-tablet";
+import { useCallback, useState } from 'react';
+import { Image, StyleSheet } from 'react-native';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { RecordAction, RecordAmount, RecordDetails, RecordDetailsScreen, RecordDetailsStatus, RecordField } from '@/components/ui/RecordDetails';
+import { EXPENSE_CATEGORY_LABELS } from '@/constants/expense-category-labels';
+import { useDeleteExpense } from '@/features/expenses/hooks/use-delete-expense';
+import { useExpenseDetail } from '@/features/expenses/hooks/use-expense-detail';
+import { DeleteExpenseModal } from '@/features/expenses/modals/DeleteExpenseModal';
+import { useLanguage } from '@/i18n/language';
+import { Text, View } from '@/theme/components';
 
 export default function ExpenseDetailsScreen() {
-  useLanguage();
-  const { id } = useLocalSearchParams<{
-    id: string;
-  }>();
-
+  const { t, locale } = useLanguage();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const expenseId = Number(id);
-  const isTablet = useIsTablet();
-  const styles = getStyles(isTablet);
-
-  const expenseQuery =
-    useExpenseDetail(expenseId);
-
-  const [showDeleteModal, setShowDeleteModal] =
-    useState(false);
-
+  const validExpenseId = Number.isSafeInteger(expenseId) && expenseId > 0;
+  const query = useExpenseDetail(expenseId);
+  const { refetch } = query;
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const deleteMutation = useDeleteExpense();
 
   useFocusEffect(
     useCallback(() => {
-      expenseQuery.refetch();
-    }, [expenseQuery]),
+      if (validExpenseId) void refetch({ cancelRefetch: false });
+    }, [expenseId, validExpenseId, refetch]),
   );
 
-  if (expenseQuery.isPending) {
+  const expense = query.data;
+  if (!validExpenseId || query.isPending || query.isError || !expense) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator />
-      </View>
+      <RecordDetailsScreen title="Expense Details">
+        <RecordDetailsStatus
+          loading={validExpenseId && query.isPending}
+          message="Failed to load expense."
+          retry={validExpenseId ? () => void refetch({ cancelRefetch: false }) : undefined}
+          retrying={query.isFetching}
+        />
+      </RecordDetailsScreen>
     );
   }
 
-  if (
-    expenseQuery.isError ||
-    !expenseQuery.data
-  ) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>
-          <Translated text={"Failed to load expense."} /></Text>
-      </View>
-    );
-  }
-
-  const expense = expenseQuery.data;
-
+  const date = new Date(expense.incurred_at);
   return (
-    <>
-      <Stack.Screen
-        options={{
-          title: "Expense Details",
-          headerShown: false,
+    <RecordDetailsScreen title="Expense Details">
+      <RecordDetails
+        summary={<RecordAmount value={expense.amount} kind="expense" />}
+        fields={<>
+          <RecordField label="Category" value={t(EXPENSE_CATEGORY_LABELS[expense.category] ?? 'Other')} />
+          <RecordField label="Merchant" value={expense.merchant?.trim() || t('Not provided')} />
+          <RecordField
+            label="Date"
+            value={Number.isFinite(date.getTime()) ? date.toLocaleDateString(locale, { dateStyle: 'medium' }) : t('Not provided')}
+          />
+          <RecordField label="Business Percentage" value={`${expense.business_percentage}%`} />
+        </>}
+        aside={<>
+          {expense.description?.trim() && <RecordField label="Description" value={expense.description} section />}
+          <Text accessibilityRole="header" style={styles.sectionTitle}>{t('Receipt')}</Text>
+          {expense.receipt_url ? (
+            <View style={styles.receipt}>
+              <Image accessible accessibilityLabel={t('Receipt')} source={{ uri: expense.receipt_url }} resizeMode="contain" style={styles.preview} />
+            </View>
+          ) : <Text style={styles.empty}>{t('No receipt attached')}</Text>}
+        </>}
+        actions={<>
+          <RecordAction label="Edit Expense" icon="create-outline" onPress={() => router.push(`/expense/${expense.id}/edit`)} />
+          <RecordAction label="Delete Expense" icon="trash-outline" destructive onPress={() => setShowDeleteModal(true)} />
+        </>}
+      />
+      <DeleteExpenseModal
+        visible={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onDelete={() => {
+          deleteMutation.mutate(expense.id, {
+            onSuccess: () => {
+              setShowDeleteModal(false);
+              router.back();
+            },
+          });
         }}
       />
-
-      <ScreenHeader title="Expense Details" />
-
-      <ScrollView
-        style={styles.screen}
-        contentContainerStyle={
-          styles.container
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.contentInner}>
-          <View style={styles.header}>
-            <Text style={styles.eyebrow}>
-              <Translated text={"EXPENSE"} /></Text>
-
-            <Text style={styles.title}>
-              <Translated text={"Expense Details"} /></Text>
-
-            <Text style={styles.subtitle}>
-              <Translated text={"Review the details of this expense."} /></Text>
-          </View>
-
-          <View style={styles.card}>
-            <View style={styles.amountSection}>
-              <Text style={styles.amountLabel}>
-                <Translated text={"Amount"} /></Text>
-
-              <Text style={styles.amount}>
-                $
-                {Number(expense.amount).toFixed(
-                  2,
-                )}
-              </Text>
-            </View>
-
-            <View style={styles.divider} />
-
-            <DetailRow
-              label="Date"
-              value={new Date(
-                expense.incurred_at,
-              ).toLocaleDateString()}
-              isTablet={isTablet}
-            />
-
-            <DetailRow
-              label="Category"
-              value={
-                EXPENSE_CATEGORY_LABELS[
-                  expense.category
-                ]
-              }
-              isTablet={isTablet}
-            />
-
-            <DetailRow
-              label="Merchant"
-              value={
-                expense.merchant ??
-                "Not provided"
-              }
-              isTablet={isTablet}
-            />
-
-            <DetailRow
-              label="Description"
-              value={
-                expense.description ??
-                "Not provided"
-              }
-              isTablet={isTablet}
-            />
-
-            <DetailRow
-              label="Business Percentage"
-              value={`${expense.business_percentage}%`}
-              isTablet={isTablet}
-            />
-          </View>
-
-          <View style={styles.receiptCard}>
-            <Text style={styles.sectionTitle}>
-              <Translated text={"Receipt"} /></Text>
-
-            {expense.receipt_url ? (
-              <Image
-                source={{
-                  uri: expense.receipt_url,
-                }}
-                style={styles.receiptImage}
-              />
-            ) : (
-              <View style={styles.noReceipt}>
-                <Text
-                  style={
-                    styles.noReceiptText
-                  }
-                >
-                  <Translated text={"No receipt attached"} /></Text>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <Pressable
-              style={({ pressed }) => [
-                styles.editButton,
-                pressed &&
-                  styles.editButtonPressed,
-              ]}
-              onPress={() =>
-                router.push(
-                  `/expense/${expense.id}/edit`,
-                )
-              }
-            >
-              <Text
-                style={styles.editButtonText}
-              >
-                <Translated text={"Edit Expense"} /></Text>
-            </Pressable>
-
-            <Pressable
-              style={({ pressed }) => [
-                styles.deleteButton,
-                pressed &&
-                  styles.deleteButtonPressed,
-              ]}
-              onPress={() =>
-                setShowDeleteModal(true)
-              }
-            >
-              <Text
-                style={
-                  styles.deleteButtonText
-                }
-              >
-                <Translated text={"Delete Expense"} /></Text>
-            </Pressable>
-          </View>
-
-          <DeleteExpenseModal
-            visible={showDeleteModal}
-            onClose={() =>
-              setShowDeleteModal(false)
-            }
-            onDelete={() => {
-              deleteMutation.mutate(
-                expense.id,
-                {
-                  onSuccess: () => {
-                    setShowDeleteModal(false);
-                    router.back();
-                  },
-                },
-              );
-            }}
-          />
-        </View>
-      </ScrollView>
-    </>
+    </RecordDetailsScreen>
   );
 }
 
-function DetailRow({
-  label,
-  value,
-  isTablet,
-}: {
-  label: string;
-  value: string;
-  isTablet: boolean;
-}) {
-  useLanguage();
-  const styles = getStyles(isTablet);
-
-  return (
-    <View style={styles.row}>
-      <Text style={styles.label}>
-        {<Translated text={label} />}
-      </Text>
-
-      <Text style={styles.value}>
-        {value}
-      </Text>
-    </View>
-  );
-}
-
-const getStyles = (isTablet: boolean) =>
-  StyleSheet.create({
-    screen: {
-      flex: 1,
-      backgroundColor: "#F8FAFC",
-    },
-
-    center: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "#F8FAFC",
-    },
-
-    errorText: {
-      fontSize: isTablet ? 17 : 15,
-      color: "#64748B",
-    },
-
-    container: {
-      paddingHorizontal: isTablet ? 34 : 20,
-      paddingTop: isTablet ? 24 : 20,
-      paddingBottom: isTablet ? 60 : 48,
-    },
-
-    contentInner: {
-      width: "100%",
-      maxWidth: isTablet ? 1000 : undefined,
-      alignSelf: isTablet ? "center" : undefined,
-    },
-
-    header: {
-      marginBottom: isTablet ? 28 : 20,
-    },
-
-    eyebrow: {
-      fontSize: isTablet ? 11 : 10,
-      fontWeight: "800",
-      letterSpacing: 1.2,
-      color: "#64748B",
-      marginBottom: 5,
-    },
-
-    title: {
-      fontSize: isTablet ? 36 : 28,
-      lineHeight: isTablet ? 43 : 34,
-      fontWeight: "800",
-      letterSpacing: -0.7,
-      color: "#111827",
-    },
-
-    subtitle: {
-      marginTop: 7,
-      fontSize: isTablet ? 15 : 14,
-      lineHeight: isTablet ? 22 : 20,
-      color: "#64748B",
-    },
-
-    card: {
-      backgroundColor: "#FFFFFF",
-      borderRadius: isTablet ? 22 : 18,
-      borderWidth: 1,
-      borderColor: "#E5E7EB",
-      padding: isTablet ? 24 : 18,
-
-      shadowColor: "#111827",
-      shadowOpacity: 0.04,
-      shadowRadius: 10,
-      shadowOffset: {
-        width: 0,
-        height: 3,
-      },
-
-      elevation: 2,
-    },
-
-    amountSection: {
-      paddingVertical: isTablet ? 6 : 4,
-    },
-
-    amountLabel: {
-      fontSize: isTablet ? 14 : 13,
-      fontWeight: "700",
-      color: "#64748B",
-      marginBottom: 6,
-    },
-
-    amount: {
-      fontSize: isTablet ? 42 : 32,
-      lineHeight: isTablet ? 50 : 38,
-      fontWeight: "800",
-      color: "#111827",
-      letterSpacing: -0.7,
-    },
-
-    divider: {
-      height: 1,
-      backgroundColor: "#E5E7EB",
-      marginVertical: isTablet ? 10 : 6,
-    },
-
-    row: {
-      paddingVertical: isTablet ? 15 : 12,
-    },
-
-    label: {
-      fontSize: isTablet ? 13 : 12,
-      fontWeight: "700",
-      color: "#64748B",
-      marginBottom: 5,
-    },
-
-    value: {
-      fontSize: isTablet ? 17 : 15,
-      lineHeight: isTablet ? 24 : 21,
-      color: "#111827",
-      fontWeight: "600",
-    },
-
-    receiptCard: {
-      marginTop: isTablet ? 20 : 16,
-      backgroundColor: "#FFFFFF",
-      borderRadius: isTablet ? 22 : 18,
-      borderWidth: 1,
-      borderColor: "#E5E7EB",
-      padding: isTablet ? 24 : 18,
-
-      shadowColor: "#111827",
-      shadowOpacity: 0.04,
-      shadowRadius: 10,
-      shadowOffset: {
-        width: 0,
-        height: 3,
-      },
-
-      elevation: 2,
-    },
-
-    sectionTitle: {
-      fontSize: isTablet ? 19 : 16,
-      fontWeight: "800",
-      color: "#111827",
-      marginBottom: isTablet ? 15 : 12,
-    },
-
-    receiptImage: {
-      width: "100%",
-      height: isTablet ? 380 : 240,
-      borderRadius: isTablet ? 16 : 13,
-      resizeMode: "cover",
-    },
-
-    noReceipt: {
-      height: isTablet ? 130 : 90,
-      borderWidth: 1,
-      borderStyle: "dashed",
-      borderColor: "#CBD5E1",
-      borderRadius: isTablet ? 16 : 13,
-      backgroundColor: "#F8FAFC",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    noReceiptText: {
-      fontSize: isTablet ? 15 : 13,
-      color: "#94A3B8",
-      fontWeight: "600",
-    },
-
-    buttonContainer: {
-      marginTop: isTablet ? 24 : 18,
-    },
-
-    editButton: {
-      minHeight: isTablet ? 64 : 52,
-      backgroundColor: "#4A6FE3",
-      borderRadius: isTablet ? 17 : 13,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    editButtonPressed: {
-      backgroundColor: "#3559C7",
-      transform: [{ scale: 0.985 }],
-    },
-
-    editButtonText: {
-      color: "#FFFFFF",
-      fontSize: isTablet ? 17 : 15,
-      fontWeight: "700",
-    },
-
-    deleteButton: {
-      minHeight: isTablet ? 60 : 50,
-      marginTop: isTablet ? 12 : 10,
-      backgroundColor: "#FEF2F2",
-      borderRadius: isTablet ? 17 : 13,
-      borderWidth: 1,
-      borderColor: "#FECACA",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-
-    deleteButtonPressed: {
-      backgroundColor: "#FEE2E2",
-      transform: [{ scale: 0.985 }],
-    },
-
-    deleteButtonText: {
-      color: "#DC2626",
-      fontSize: isTablet ? 17 : 15,
-      fontWeight: "700",
-    },
-  });
+const styles = StyleSheet.create({
+  sectionTitle: { fontSize: 18, fontWeight: '700' },
+  empty: { fontSize: 14, color: '#64748B' },
+  receipt: { backgroundColor: '#F1F5F9', borderRadius: 12, padding: 8 },
+  preview: { width: '100%', height: 240 },
+});

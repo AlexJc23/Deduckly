@@ -28,13 +28,9 @@ export function localDateString(date: Date): string {
 
 
 // Color describes the direction of the amount, not a change versus another period.
-export function reportImpact(value: unknown, isCost = false) {
+export function reportImpactColor(value: unknown, isCost = false) {
   const number = reportNumber(value);
-  if (number === null || number === 0) {
-    return { color: "#64748B", backgroundColor: "#F8FAFC", borderColor: "#E1E7EF" };
-  }
+  if (number === null || number === 0) return "#64748B";
   const positive = isCost ? number < 0 : number > 0;
-  return positive
-    ? { color: "#15803D", backgroundColor: "#F0FDF4", borderColor: "#CDE8D5" }
-    : { color: "#B91C1C", backgroundColor: "#FFF5F5", borderColor: "#F0D6D6" };
+  return positive ? "#15803D" : "#B91C1C";
 }

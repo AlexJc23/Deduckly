@@ -60,7 +60,7 @@ def create_trip(db: Session, trip_in: TripCreate, user_id: int) -> Trip:
     if existing:
         return existing
     from app.services.vehicle_reporting import owned_vehicle
-    if trip_in.vehicle_id: owned_vehicle(db, user_id, trip_in.vehicle_id)
+    if trip_in.vehicle_id: owned_vehicle(db, user_id, trip_in.vehicle_id, allow_deleted=True)
     deduction = _trip_deduction(db, trip_in.category, trip_in.start_time, trip_in.distance_miles, (db.query(User.timezone).filter(User.id==user_id).scalar() or "UTC"))
     values = trip_in.model_dump(exclude={"income_amount"})
     db_trip = Trip(**values, user_id=user_id, deduction_amount=deduction,

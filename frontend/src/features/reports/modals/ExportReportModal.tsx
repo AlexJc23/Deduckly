@@ -23,7 +23,7 @@ export function ExportReportModal({
   onClose,
   periodLabel,
 }: ExportReportModalProps) {
-  useLanguage();
+  const { t } = useLanguage();
   const [isMounted, setIsMounted] =
     useState(visible);
 
@@ -71,11 +71,10 @@ export function ExportReportModal({
       setFormat("pdf");
       onClose();
     } catch (error) {
-      localizedAlert("Export failed", "We couldn’t save this report. Please try again.");
-      console.error(
-        "Failed to export report:",
-        error,
-      );
+      const status = (error as { response?: { status?: number } }).response?.status;
+      localizedAlert("Export failed", status === 409
+        ? "This report changed. Refresh it before exporting again."
+        : "We couldn’t save this report. Please try again.");
     } finally {
       setIsExporting(false);
     }
@@ -141,7 +140,7 @@ export function ExportReportModal({
                 <Translated text={"Export Report"} /></Text>
 
               <Text style={styles.subtitle}>
-                {periodLabel ?? "Choose how to save your report."}
+                {periodLabel ?? t("Choose how to save your report.")}
               </Text>
             </View>
 
@@ -156,6 +155,9 @@ export function ExportReportModal({
 
           <View style={styles.options}>
             <Pressable
+              accessibilityRole="radio"
+              accessibilityState={{ selected: format === "pdf", disabled: isExporting }}
+              disabled={isExporting}
               onPress={() =>
                 setFormat("pdf")
               }
@@ -215,6 +217,9 @@ export function ExportReportModal({
             </Pressable>
 
             <Pressable
+              accessibilityRole="radio"
+              accessibilityState={{ selected: format === "csv", disabled: isExporting }}
+              disabled={isExporting}
               onPress={() =>
                 setFormat("csv")
               }
@@ -298,7 +303,7 @@ export function ExportReportModal({
             <Text style={styles.primaryText}>
               {isExporting
                 ? <Translated text={"Exporting..."} />
-                : `Export ${format.toUpperCase()}`}
+                : t(format === "pdf" ? "Export PDF" : "Export CSV")}
             </Text>
           </Pressable>
 

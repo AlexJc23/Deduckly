@@ -12,16 +12,27 @@ import { getAccountGeneration, isAccountChanging, subscribeAccountBoundary } fro
 import { trackingOwnerFromToken } from '@/features/tracking/services/tracking-owner';
 import { listShifts, subscribeShifts, type Entry } from './journal';
 import { syncShifts } from './sync';
-const Context = createContext<{ owner: string | null; entries: Entry[]; syncError: boolean; sync: () => Promise<void> }>({ owner: null, entries: [], syncError: false, sync: async () => {} });
+import { syncRecordedTrips } from '@/features/tracking/services/trip-journal-sync';
+import { describeSyncIssue, type SyncIssue } from '@/features/tracking/services/sync-issue';
+const Context = createContext<{ owner: string | null; entries: Entry[]; syncError: SyncIssue | null; sync: (retryTrips?: boolean) => Promise<void> }>({ owner: null, entries: [], syncError: null, sync: async () => {} });
 export function ShiftProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const [owner, setOwner] = useState<string | null>(null);
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [syncError, setSyncError] = useState(false);
-  const sync = useCallback(async () => {
+  const [syncError, setSyncError] = useState<SyncIssue | null>(null);
+  const sync = useCallback(async (retryTrips = false) => {
     const generation = getAccountGeneration();
-    try { const currentOwner = trackingOwnerFromToken(await getAccessToken()); if (currentOwner) await checkShiftDeadline(currentOwner); await syncShifts(); if (generation === getAccountGeneration()) setSyncError(false); }
-    catch { if (generation === getAccountGeneration()) setSyncError(true); }
+    // Manual retry also flushes Trips, even if the Shift queue is blocked.
+    if (retryTrips) await syncRecordedTrips();
+    if (generation !== getAccountGeneration() || isAccountChanging()) return;
+    try {
+      const currentOwner = trackingOwnerFromToken(await getAccessToken());
+      if (currentOwner) await checkShiftDeadline(currentOwner);
+      await syncShifts();
+      if (generation === getAccountGeneration()) setSyncError(null);
+    } catch (error) {
+      if (generation === getAccountGeneration()) setSyncError(describeSyncIssue(error, 'shift'));
+    }
   }, []);
   useEffect(() => {
     let alive = true;
@@ -30,16 +41,19 @@ export function ShiftProvider({ children }: { children: ReactNode }) {
     async function refresh() {
       const nextOwner = !isLoading && isAuthenticated && !isAccountChanging() ? trackingOwnerFromToken(await getAccessToken()) : null;
       const saved = nextOwner ? await listShifts(nextOwner) : [];
-      if (alive && generation === getAccountGeneration() && !isAccountChanging()) { ownerId = nextOwner; setOwner(nextOwner); setEntries(saved); void reconcileShiftNotifications(nextOwner, saved).catch(() => { if (alive) setSyncError(true); }); }
+      if (alive && generation === getAccountGeneration() && !isAccountChanging()) { ownerId = nextOwner; setOwner(nextOwner); setEntries(saved); void reconcileShiftNotifications(nextOwner, saved).catch(() => {}); }
     }
-    const boundary = subscribeAccountBoundary(() => { ownerId = null; setOwner(null); setEntries([]); setSyncError(false); void reconcileShiftNotifications(null, []).catch(() => {}); });
-    void refresh().catch(() => { if (alive) setSyncError(true); });
-    if (isAuthenticated && !isLoading) void refresh().then(() => ownerId ? checkShiftDeadline(ownerId) : undefined).then(sync).catch(() => setSyncError(true));
-    const unsubscribe = subscribeShifts(() => { if (ownerId) void refresh().catch(() => { if (alive) setSyncError(true); }); });
-    const state = AppState.addEventListener('change', value => { if (value === 'active') { void refresh().then(() => ownerId ? checkShiftDeadline(ownerId) : undefined).then(sync).catch(() => setSyncError(true)); } });
+    const onSyncError = (error: unknown) => {
+      if (alive && generation === getAccountGeneration()) setSyncError(describeSyncIssue(error, 'shift'));
+    };
+    const boundary = subscribeAccountBoundary(() => { ownerId = null; setOwner(null); setEntries([]); setSyncError(null); void reconcileShiftNotifications(null, []).catch(() => {}); });
+    void refresh().catch(onSyncError);
+    if (isAuthenticated && !isLoading) void refresh().then(() => ownerId ? checkShiftDeadline(ownerId) : undefined).then(() => sync()).catch(onSyncError);
+    const unsubscribe = subscribeShifts(() => { if (ownerId) void refresh().catch(onSyncError); });
+    const state = AppState.addEventListener('change', value => { if (value === 'active') { void refresh().then(() => ownerId ? checkShiftDeadline(ownerId) : undefined).then(() => sync()).catch(onSyncError); } });
     const network = NetInfo.addEventListener(value => { if (value.isConnected) void sync(); });
-    const timer = setInterval(() => { if (ownerId) void checkShiftDeadline(ownerId).then(sync).catch(() => setSyncError(true)); }, 30_000);
-    const language = subscribeLanguage(() => { void refresh(); });
+    const timer = setInterval(() => { if (ownerId) void checkShiftDeadline(ownerId).then(() => sync()).catch(onSyncError); }, 30_000);
+    const language = subscribeLanguage(() => { void refresh().catch(onSyncError); });
     const open = (response: Notifications.NotificationResponse | null) => {
       const data = response?.notification.request.content.data;
       if (data?.kind === 'shift' && ownerId && data.owner === ownerId && typeof data.shiftId === 'string' && generation === getAccountGeneration()) {

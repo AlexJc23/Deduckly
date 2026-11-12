@@ -36,7 +36,7 @@ export default function FreeTierReportScreen() {
       <View style={s.inner}>
         <Text accessibilityRole="header" style={s.title}><Translated text="Reports" /></Text>
         <Text style={s.period}>{formatReportDate(year, month, undefined, locale)} {t('· Month to date')}</Text>
-        <Text style={{ color: '#64748B', lineHeight: 21 }}>{t('Your free report includes this month and a comparison with last month.')}</Text>
+        <Text style={{ color: '#64748B', lineHeight: 21 }}>{t('Your report includes this month and a comparison with last month.')}</Text>
         {waitingForProfile || isLoading || isPlaceholderData || isError || !data ? <ReportLoadState loading={waitingForProfile || isLoading || isPlaceholderData} retry={() => { if (!profile.data) void profile.refetch(); else void refetch(); }} /> : <ReportBody report={data} />}
         {monthlyGoal && monthlyGoal.goal > 0 && <View style={s.goal}>
           <Text>{t('Monthly income goal')}</Text><Text style={s.goalValue}>{new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD' }).format(monthlyGoal.current)} / {new Intl.NumberFormat(locale, { style: 'currency', currency: 'USD' }).format(monthlyGoal.goal)}</Text>

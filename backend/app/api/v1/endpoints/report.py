@@ -3,7 +3,7 @@ from typing import Optional
 import io
 import json
 
-from app.services.csv_service import build_tax_report_csv
+from app.services.csv_service import build_tax_report_csv, safe_csv_cell
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
@@ -13,7 +13,7 @@ from app.api.dependencies.auth import get_current_user
 from app.api.dependencies.subscription import require_active_subscription
 from app.db.session import get_db
 from app.models import User, Trip
-from app.services.pdf_service import build_tax_report_pdf
+from app.services.pdf_service import build_tax_report_pdf, build_vehicle_report_pdf
 from app.services.report_service import generate_tax_report
 from app.services.trip_service import get_daily_trip_breakdown
 from app.schemas.v1.current_report import CurrentReport
@@ -52,17 +52,13 @@ def vehicle_export(format: str,year: int | None = None,month: int | None = None,
     rows=export_rows(calculated)
     if format=='csv':
         buffer=io.StringIO()
-        # Protect spreadsheet formula execution in vehicle names/user-controlled text.
-        csv.writer(buffer).writerows([["'"+str(v) if str(v).startswith(('=','+','-','@')) else str(v) for v in row] for row in rows])
+        csv.writer(buffer).writerows(map(safe_csv_cell, row) for row in rows)
         payload=buffer.getvalue().encode('utf-8-sig');kind='text/csv'
     elif format=='pdf':
-        from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer
-        from reportlab.lib.styles import getSampleStyleSheet
-        from xml.sax.saxutils import escape
-        buffer=io.BytesIO();styles=getSampleStyleSheet()
-        story=[]
-        for row in rows:story.extend([Paragraph(escape(' | '.join(str(v) for v in row)),styles['BodyText']),Spacer(1,8)])
-        SimpleDocTemplate(buffer).build(story);payload=buffer.getvalue();kind='application/pdf'
+        buffer = io.BytesIO()
+        build_vehicle_report_pdf(buffer, calculated)
+        payload = buffer.getvalue()
+        kind = 'application/pdf'
     else:raise HTTPException(422,'Choose pdf or csv')
     return StreamingResponse(io.BytesIO(payload),media_type=kind,headers={'Content-Disposition':f'attachment; filename="Deduckly_Report.{format}"'})
 

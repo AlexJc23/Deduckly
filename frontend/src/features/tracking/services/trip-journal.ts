@@ -8,6 +8,7 @@ const KEY = "@deduckly/trip-journal:v1";
 // Do not turn an unobserved route into straight-line mileage after a GPS gap.
 export const MAX_POINT_GAP_MS = 120_000;
 export type TripStart = {
+  vehicleId?: string;
   category: string;
   platform: string | null;
   trackingMethod: "automatic" | "manual" | null;
@@ -141,7 +142,7 @@ export function finishTrip(ownerId: string, incomeAmount?: number | null) {
     if (!trip) return false;
     const discarded = trip.distanceMiles < 0.02;
     if (!discarded) {
-      journal.pending.push({ id: trip.id, ownerId, payload: { client_id: trip.id, ...buildTripPayload({
+      journal.pending.push({ id: trip.id, ownerId, payload: { client_id: trip.id, vehicle_id: trip.vehicleId, ...buildTripPayload({
         startTime: new Date(trip.startTime), endTime: new Date(), distanceMiles: trip.distanceMiles,
         startLatitude: trip.start.latitude, startLongitude: trip.start.longitude,
         endLatitude: trip.last.latitude, endLongitude: trip.last.longitude,

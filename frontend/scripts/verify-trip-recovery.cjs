@@ -12,10 +12,18 @@ function harness(disk = new Map()) {
   const location = p => ({ timestamp: p.timestamp, coords: p });
   const token = () => `x.${Buffer.from(JSON.stringify({ sub: state.owner, type: 'access' })).toString('base64url')}.x`;
   const api = {
-    get: async (url, cfg) => { assert.equal(cfg.deducklyOwnerId, state.owner); return { data: url.includes('/shifts') ? state.remoteShifts : state.remote }; },
+    get: async (url, cfg) => {
+      assert.equal(cfg.deducklyOwnerId, state.owner);
+      if (url === '/api/v1/vehicles/') {
+        if (state.vehicleLookupFails) throw Error('Offline');
+        return { data: state.remoteVehicles ?? [] };
+      }
+      return { data: url.includes('/shifts') ? state.remoteShifts : state.remote };
+    },
     put: async (_, payload, cfg) => {
       assert.equal(cfg.deducklyOwnerId, state.owner);
       if (state.rejectUpload) throw Error('Conflict');
+      state.beforeShiftUpload?.(payload, cfg);
       const existing = state.remoteShifts.find(s => s.client_id === payload.client_id);
       if (existing) Object.assign(existing, payload); else state.remoteShifts.push(payload);
       if (state.lostResponse) throw Error('Response lost');
@@ -26,11 +34,13 @@ function harness(disk = new Map()) {
       if (url.includes("convert-pending")) { assert.equal(cfg.deducklyOwnerId, state.owner); return { data: { created_trip_ids: [], blocked_segment_ids: [] } }; }
       assert.equal(cfg.deducklyOwnerId, state.owner); state.posts++;
       if (state.rejectUpload) throw Error("Conflict");
+      state.beforeTripUpload?.(payload);
       if (!payload.client_id || !state.remote.some(trip => trip.client_id === payload.client_id)) {
-        state.remote.push({ ...payload, distance_miles: String(payload.distance_miles), id: state.posts });
+        state.remote.push({ ...payload, distance_miles: String(payload.distance_miles), user_id: Number(cfg.deducklyOwnerId), id: state.posts });
       }
       if (state.lostResponse) throw Error('Response lost');
       if (state.switchAfterPost) { state.owner = '2'; state.generation++; }
+      return { data: state.invalidTripAck ? {} : state.remote.findLast(trip => trip.client_id === payload.client_id) };
     },
   };
   const mocks = {
@@ -173,6 +183,56 @@ if (require.main === module) (async () => {
     await h.load('@/features/tracking/services/trip-journal-sync').syncRecordedTrips();
     assert.equal((await j.pendingTrips('1')).length, 1);
     assert.deepEqual(h.state.invalidations, []);
+  });
+  await test('a rejected Trip does not block the next; reconnect retries without rewriting payloads', async () => {
+    const h=harness(), j=h.journal();
+    for (let i=0;i<2;i++) {
+      const trip=await j.beginTrip('1',data,h.point());
+      await j.recordPoints(trip.id,[h.point(1),h.point(2),h.point(3),h.point(4)]);
+      await j.finishTrip('1');
+    }
+    const [first,second]=await j.pendingTrips('1');
+    h.state.beforeTripUpload=payload=>{
+      if(payload.client_id===first.payload.client_id)throw {response:{status:409,data:{detail:'untrusted response text'}}};
+    };
+    const sync=h.load('@/features/tracking/services/trip-journal-sync');
+    const issue=await sync.syncRecordedTrips();
+    assert.equal(issue.status,409); assert.match(issue.message,/conflicts/); assert(!issue.message.includes('untrusted'));
+    assert.deepEqual((await j.pendingTrips('1')).map(trip=>trip.payload),[first.payload]);
+    assert.deepEqual(h.state.remote.map(trip=>trip.client_id),[second.payload.client_id]);
+    h.state.beforeTripUpload=()=>{throw {code:'ERR_NETWORK'};};
+    assert.match((await sync.syncRecordedTrips()).message,/Check your connection/);
+    h.state.beforeTripUpload=undefined;
+    assert.equal(await sync.syncRecordedTrips(),null);
+    assert.equal(sync.getTripSyncIssue(),null);
+    assert.deepEqual(await j.pendingTrips('1'),[]);
+    assert.equal(h.state.remote.length,2);
+  });
+  await test('an overlong legacy address is shortened only in the outgoing Trip', async () => {
+    const h=harness(), j=h.journal();
+    const trip=await j.beginTrip('1',data,h.point());
+    await j.recordPoints(trip.id,[h.point(1),h.point(2),h.point(3),h.point(4)]);await j.finishTrip('1');
+    const key='@deduckly/trip-journal:v1', saved=JSON.parse(h.disk.get(key));
+    const original='A'.repeat(160);
+    saved.pending[0].payload.start_address=original; h.disk.set(key,JSON.stringify(saved));
+    h.state.beforeTripUpload=payload=>{
+      assert.equal(payload.start_address.length,100);
+      assert.equal(payload.client_id,saved.pending[0].payload.client_id);
+      throw { code:'ERR_NETWORK' };
+    };
+    await h.load('@/features/tracking/services/trip-journal-sync').syncRecordedTrips();
+    assert.equal((await j.pendingTrips('1'))[0].payload.start_address,original);
+  });
+  await test('an invalid successful response cannot acknowledge a locally saved Trip', async () => {
+    const h=harness(), j=h.journal();
+    const trip=await j.beginTrip('1',data,h.point());
+    await j.recordPoints(trip.id,[h.point(1),h.point(2),h.point(3),h.point(4)]);await j.finishTrip('1');
+    const sync=h.load('@/features/tracking/services/trip-journal-sync');
+    h.state.invalidTripAck=true;
+    assert(await sync.syncRecordedTrips());assert.equal((await j.pendingTrips('1')).length,1);
+    h.state.invalidTripAck=false;
+    assert.equal(await sync.syncRecordedTrips(),null);assert.equal(h.state.remote.length,1);
+    assert.equal((await j.pendingTrips('1')).length,0);
   });
   await test('legacy ownerless records are retained and never uploaded by another account', async () => {
     const h = harness();

@@ -7,7 +7,7 @@ import { useLocalSearchParams } from "expo-router";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { useCurrentReport } from "@/features/reports/hooks/use-current-report";
 
-import { money, reportPeriodLabel, reportImpact } from "@/features/reports/utils/report-display";
+import { money, reportPeriodLabel, reportImpactColor } from "@/features/reports/utils/report-display";
 import { ReportLoadState } from "@/features/reports/components/ReportPresentation";
 
 function formatLabel(value?: string | null) {
@@ -115,7 +115,7 @@ export default function IrsSummaryScreen() {
         <SummaryCard title="Income">
           <SummaryRow
             label="Gross Income"
-            color={reportImpact(data.total_income).color}
+            color={reportImpactColor(data.total_income)}
             value={money(data.total_income)}
           />
         </SummaryCard>
@@ -158,7 +158,7 @@ export default function IrsSummaryScreen() {
           <Text style={styles.note}><Translated text={"Income after deductions is recorded income minus total deductions. The estimate does not represent a refund or a final payment due."} /></Text>
           <SummaryRow
             label="Income after deductions"
-            color={reportImpact(data.net_profit).color}
+            color={reportImpactColor(data.net_profit)}
             value={money(data.net_profit)}
           />
 
@@ -169,13 +169,13 @@ export default function IrsSummaryScreen() {
 
           <SummaryRow
             label="Estimated income tax"
-            color={reportImpact(data.estimated_tax_owed, true).color}
+            color={reportImpactColor(data.estimated_tax_owed, true)}
             value={money(data.estimated_tax_owed)}
           />
 
           <SummaryRow
             label="Estimated reduction from deductions"
-            color={reportImpact(data.estimated_tax_savings).color}
+            color={reportImpactColor(data.estimated_tax_savings)}
             value={money(data.estimated_tax_savings)}
             bold
           />

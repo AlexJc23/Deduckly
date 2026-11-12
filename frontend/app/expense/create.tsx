@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { localizedAlert } from "@/i18n/alerts";
 import { Stack, router } from "expo-router";
 
@@ -14,6 +15,7 @@ import { useCreateExpense } from "@/features/expenses/hooks/use-create-expense";
 import { uploadExpenseReceipt } from "@/features/expenses/api/expense-api";
 
 export default function CreateExpenseScreen() {
+  const [incurredAt] = useState(() => new Date());
   const createExpense =
     useCreateExpense();
 
@@ -74,7 +76,6 @@ export default function CreateExpenseScreen() {
       />
 
       <ExpenseForm
-        mode="create"
         loading={
           createExpense.isPending
         }
@@ -85,7 +86,7 @@ export default function CreateExpenseScreen() {
           merchant: "",
           description: "",
           businessPercentage: "100",
-          incurredAt: new Date(),
+          incurredAt,
         }}
         onSubmit={handleSubmit}
       />

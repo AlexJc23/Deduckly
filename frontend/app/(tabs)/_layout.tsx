@@ -52,6 +52,11 @@ function CompactTabs({ bar, metrics, dark, book }: {
   );
 }
 
+// The root stack seeds this tab group before the auth gate redirects.
+export const unstable_settings = {
+  anchor: "dashboard",
+};
+
 export default function TabsLayout() {
   const { t } = useLanguage();
   const layout = useAdaptiveLayout();

@@ -2,8 +2,10 @@
 from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
+from fastapi import HTTPException
 from sqlalchemy import delete
 from app.models import Trip, ShiftSegment, TripCategory
+from app.models.vehicle import UserVehicle
 from app.services.shift_conversion_service import convert_pending
 from app.services.shift_service import sync_shift
 from app.schemas.v1.shift import ShiftSnapshot
@@ -71,6 +73,28 @@ class ShiftConversionTests(ShiftApiTests):
         data['segments']=segments;sync_shift(self.db,1,ShiftSnapshot.model_validate(data))
         self.convert(); rows=self.db.query(Trip).order_by(Trip.start_time).all()
         self.assertEqual([t.platform.value if t.platform else None for t in rows],['spark','lyft',None])
+    def test_vehicle_is_owner_bound_and_preserved_at_conversion(self):
+        for identity, owner in [('first', 1), ('second', 1), ('foreign', 2)]:
+            self.db.add(UserVehicle(id=identity, user_id=owner, year=2024, make='Make', model='Model',
+                                    fuel_type='gasoline', operation_id=identity))
+        self.db.commit()
+        data = self.data(segments=[self.segment('one', save_requested=True)])
+        with self.assertRaises(HTTPException) as error:
+            sync_shift(self.db, 1, data, vehicle_id='foreign')
+        self.assertEqual(error.exception.status_code, 404)
+
+        # An older client snapshot can be acknowledged before the new metadata arrives.
+        sync_shift(self.db, 1, data)
+        sync_shift(self.db, 1, data, vehicle_id='first')
+        first = self.db.get(UserVehicle, 'first')
+        first.deleted = True
+        self.db.get(UserVehicle, 'second').is_default = True
+        self.db.commit()
+        sync_shift(self.db, 1, data, vehicle_id='second')
+        self.assertEqual(len(self.convert()['created_trip_ids']), 1)
+        self.assertEqual(self.db.query(Trip).one().vehicle_id, 'first')
+        self.assertEqual(self.convert()['created_trip_ids'], [])
+
     def test_overlapping_manual_trip_is_not_double_counted(self):
         self.seed([self.segment('one',save_requested=True)])
         self.db.add(Trip(user_id=1,start_time=self.now,end_time=self.now+timedelta(minutes=30),category=TripCategory.BUSINESS,distance_miles=5,deduction_amount=0));self.db.commit()

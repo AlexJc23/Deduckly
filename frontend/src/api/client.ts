@@ -87,10 +87,13 @@ api.interceptors.response.use(
             throw new AxiosError("No refresh token", "ERR_SESSION_EXPIRED");
           }
 
-          const tokens =
-            await refreshAccessToken(
-              storedRefreshToken
-            );
+          const tokens = await refreshAccessToken(storedRefreshToken).catch((error: AxiosError) => {
+            // A rejected refresh is session-wide, not a malformed queued record.
+            if (error.response?.status === 400 || error.response?.status === 404 || error.response?.status === 422) {
+              error.code = "ERR_REFRESH_FAILED";
+            }
+            throw error;
+          });
 
           const saved = await saveRefreshedTokens(
             storedRefreshToken,
