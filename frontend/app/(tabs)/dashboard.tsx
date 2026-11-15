@@ -123,7 +123,8 @@ export default function DashboardScreen() {
     - (report.isError ? 76 * fontScale : 0)
     - (trackingNotice ? 48 * fontScale : 0)
     - (active ? 64 : 0);
-  const compact = usableHeight < 670 || fontScale > 1.2;
+  const tightIdlePhone = !active && !grid && viewportWidth <= 400 && usableHeight < 745;
+  const compact = tightIdlePhone || usableHeight < 670 || fontScale > 1.2;
   const condensed = usableHeight < 510 || fontScale > 1.3;
   const showStats = !condensed && (grid || usableHeight >= 570);
   const compactColumns = grid && !book;
@@ -132,11 +133,12 @@ export default function DashboardScreen() {
   const narrowShortWindow = !grid && viewportWidth <= 480 && usableHeight < 640;
   const compactActions = compactColumns || (!grid && condensed) || narrowShortWindow;
   const panelOpen = actionsOpen && compactActions;
-  const distributeActions = !grid && !compactActions && !compact && !panelOpen;
+  const distributeActions = !grid && !compactActions && !panelOpen
+    && (!compact || (tightIdlePhone && usableHeight >= 650 && fontScale <= 1.2));
   const minimalSummary = !grid && viewportHeight < 410;
 
   // Continuous density prevents a small change in phone height leaving a large empty area.
-  const density = Math.max(0, Math.min(1, (usableHeight - (grid ? 300 : 540)) / 220));
+  const density = Math.max(0, Math.min(tightIdlePhone ? 0.25 : 1, (usableHeight - (grid ? 300 : 540)) / 220));
 
   // Reduce decoration before reducing readable text or touch target sizes.
   const layout = {
