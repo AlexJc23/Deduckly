@@ -2,6 +2,7 @@ const fs = require('node:fs'), path = require('node:path'), Module = require('no
 const root = path.resolve(__dirname, '..');
 const ts = require('typescript'), React = require('react'), server = require('react-dom/server'), native = require('react-native-web');
 let width = 320, dark = false, tracking = false;
+let shiftActive = false, recordingMode = "paused";
 let token, step, failure, active, accountId, calls, afterAccount, storageFailure;
 const jwt = (id, type = 'access') => `x.${Buffer.from(JSON.stringify({ sub: String(id), type, exp: 1 })).toString('base64url')}.x`;
 function reset() { token = jwt(1); step = 4; failure = null; active = true; accountId = 1; calls = 0; afterAccount = null; storageFailure = false; }
@@ -24,6 +25,11 @@ Module._load = function(id, parent, main) {
   if (id === 'expo-router') return { router: { push() {} } };
   if (id === '@/theme/icons') return { Ionicons: () => null };
   if (id === '@/features/tracking/context/tracking.context') return { useTracking: () => ({ isTracking: tracking, isReady: true, distanceMiles: 12.34, trackingNotice: null }) };
+  if (id === '@/features/shifts/context') return { useShifts: () => ({ entries: shiftActive ? [{ local: true, data: { ended_at: null } }] : [] }) };
+  if (id === '@/features/shifts/entry-point') return { ShiftEntryPoint: () => React.createElement('span', null, 'Shift card') };
+  if (id === '@/features/tracking/services/background-tracking') return {
+    getRecordingMode: () => recordingMode, subscribeToRecording: () => () => {},
+  };
   if (id === '@/features/tracking/components/StartTripModal') return { StartTripModal: () => null };
   if (id.startsWith('@/')) id = path.join(root, 'src', id.slice(2));
   return original.call(this, id, parent, main);
@@ -86,6 +92,19 @@ async function test(name, fn) { reset(); await fn(); checks++; console.log(`PASS
     fs.writeFileSync(`${output}/${lang}-${dark ? 'dark' : 'light'}-${width}-${tracking ? 'active' : 'start'}.html`,
       `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0}${native.StyleSheet.getSheet().textContent}</style><main style="width:${width}px;max-width:100%;margin:auto">${body}</main>`);
     renders++;
+  }
+  shiftActive = true;
+  setRuntimeLanguage('en');
+  for (const [mode, manual, message] of [
+    ['background', false, 'Shift tracking continues offline'],
+    ['foreground', false, 'Keep the app open to record mileage'],
+    ['paused', false, 'Shift recording needs attention'],
+    ['background', true, 'Your individual trip is being recorded separately'],
+  ]) {
+    recordingMode = mode;
+    tracking = manual;
+    const body = server.renderToStaticMarkup(React.createElement(OfflineTripAccess, { onRetry() {}, checking: false }));
+    assert.ok(body.includes('Shift card') && body.includes(message));
   }
   console.log(`${checks} offline access checks and ${renders} phone/tablet language/theme renders passed.`);
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -2,7 +2,7 @@ import { AppleSignInButton } from "@/features/auth/components/AppleSignInButton"
 import { useLanguage, Translated } from "@/i18n/language";
 import { Pressable, SafeAreaView, Text, TextInput, View, ScrollView } from "@/theme/components";
 import { ActivityIndicator, Keyboard, StyleSheet } from "react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { router, Link } from "expo-router";
 import { Ionicons, FontAwesome6 } from "@expo/vector-icons";
@@ -17,7 +17,19 @@ import { useIsTablet } from "@/hooks/use-is-tablet";
 import { startGoogleLogin } from "@/features/auth/api/google-auth.api";
 
 export default function Login() {
-  useLanguage();
+  const { t } = useLanguage();
+  const [cooldownUntil, setCooldownUntil] = useState(0);
+  const [now, setNow] = useState(Date.now);
+  const remaining = Math.max(0, Math.ceil((cooldownUntil - now) / 1000));
+  useEffect(() => {
+    if (!cooldownUntil) return;
+    const timer = setInterval(() => {
+      const current = Date.now();
+      setNow(current);
+      if (current >= cooldownUntil) clearInterval(timer);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownUntil]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -69,14 +81,13 @@ export default function Login() {
     },
 
     onError: (error: any) => {
-      console.log(
-        "Login failed:",
-        JSON.stringify(
-          error.response?.data,
-          null,
-          2,
-        ),
-      );
+      if (error.response?.status === 429) {
+        const seconds = Number(error.response.headers?.["retry-after"]);
+        const duration = Number.isFinite(seconds) && seconds > 0 ? seconds : 900;
+        const current = Date.now();
+        setNow(current);
+        setCooldownUntil(current + duration * 1000);
+      }
 
       const status = error.response?.status;
       const detail = error.response?.data?.detail;
@@ -101,7 +112,7 @@ export default function Login() {
   const handleLogin = () => {
     Keyboard.dismiss();
 
-    if (!email.trim() || !password) {
+    if (remaining > 0 || !email.trim() || !password) {
       return;
     }
 
@@ -112,6 +123,7 @@ export default function Login() {
   };
 
   const isDisabled =
+    remaining > 0 ||
     !email.trim() ||
     !password ||
     loginMutation.isPending;
@@ -322,7 +334,11 @@ export default function Login() {
                   />
 
                   <Text style={styles.errorText}>
-                    <Translated text={"Please check your email and password and try again."} /></Text>
+                    {remaining > 0
+                      ? t("Login is on cooldown for {minutes}:{seconds}. Please wait or use Forgot password to reset your password.", {
+                          minutes: Math.floor(remaining / 60), seconds: String(remaining % 60).padStart(2, "0"),
+                        })
+                      : <Translated text={"Please check your email and password and try again."} />}</Text>
                 </View>
               )}
 

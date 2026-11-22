@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { ActivityIndicator, StyleSheet, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView, ScrollView, View, Text, Pressable } from "@/theme/components";
@@ -6,6 +6,9 @@ import { Ionicons } from "@/theme/icons";
 import { Translated, useLanguage } from "@/i18n/language";
 import { useIsTablet } from "@/hooks/use-is-tablet";
 import { useTracking } from "@/features/tracking/context/tracking.context";
+import { useShifts } from "@/features/shifts/context";
+import { ShiftEntryPoint } from "@/features/shifts/entry-point";
+import { getRecordingMode, subscribeToRecording } from "@/features/tracking/services/background-tracking";
 import { StartTripModal } from "@/features/tracking/components/StartTripModal";
 
 export function OfflineTripAccess({ onRetry, checking }: { onRetry: () => void; checking: boolean }) {
@@ -14,6 +17,9 @@ export function OfflineTripAccess({ onRetry, checking }: { onRetry: () => void; 
   const { width, height } = useWindowDimensions();
   const small = !isTablet && (height <= 931 || width <= 429);
   const { isTracking, isReady, distanceMiles, trackingNotice } = useTracking();
+  const { entries } = useShifts();
+  const shiftActive = entries.some(entry => entry.local && !entry.data.ended_at);
+  const recordingMode = useSyncExternalStore(subscribeToRecording, getRecordingMode, getRecordingMode);
   const [showStart, setShowStart] = useState(false);
   return <SafeAreaView style={styles.screen}>
     <ScrollView contentContainerStyle={[styles.scroll, { padding: isTablet ? 40 : small ? 20 : 28 }]}>
@@ -29,6 +35,15 @@ export function OfflineTripAccess({ onRetry, checking }: { onRetry: () => void; 
         <Text style={styles.description}>
           <Translated text="We can’t reach Deduckly right now. GPS tracking still works without internet, and your trips save on this device." />
         </Text>
+        {shiftActive && <View style={styles.shiftStatus}>
+          <ShiftEntryPoint activeOnly compact manualActive={isTracking} />
+          <Text accessibilityLiveRegion="polite" style={styles.note}><Translated text={
+            isTracking ? "Your individual trip is being recorded separately from your Shift."
+            : recordingMode === "background" ? "Shift tracking continues offline. Saved drives sync when you reconnect."
+            : recordingMode === "foreground" ? "Keep the app open to record mileage."
+            : "Shift recording needs attention. Open Shift Mode to check tracking."
+          } /></Text>
+        </View>}
         <View style={styles.card}>
           <Ionicons name="navigate-outline" size={28} color="#0072B5" />
           <Text style={styles.cardTitle}><Translated text={isTracking ? "Trip in Progress" : "Ready for your next trip"} /></Text>
@@ -58,6 +73,7 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 14, color: "#64748B", fontWeight: "600" },
   title: { color: "#273449", fontWeight: "700" },
   description: { fontSize: 16, lineHeight: 25, color: "#64748B" },
+  shiftStatus: { gap: 8 },
   card: { backgroundColor: "#FFFFFF", borderColor: "#E2E8F0", borderWidth: 1, borderRadius: 22, padding: 24, gap: 16 },
   cardTitle: { fontSize: 21, fontWeight: "700", color: "#273449" },
   mileage: { fontSize: 32, fontWeight: "700", color: "#0072B5" },
