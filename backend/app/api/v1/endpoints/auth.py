@@ -1,9 +1,10 @@
+from app.services.login_cooldown_service import authenticate_with_cooldown
 from datetime import timedelta, datetime
 import secrets
 
 from app.schemas.v1.oauth import OAuthUserCreate, GoogleStart, GoogleExchange
 from app.services import google_transaction_service as google_transactions
-from fastapi import APIRouter, Depends, HTTPException, Cookie, Response, Body
+from fastapi import APIRouter, Depends, HTTPException, Cookie, Response, Body, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from urllib.parse import urlencode
@@ -89,13 +90,13 @@ def create_session(db: Session, user_id: int):
 
 @router.post("/login")
 def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
-    user, status = authenticate_user(
-        db,
-        form_data.username,
-        form_data.password,
+    user, status = authenticate_with_cooldown(
+        db, form_data.username, form_data.password,
+        request.client.host if request.client else "unknown",
     )
 
     if status == "invalid_credentials":

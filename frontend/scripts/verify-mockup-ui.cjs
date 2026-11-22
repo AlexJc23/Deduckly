@@ -1,12 +1,12 @@
 /* global __dirname */
 const fs=require('node:fs'),path=require('node:path'),Module=require('node:module'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..'),ts=require('typescript'),React=require('react'),server=require('react-dom/server'),native=require('react-native-web');
-let dark=true,width=390,fontScale=1,manual=false,entries=[],report={total_income:123.45,total_miles:12.4,saved_trip_count:3,trip_breakdown:[{platform:"lyft",miles:12.4,trip_count:2}]},goal={goal:200,current:123.45},handlers=[],navigated=[],availableWidth=0,availableHeight=702,zeroCursor=0,booleanCursor=0,actionsOpen=false,scrollProps,alerts=[];
+let ipad=false,dark=true,width=390,fontScale=1,manual=false,entries=[],report={total_income:123.45,total_miles:12.4,saved_trip_count:3,trip_breakdown:[{platform:"lyft",miles:12.4,trip_count:2}]},goal={goal:200,current:123.45},handlers=[],navigated=[],availableWidth=0,availableHeight=702,zeroCursor=0,booleanCursor=0,actionsOpen=false,scrollProps,alerts=[];
 const original=Module._load;
 const text=n=>Array.isArray(n)?n.map(text).join(''):n&&typeof n==='object'?text(n.props?.children):typeof n==='string'||typeof n==='number'?String(n):'';
 Module._load=function(id,parent,main){
  if(id==='react'&&parent.filename.endsWith('/app/(tabs)/dashboard.tsx'))return{...React,useState(initial){const state=React.useState(initial);return initial===0?[[availableWidth,availableHeight][zeroCursor++],()=>{}]:initial===false&&booleanCursor++===0?[actionsOpen,()=>{}]:state;}};
- if(id==='react-native')return{...native,ScrollView:props=>{scrollProps=props;return React.createElement(native.ScrollView,props);},useWindowDimensions:()=>({width,height:844,scale:1,fontScale}),Pressable:props=>{handlers.push({label:props.accessibilityLabel??text(props.children),...props});return React.createElement(native.Pressable,props);}};
+ if(id==='react-native')return{...native,Platform:{...native.Platform,get OS(){return ipad?'ios':native.Platform.OS;},get isPad(){return ipad;}},ScrollView:props=>{scrollProps=props;return React.createElement(native.ScrollView,props);},useWindowDimensions:()=>({width,height:844,scale:1,fontScale}),Pressable:props=>{handlers.push({label:props.accessibilityLabel??text(props.children),...props});return React.createElement(native.Pressable,props);}};
  if(id==='react-native-safe-area-context')return{SafeAreaView:native.View,useSafeAreaInsets:()=>({top:0,bottom:0,left:0,right:0})};
  if(id==='@react-native-async-storage/async-storage')return{getItem:async()=>null,setItem:async()=>{}};
  if(id==='@/theme/theme'||(id==='./theme'&&parent.filename.includes('/theme/')))return{useAppTheme:()=>({dark})};
@@ -63,6 +63,18 @@ availableWidth=900;availableHeight=540;fontScale=1;entries=[fixture];manual=fals
 const spread=render();
 assert(spread.includes('dashboard-wide') || spread.includes('dashboard-condensed'));
 assert(spread.includes('View Shift'));assert(spread.includes('Add Expense'));assert(!spread.includes('More actions'));assert(spread.includes('Start a trip'));assert.equal(scrollProps,undefined);
+// Roomy iPad keeps the original vertical order and gives cards more width.
+ipad=true;
+for(const [w,h] of [[1032,1250],[820,1000]]) for(const active of [false,true]){
+ availableWidth=w;availableHeight=h;entries=active?[fixture]:[];
+ const tablet=render();
+ assert(tablet.includes('dashboard-standard'));
+ assert(tablet.includes('820px'));
+ assert(tablet.indexOf(active?'View Shift':'Start Shift')<tablet.indexOf('Offer Analyzer'));
+ for(const label of [active?'View Shift':'Start Shift','Start a trip','Offer Analyzer','Add Income','Add Expense'])assert(tablet.includes(label));
+ assert(!tablet.includes('More actions'));
+}
+ipad=false;entries=[fixture];
 // Opening the Duo into portrait exposes all actions, even if the panel was open before resizing.
 availableWidth=650;availableHeight=800;actionsOpen=true;
 const unfoldedPortrait=render();

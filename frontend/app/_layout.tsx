@@ -15,12 +15,6 @@ import { TrackingProvider } from "@/features/tracking/context/tracking.context";
 import { SiriStartup } from "../src/features/tracking/components/SiriStartup";
 import { useTripSync } from "@/features/trips/hooks/use-trip-sync";
 
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
-
-
-
 export default function RootLayout() {
   useTripSync();
   

@@ -3,6 +3,7 @@ import { dashboardType } from '@/theme/typography';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   StyleSheet,
   useWindowDimensions,
 } from 'react-native';
@@ -38,8 +39,11 @@ export default function DashboardScreen() {
   const viewportHeight = availableHeight || Math.max(0, height - 140);
   const grid = dashboardUsesColumns(viewportWidth, viewportHeight, fontScale);
   const book = grid && usesBookSpread(viewportWidth, viewportHeight, fontScale);
+  // Larger cards fit in tall iPad windows without changing the phone layout.
+  const roomyIPad = Platform.OS === 'ios' && Platform.isPad && !grid
+    && viewportWidth >= 700 && viewportHeight >= 940 && fontScale <= 1.2;
   const centerReserve = book ? Math.abs(insets.left - insets.right) : 0;
-  const contentWidth = Math.min(Math.max(0, viewportWidth - centerReserve), grid ? 1080 : 600);
+  const contentWidth = Math.min(Math.max(0, viewportWidth - centerReserve), grid ? 1080 : roomyIPad ? 820 : 600);
   const gutter = book ? 36 : 16;
   const columnWidth = Math.max(0, (contentWidth - 32 - gutter) / 2);
   const { t, locale } = useLanguage();
@@ -151,11 +155,12 @@ export default function DashboardScreen() {
   };
   const supporting = (usableHeight >= 650 || (grid && columnWidth >= 320 && usableHeight >= 450)) && fontScale <= 1.2;
   const actionStyle = {
-    minHeight: layout.actionHeight,
-    paddingHorizontal: layout.padding,
+    minHeight: roomyIPad ? 94 : layout.actionHeight,
+    paddingHorizontal: roomyIPad ? 24 : layout.padding,
     paddingVertical: compactColumns ? 6 : compact ? 8 : 14,
   };
-  const iconStyle = { width: layout.iconSize, height: layout.iconSize };
+  const iconSize = roomyIPad ? 62 : layout.iconSize;
+  const iconStyle = { width: iconSize, height: iconSize, ...(roomyIPad && { borderRadius: iconSize / 2 }) };
   const roomyCompactShift = narrowShortWindow && !condensed && viewportHeight > viewportWidth;
 
   const showDailyDetails = () => localizedAlert(
@@ -188,8 +193,8 @@ export default function DashboardScreen() {
           </View>
 
           <View style={{ flex: 1, gap: 4 }}>
-            <Text style={s.primaryTitle}>{t('Start Shift')}</Text>
-            {supporting && <Text style={s.shiftHint}>{t('Track automatically while you work')}</Text>}
+            <Text style={[s.primaryTitle, roomyIPad && s.ipadTitle]}>{t('Start Shift')}</Text>
+            {supporting && <Text style={[s.shiftHint, roomyIPad && s.ipadHint]}>{t('Track automatically while you work')}</Text>}
           </View>
 
           <View style={s.arrow}>
@@ -210,13 +215,13 @@ export default function DashboardScreen() {
       style={[s.primary, actionStyle, !isReady && { opacity: 0.5 }]}
     >
       <View style={[s.tripIcon, iconStyle]}>
-        <Ionicons name={isTracking ? 'navigate' : 'play'} color="#0072B5" size={27} />
+        <Ionicons name={isTracking ? 'navigate' : 'play'} color="#0072B5" size={roomyIPad ? 34 : 27} />
       </View>
 
       <View style={{ flex: 1, gap: 5 }}>
-        <Text style={s.tripTitle}>{t(isTracking ? 'Trip in Progress' : 'Start a trip')}</Text>
+        <Text style={[s.tripTitle, roomyIPad && s.ipadTitle]}>{t(isTracking ? 'Trip in Progress' : 'Start a trip')}</Text>
         {supporting && (
-          <Text style={s.primaryHint}>
+          <Text style={[s.primaryHint, roomyIPad && s.ipadHint]}>
             {t(isTracking ? 'View active trip' : 'Or say “Siri, Start a trip in Deduckly”')}
           </Text>
         )}
@@ -239,12 +244,13 @@ export default function DashboardScreen() {
             paddingVertical: 8 + 6 * layout.density,
           },
           grid && s.compactQuickButton,
+          roomyIPad && s.ipadQuickButton,
         ]}
       >
         <Ionicons name="add-circle-outline" size={23} color="#50C7EF" />
         <View style={{ flex: 1, gap: 3 }}>
-          <Text style={s.quickTitle}>{t('Add Income')}</Text>
-          {supporting && <Text style={s.quickHint}>{t('Track your earnings')}</Text>}
+          <Text style={[s.quickTitle, roomyIPad && s.ipadTitle]}>{t('Add Income')}</Text>
+          {supporting && <Text style={[s.quickHint, roomyIPad && s.ipadHint]}>{t('Track your earnings')}</Text>}
         </View>
       </Pressable>
 
@@ -259,12 +265,13 @@ export default function DashboardScreen() {
             paddingVertical: 8 + 6 * layout.density,
           },
           grid && s.compactQuickButton,
+          roomyIPad && s.ipadQuickButton,
         ]}
       >
         <Ionicons name="receipt-outline" size={23} color="#50C7EF" />
         <View style={{ flex: 1, gap: 3 }}>
-          <Text style={s.quickTitle}>{t('Add Expense')}</Text>
-          {supporting && <Text style={s.quickHint}>{t('Record an expense')}</Text>}
+          <Text style={[s.quickTitle, roomyIPad && s.ipadTitle]}>{t('Add Expense')}</Text>
+          {supporting && <Text style={[s.quickHint, roomyIPad && s.ipadHint]}>{t('Record an expense')}</Text>}
         </View>
       </Pressable>
     </View>
@@ -281,7 +288,7 @@ export default function DashboardScreen() {
       </View>
 
       <View style={{ flex: 1, gap: 4 }}>
-        <Text style={s.heading}>{t('Offer Analyzer')}</Text>
+        <Text style={[s.heading, roomyIPad && s.ipadTitle]}>{t('Offer Analyzer')}</Text>
         {supporting && <Text style={s.muted}>{t('Is that offer worth it?')}</Text>}
       </View>
 
@@ -301,7 +308,7 @@ export default function DashboardScreen() {
   const earningsCard = minimalSummary ? (
     <Pressable accessibilityRole="button" onPress={showDailyDetails} style={[s.card, s.summaryStrip]}>
       <Text style={[s.heading, { flex: 1 }]}>{t("Today's Earnings")}</Text>
-      <Text style={s.metric}>{money(summary.income)}</Text>
+      <Text style={[s.metric, roomyIPad && s.ipadTitle]}>{money(summary.income)}</Text>
       <Ionicons name="chevron-forward" size={18} color="#50C7EF" />
     </Pressable>
   ) : (
@@ -310,11 +317,12 @@ export default function DashboardScreen() {
             s.card,
             s.earningsCard,
             { padding: layout.padding, gap: 6 + 6 * layout.density },
+            roomyIPad && s.ipadEarningsCard,
             dark && { backgroundColor: '#0B2540', borderColor: '#19466F' },
           ]}
         >
           <View style={s.row}>
-            <Text style={s.heading}>{t("Today's Earnings")}</Text>
+            <Text style={[s.heading, roomyIPad && s.ipadTitle]}>{t("Today's Earnings")}</Text>
             <View style={[s.goal, compact && s.compactGoal]}>
               <Ionicons name="locate-outline" size={16} color="#94A3B8" />
               <Text style={s.goalText}>
@@ -326,7 +334,7 @@ export default function DashboardScreen() {
           {report.isLoading ? (
             <ActivityIndicator accessibilityLabel={t('Loading')} color="#4A6FE3" />
           ) : (
-            <Text style={[s.earnings, compact && { fontSize: layout.amountSize, lineHeight: layout.amountSize * 1.2 }]}>
+            <Text style={[s.earnings, roomyIPad && s.ipadAmount, compact && { fontSize: layout.amountSize, lineHeight: layout.amountSize * 1.2 }]}>
               {money(summary.income)}
             </Text>
           )}
@@ -374,13 +382,13 @@ export default function DashboardScreen() {
               style={[s.stat, compact && { minHeight: 54 + 22 * layout.density, gap: 3 }]}
             >
               <Ionicons name="trail-sign-outline" size={25} color="#0072B5" />
-              <Text style={s.metric}>
+              <Text style={[s.metric, roomyIPad && s.ipadTitle]}>
                 {summary.businessMiles === null
                   ? '—'
                   : summary.businessMiles.toLocaleString(locale, { maximumFractionDigits: 2 })}
               </Text>
               <View style={s.metricLabel}>
-                <Text style={s.statLabel}>{t('Business miles')}</Text>
+                <Text style={[s.statLabel, roomyIPad && s.ipadHint]}>{t('Business miles')}</Text>
                 <Ionicons name="chevron-down" size={12} color="#94A3B8" />
               </View>
             </Pressable>
@@ -393,8 +401,8 @@ export default function DashboardScreen() {
               ]}
             >
               <Ionicons name="location-outline" size={25} color="#0072B5" />
-              <Text style={s.metric}>{summary.trips ?? '—'}</Text>
-              <Text style={s.statLabel}>{t('Trips saved')}</Text>
+              <Text style={[s.metric, roomyIPad && s.ipadTitle]}>{summary.trips ?? '—'}</Text>
+              <Text style={[s.statLabel, roomyIPad && s.ipadHint]}>{t('Trips saved')}</Text>
             </View>
 
             <View
@@ -406,7 +414,7 @@ export default function DashboardScreen() {
               accessibilityLabel={t('Active shift elapsed time')}
             >
               <Ionicons name="time-outline" size={25} color="#0072B5" />
-              <Text style={s.metric}>
+              <Text style={[s.metric, roomyIPad && s.ipadTitle]}>
                 {shiftMinutes === null
                   ? '—'
                   : t('{hours}h {minutes}m', {
@@ -414,7 +422,7 @@ export default function DashboardScreen() {
                       minutes: shiftMinutes % 60,
                     })}
               </Text>
-              <Text style={s.statLabel}>{t('Shift time')}</Text>
+              <Text style={[s.statLabel, roomyIPad && s.ipadHint]}>{t('Shift time')}</Text>
             </View>
           </View>
           </>}
@@ -439,7 +447,7 @@ export default function DashboardScreen() {
       >
       <View
         testID={condensed ? 'dashboard-condensed' : grid ? 'dashboard-wide' : 'dashboard-standard'}
-        style={[s.content, { width: contentWidth, gap: layout.gap },
+        style={[s.content, { width: contentWidth, gap: layout.gap }, roomyIPad && s.ipadContent,
           book && { marginLeft: Math.max(0, insets.right - insets.left), marginRight: Math.max(0, insets.left - insets.right) }]}>
         <View style={[s.header, compact && s.compactHeader]}>
           <Pressable
@@ -451,9 +459,9 @@ export default function DashboardScreen() {
             <Ionicons name="person-outline" size={27} color="#50C7EF" />
           </Pressable>
           <View style={s.greetingGroup}>
-            <Text accessibilityRole="header" style={s.greeting}>
+            <Text accessibilityRole="header" style={[s.greeting, roomyIPad && s.ipadTitle]}>
               {greeting}{userQuery.data?.first_name ? ', ' : ''}
-              {userQuery.data?.first_name && <Text style={s.name}>{userQuery.data.first_name}!</Text>}
+              {userQuery.data?.first_name && <Text style={[s.name, roomyIPad && s.ipadTitle]}>{userQuery.data.first_name}!</Text>}
             </Text>
           </View>
         </View>
@@ -470,12 +478,12 @@ export default function DashboardScreen() {
           </Pressable>
         )}
 
-        <View style={[s.dashboardBody, distributeActions && s.fillBody,
+        <View style={[s.dashboardBody, distributeActions && !roomyIPad && s.fillBody, roomyIPad && s.ipadBody,
           grid && s.dashboardColumns, grid && { gap: gutter }, book && { alignItems: 'stretch' }]}>
           {(grid || !panelOpen) && <View style={[
             grid && { width: columnWidth }, book && s.bookPage,
           ]}>{earningsCard}{book && active && shiftAction}</View>}
-          <View style={[s.actions, distributeActions && s.fillActions,
+          <View style={[s.actions, distributeActions && !roomyIPad && s.fillActions, roomyIPad && s.ipadActions,
             grid && { width: columnWidth }, book && s.bookPage]}>
             {panelOpen ? <View style={[s.actionModule, !grid && s.fullModule]}>
               {moreActions}
@@ -514,6 +522,14 @@ export default function DashboardScreen() {
 }
 
 const s = StyleSheet.create({
+  ipadContent: { paddingTop: 24, gap: 20 },
+  ipadBody: { gap: 24 },
+  ipadActions: { gap: 18 },
+  ipadTitle: { fontSize: 23, lineHeight: 30 },
+  ipadHint: { fontSize: 16, lineHeight: 22 },
+  ipadAmount: { fontSize: 60, lineHeight: 72 },
+  ipadEarningsCard: { padding: 26, gap: 16 },
+  ipadQuickButton: { minHeight: 90, paddingHorizontal: 20 },
   viewport: { flex: 1, alignItems: 'center' },
   bookPage: { minHeight: 390, padding: 10, gap: 10, backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 22 },
   actionModule: { gap: 8 },

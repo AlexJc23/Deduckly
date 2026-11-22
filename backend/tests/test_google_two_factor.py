@@ -140,8 +140,8 @@ class GoogleFlowTests(unittest.IsolatedAsyncioTestCase):
     def test_password_login_and_two_factor_unchanged(self):
         for enabled in (False,True):
             db=Mock();db.query.return_value.filter.return_value.first.return_value=SimpleNamespace(is_enabled=True) if enabled else None
-            with patch.object(auth,"authenticate_user",return_value=(SimpleNamespace(id=42,email_verified=True),"success")),patch.object(auth,"create_access_token",return_value="full"),patch.object(auth,"create_2fa_token",return_value="temporary"),patch.object(auth,"create_session",return_value="refresh"),patch.object(auth,"create_security_event"),patch.object(auth,"create_analytics_event"):
-                result=auth.login(SimpleNamespace(username="test",password="test"),db)
+            with patch.object(auth,"authenticate_with_cooldown",return_value=(SimpleNamespace(id=42,email_verified=True),"success")),patch.object(auth,"create_access_token",return_value="full"),patch.object(auth,"create_2fa_token",return_value="temporary"),patch.object(auth,"create_session",return_value="refresh"),patch.object(auth,"create_security_event"),patch.object(auth,"create_analytics_event"):
+                result=auth.login(SimpleNamespace(client=SimpleNamespace(host="192.0.2.1")),SimpleNamespace(username="test",password="test"),db)
                 self.assertEqual(result["access_token"],"temporary" if enabled else "full")
                 self.assertEqual("refresh_token" in result,not enabled)
 

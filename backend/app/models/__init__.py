@@ -21,3 +21,5 @@ from .shift import Shift, ShiftPlatformSession, ShiftSegment
 from .vehicle import UserVehicle
 
 from .vehicle_tax import VehicleTaxSetting
+
+from .login_attempt import LoginAttempt

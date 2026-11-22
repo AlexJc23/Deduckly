@@ -1,5 +1,6 @@
 // App-owned interface copy. Brand names, user content, and API values are not translated.
 export const spanish: Record<string, string> = {
+  "Login is on cooldown for {minutes}:{seconds}. Please wait or use Forgot password to reset your password.": "El inicio de sesión está en pausa durante {minutes}:{seconds}. Espera o usa ¿Olvidaste tu contraseña? para restablecerla.",
   "Important legal documents and information related to your use of Deduckly.": "Documentos legales importantes e información sobre el uso de Deduckly.",
   "Defines the rules and conditions for using Deduckly.": "Define las reglas y condiciones para usar Deduckly.",
   "The software license governing your use of the app.": "La licencia de software que rige el uso de la app.",
@@ -382,6 +383,9 @@ export const spanish: Record<string, string> = {
   "We couldn’t finish setup. You can continue and try again in Settings.": "No pudimos completar la configuración. Puedes continuar e intentarlo de nuevo en Ajustes.",
 
   "Offline access": "Acceso sin conexión",
+  "Shift tracking continues offline. Saved drives sync when you reconnect.": "El turno sigue registrando sin conexión. Los recorridos guardados se sincronizan al recuperar la conexión.",
+  "Shift recording needs attention. Open Shift Mode to check tracking.": "El registro del turno requiere atención. Abre Modo turno para revisar el seguimiento.",
+  "Your individual trip is being recorded separately from your Shift.": "Tu viaje individual se está registrando por separado del turno.",
   "Your trips can keep going.": "Tus viajes pueden continuar.",
   "We can’t reach Deduckly right now. GPS tracking still works without internet, and your trips save on this device.": "No podemos conectar con Deduckly ahora. El registro por GPS sigue funcionando sin internet y tus viajes se guardan en este dispositivo.",
   "Ready for your next trip": "Listo para tu próximo viaje",
